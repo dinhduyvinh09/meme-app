@@ -2911,6 +2911,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Text sticker displayed on moment photo (supports @tag)';
 
   @override
+  String get aiAnalyzing => 'Analyzing...';
+
+  @override
   String get expenseNote => 'Transaction note';
 
   @override

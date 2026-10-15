@@ -2912,6 +2912,9 @@ class AppLocalizationsVi extends AppLocalizations {
       'Chữ hiển thị trực tiếp đè lên ảnh khoảnh khắc (hỗ trợ @tag)';
 
   @override
+  String get aiAnalyzing => 'Đang phân tích...';
+
+  @override
   String get expenseNote => 'Ghi chú thu chi';
 
   @override

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/extensions/localization_extension.dart';
 import '../../../core/routes/route_names.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/widgets/custom_button.dart';
-import '../../../core/widgets/custom_text_field.dart';
-import '../../../core/extensions/localization_extension.dart';
+import '../../../core/widgets/meme_logo.dart';
 import '../controllers/auth_controller.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -218,13 +218,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: Theme(
                         data: Theme.of(context).copyWith(
                           colorScheme: isDark
-                              ? ColorScheme.dark(
+                              ? const ColorScheme.dark(
                                   primary: AppColors.primaryBlue,
                                   onPrimary: Colors.white,
-                                  surface: const Color(0xFF1B1D29),
+                                  surface: Color(0xFF1B1D29),
                                   onSurface: Colors.white,
                                 )
-                              : ColorScheme.light(
+                              : const ColorScheme.light(
                                   primary: AppColors.primaryBlue,
                                   onPrimary: Colors.white,
                                   surface: Colors.white,
@@ -394,7 +394,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       Navigator.pushNamedAndRemoveUntil(
         context,
         RouteNames.mainShell,
-            (_) => false,
+        (_) => false,
       );
     }
   }
@@ -405,6 +405,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final auth = context.watch<AuthController>();
     final errorText = localError ?? auth.error;
     final authBusy = auth.isLoading || _primaryAuthBusy;
+    final isDark = AppColors.isDark(context);
     final passwordStrength = _passwordStrength(
       context,
       passwordController.text,
@@ -413,116 +414,125 @@ class _RegisterScreenState extends State<RegisterScreen> {
         passwordController.text.trim() == confirmPasswordController.text.trim();
 
     return Scaffold(
-      backgroundColor: AppColors.background(context),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(
-              AppSizes.pagePadding,
-              20,
-              AppSizes.pagePadding,
-              20,
-            ),
-            child: Column(
-              children: [
-                const _AuthLogo(
-                  icon: Icons.person_add_alt_1_rounded,
-                ),
-                const SizedBox(height: 18),
+      backgroundColor: isDark ? AppColors.darkBackground : const Color(0xFFFBFBFD),
+      body: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
+        child: SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Header with sweeping curve
+              _AuthCurvedHeader(
+                subtitle: l10n.registerSubtitle,
+                showBackButton: true,
+                onBack: () => Navigator.pop(context),
+              ),
 
-                Text(
-                  l10n.createNewAccount,
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.pageTitle(context),
-                ),
-                const SizedBox(height: 8),
+              // Form Body
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 12),
 
-                Text(
-                  l10n.registerSlogan,
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.bodySecondary(context),
-                ),
-                const SizedBox(height: 24),
-
-                _AuthCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.joinMeme,
-                        style: AppTextStyles.pageTitle(context).copyWith(
-                          fontSize: 24,
-                        ),
+                    // Screen Title
+                    Text(
+                      l10n.register,
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary(context),
+                        letterSpacing: -0.6,
                       ),
-                      const SizedBox(height: 8),
+                    ),
+                    const SizedBox(height: 24),
 
-                      Text(
-                        l10n.registerSubtitle,
-                        style: AppTextStyles.bodySecondary(context),
-                      ),
-                      const SizedBox(height: 20),
-
-                      CustomTextField(
+                    // Name Field
+                    _AuthLabeledField(
+                      label: l10n.displayName,
+                      child: TextField(
                         controller: nameController,
-                        hintText: l10n.displayName,
                         textInputAction: TextInputAction.next,
-                        prefixIcon: Icons.badge_outlined,
-                      ),
-                      const SizedBox(height: 12),
-
-                      CustomTextField(
-                        controller: usernameController,
-                        hintText: l10n.username,
-                        textInputAction: TextInputAction.next,
-                        prefixIcon: Icons.alternate_email_rounded,
-                      ),
-                      const SizedBox(height: 8),
-
-                      Padding(
-                        padding: const EdgeInsets.only(left: 4),
-                        child: Text(
-                          l10n.usernameHint,
-                          style: AppTextStyles.caption(context),
+                        cursorColor: AppColors.primaryBlue,
+                        style: TextStyle(
+                          color: AppColors.textPrimary(context),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        decoration: _authInputDecoration(
+                          context,
+                          hintText: 'Nguyễn Văn A',
                         ),
                       ),
-                      const SizedBox(height: 12),
+                    ),
+                    const SizedBox(height: 18),
 
-                      // Ngày sinh (Date of birth)
-                      InkWell(
+                    // Username Field
+                    _AuthLabeledField(
+                      label: l10n.username,
+                      note: l10n.usernameHint,
+                      child: TextField(
+                        controller: usernameController,
+                        textInputAction: TextInputAction.next,
+                        cursorColor: AppColors.primaryBlue,
+                        style: TextStyle(
+                          color: AppColors.textPrimary(context),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        decoration: _authInputDecoration(
+                          context,
+                          hintText: 'nguyenvana',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Date of Birth (Optional)
+                    _AuthLabeledField(
+                      label: l10n.selectBirthday,
+                      note: l10n.birthdayOptional,
+                      child: InkWell(
                         onTap: authBusy ? null : _pickDateOfBirth,
-                        borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+                        borderRadius: BorderRadius.circular(16),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
-                            vertical: 14,
+                            vertical: 16,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.surface(context),
-                            borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+                            color: isDark ? AppColors.darkSurface : Colors.white,
+                            borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: AppColors.innerBorder(context),
+                              width: 1.2,
                             ),
                           ),
                           child: Row(
                             children: [
-                              Icon(
-                                Icons.cake_outlined,
-                                color: _dateOfBirth != null
-                                    ? AppColors.primaryPink
-                                    : AppColors.textSecondary(context),
-                                size: 22,
-                              ),
-                              const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
                                   _dateOfBirth != null
                                       ? DateFormat('dd/MM/yyyy').format(_dateOfBirth!)
-                                      : context.l10n.birthdayOptional,
+                                      : 'DD/MM/YYYY',
                                   style: _dateOfBirth != null
-                                      ? AppTextStyles.body(context).copyWith(
+                                      ? TextStyle(
+                                          fontSize: 15,
                                           fontWeight: FontWeight.w600,
+                                          color: AppColors.textPrimary(context),
                                         )
-                                      : AppTextStyles.bodySecondary(context),
+                                      : TextStyle(
+                                          fontSize: 14.5,
+                                          fontWeight: FontWeight.w500,
+                                          color: AppColors.textSecondary(context)
+                                              .withValues(alpha: 0.55),
+                                        ),
                                 ),
                               ),
                               if (_dateOfBirth != null)
@@ -534,194 +544,446 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   },
                                   child: Icon(
                                     Icons.close_rounded,
-                                    size: 18,
+                                    size: 20,
                                     color: AppColors.textSecondary(context),
                                   ),
                                 )
                               else
                                 Icon(
                                   Icons.calendar_today_rounded,
-                                  size: 18,
+                                  size: 19,
                                   color: AppColors.textSecondary(context),
                                 ),
                             ],
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                    ),
+                    const SizedBox(height: 18),
 
-                      CustomTextField(
+                    // Email Field
+                    _AuthLabeledField(
+                      label: l10n.email,
+                      child: TextField(
                         controller: emailController,
-                        hintText: l10n.email,
                         keyboardType: TextInputType.emailAddress,
                         textInputAction: TextInputAction.next,
-                        prefixIcon: Icons.email_outlined,
-                      ),
-                      const SizedBox(height: 12),
-
-                      _PasswordTextField(
-                        controller: passwordController,
-                        hintText: l10n.password,
-                        obscureText: _obscurePassword,
-                        textInputAction: TextInputAction.next,
-                        onChanged: (_) => setState(() {}),
-                        onToggleObscure: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 10),
-
-                      _PasswordStrengthView(
-                        strength: passwordStrength,
-                      ),
-                      const SizedBox(height: 12),
-
-                      _PasswordTextField(
-                        controller: confirmPasswordController,
-                        hintText: l10n.confirmPassword,
-                        obscureText: _obscureConfirmPassword,
-                        textInputAction: TextInputAction.done,
-                        onChanged: (_) => setState(() {}),
-                        suffixStatusIcon: confirmPasswordController.text.trim().isEmpty
-                            ? null
-                            : passwordsMatch
-                            ? Icons.check_circle_rounded
-                            : Icons.error_rounded,
-                        suffixStatusColor: passwordsMatch
-                            ? AppColors.income
-                            : AppColors.expense,
-                        onToggleObscure: () {
-                          setState(() {
-                            _obscureConfirmPassword = !_obscureConfirmPassword;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 8),
-
-                      Padding(
-                        padding: const EdgeInsets.only(left: 4),
-                        child: Text(
-                          l10n.passwordRequirementHint,
-                          style: AppTextStyles.caption(context),
+                        cursorColor: AppColors.primaryBlue,
+                        style: TextStyle(
+                          color: AppColors.textPrimary(context),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        decoration: _authInputDecoration(
+                          context,
+                          hintText: 'name@example.com',
                         ),
                       ),
-                      const SizedBox(height: 16),
+                    ),
+                    const SizedBox(height: 18),
 
-                      if (errorText != null && errorText.trim().isNotEmpty) ...[
-                        _AuthErrorBox(text: errorText),
-                        const SizedBox(height: 14),
-                      ],
-
-                      CustomButton(
-                        text: l10n.register,
-                        isLoading: auth.isLoading,
-                        onPressedAsync: () => _register(auth),
-                        onBusyChanged: (busy) =>
-                            setState(() => _primaryAuthBusy = busy),
-                      ),
-                      const SizedBox(height: 14),
-
-                      Center(
-                        child: TextButton(
-                          onPressed: authBusy
-                              ? null
-                              : () {
-                            Navigator.pop(context);
-                          },
-                          child: RichText(
-                            text: TextSpan(
-                              style: AppTextStyles.bodySecondary(context),
-                              children: [
-                                TextSpan(text: l10n.alreadyHaveAccount),
-                                TextSpan(
-                                  text: l10n.login,
-                                  style: const TextStyle(
-                                    color: AppColors.primaryBlue,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                              ],
+                    // Password Field
+                    _AuthLabeledField(
+                      label: l10n.password,
+                      child: TextField(
+                        controller: passwordController,
+                        obscureText: _obscurePassword,
+                        textInputAction: TextInputAction.next,
+                        cursorColor: AppColors.primaryBlue,
+                        onChanged: (_) => setState(() {}),
+                        style: TextStyle(
+                          color: AppColors.textPrimary(context),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        decoration: _authInputDecoration(
+                          context,
+                          hintText: '••••••••',
+                          suffixIcon: IconButton(
+                            tooltip: _obscurePassword
+                                ? l10n.showPassword
+                                : l10n.hidePassword,
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
+                              color: AppColors.textSecondary(context),
+                              size: 20,
                             ),
                           ),
                         ),
                       ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Password Strength Indicator
+                    _PasswordStrengthView(
+                      strength: passwordStrength,
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Confirm Password Field
+                    _AuthLabeledField(
+                      label: l10n.confirmPassword,
+                      child: TextField(
+                        controller: confirmPasswordController,
+                        obscureText: _obscureConfirmPassword,
+                        textInputAction: TextInputAction.done,
+                        cursorColor: AppColors.primaryBlue,
+                        onChanged: (_) => setState(() {}),
+                        style: TextStyle(
+                          color: AppColors.textPrimary(context),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        decoration: _authInputDecoration(
+                          context,
+                          hintText: '••••••••',
+                          suffixIcon: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (confirmPasswordController.text.trim().isNotEmpty) ...[
+                                Icon(
+                                  passwordsMatch
+                                      ? Icons.check_circle_rounded
+                                      : Icons.error_rounded,
+                                  color: passwordsMatch
+                                      ? AppColors.income
+                                      : AppColors.expense,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 4),
+                              ],
+                              IconButton(
+                                tooltip: _obscureConfirmPassword
+                                    ? l10n.showPassword
+                                    : l10n.hidePassword,
+                                onPressed: () {
+                                  setState(() {
+                                    _obscureConfirmPassword = !_obscureConfirmPassword;
+                                  });
+                                },
+                                icon: Icon(
+                                  _obscureConfirmPassword
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                  color: AppColors.textSecondary(context),
+                                  size: 20,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    if (errorText != null && errorText.trim().isNotEmpty) ...[
+                      const SizedBox(height: 14),
+                      _AuthErrorBox(text: errorText),
                     ],
+
+                    const SizedBox(height: 24),
+
+                    // Register Button
+                    CustomButton(
+                      text: l10n.register,
+                      isLoading: auth.isLoading,
+                      backgroundColor: isDark
+                          ? AppColors.primaryBlue
+                          : const Color(0xFF121520),
+                      foregroundColor: Colors.white,
+                      borderRadius: 27,
+                      height: 54,
+                      onPressedAsync: () => _register(auth),
+                      onBusyChanged: (busy) =>
+                          setState(() => _primaryAuthBusy = busy),
+                    ),
+
+                    // Bottom Link to Login
+                    SafeArea(
+                      top: false,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        child: Center(
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: authBusy ? null : () => Navigator.pop(context),
+                            child: RichText(
+                              text: TextSpan(
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.textSecondary(context),
+                                ),
+                                children: [
+                                  TextSpan(text: l10n.alreadyHaveAccount),
+                                  TextSpan(
+                                    text: l10n.login,
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? AppColors.primaryBlue
+                                          : const Color(0xFF121520),
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AuthCurvedHeader extends StatelessWidget {
+  final String subtitle;
+  final bool showBackButton;
+  final VoidCallback? onBack;
+
+  const _AuthCurvedHeader({
+    required this.subtitle,
+    this.showBackButton = false,
+    this.onBack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final topPadding = MediaQuery.of(context).padding.top;
+    final isDark = AppColors.isDark(context);
+    final headerColor = isDark ? const Color(0xFF141724) : const Color(0xFF121520);
+    final headerHeight = topPadding + 165.0;
+
+    return SizedBox(
+      height: headerHeight,
+      width: double.infinity,
+      child: Stack(
+        children: [
+          // Background with organic curve
+          Positioned.fill(
+            child: ClipPath(
+              clipper: const _CurvedHeaderClipper(),
+              child: Container(
+                color: headerColor,
+              ),
+            ),
+          ),
+          // Header Content
+          Positioned(
+            top: topPadding + (showBackButton ? 6 : 14),
+            left: 24,
+            right: 24,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (showBackButton)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: GestureDetector(
+                      onTap: onBack ?? () => Navigator.pop(context),
+                      behavior: HitTestBehavior.opaque,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.arrow_back_rounded,
+                          color: Colors.white,
+                          size: 19,
+                        ),
+                      ),
+                    ),
                   ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const MemeLogo(
+                      height: 28,
+                      showSubtitle: false,
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'MEME',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 2.2,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.78),
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w500,
+                    height: 1.35,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _AuthLogo extends StatelessWidget {
-  final IconData icon;
-
-  const _AuthLogo({
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 94,
-      height: 94,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: AppColors.primaryBlue,
-        border: Border.all(
-          color: Colors.white.withValues(
-            alpha: AppColors.isDark(context) ? 0.14 : 0.92,
-          ),
-          width: 3,
-        ),
-      ),
-      child: Icon(
-        icon,
-        color: Colors.white,
-        size: 42,
-      ),
-    );
-  }
-}
-
-class _AuthCard extends StatelessWidget {
-  final Widget child;
-
-  const _AuthCard({
-    required this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 480),
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(18, 22, 18, 18),
-      decoration: BoxDecoration(
-        color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(AppSizes.radiusXLarge),
-        border: Border.all(
-          color: AppColors.border(context),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(
-              alpha: AppColors.isDark(context) ? 0.16 : 0.05,
-            ),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
-          ),
         ],
       ),
-      child: child,
     );
   }
+}
+
+class _CurvedHeaderClipper extends CustomClipper<Path> {
+  const _CurvedHeaderClipper();
+
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    path.lineTo(0, size.height * 0.74);
+
+    path.cubicTo(
+      size.width * 0.28,
+      size.height * 0.98,
+      size.width * 0.64,
+      size.height * 0.85,
+      size.width,
+      size.height * 0.28,
+    );
+
+    path.lineTo(size.width, 0);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
+}
+
+class _AuthLabeledField extends StatelessWidget {
+  final String label;
+  final Widget child;
+  final String? note;
+
+  const _AuthLabeledField({
+    required this.label,
+    required this.child,
+    this.note,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary(context),
+                letterSpacing: -0.2,
+              ),
+            ),
+            if (note != null)
+              Flexible(
+                child: Text(
+                  note!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary(context),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        child,
+      ],
+    );
+  }
+}
+
+InputDecoration _authInputDecoration(
+  BuildContext context, {
+  required String hintText,
+  Widget? suffixIcon,
+}) {
+  final isDark = AppColors.isDark(context);
+
+  return InputDecoration(
+    hintText: hintText,
+    hintStyle: TextStyle(
+      fontSize: 14.5,
+      fontWeight: FontWeight.w500,
+      color: AppColors.textSecondary(context).withValues(alpha: 0.55),
+    ),
+    suffixIcon: suffixIcon,
+    filled: true,
+    fillColor: isDark ? AppColors.darkSurface : Colors.white,
+    contentPadding: const EdgeInsets.symmetric(
+      horizontal: 16,
+      vertical: 16,
+    ),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: BorderSide(
+        color: AppColors.innerBorder(context),
+        width: 1.2,
+      ),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: BorderSide(
+        color: AppColors.innerBorder(context),
+        width: 1.2,
+      ),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: BorderSide(
+        color: isDark ? AppColors.primaryBlue : const Color(0xFF121520),
+        width: 1.5,
+      ),
+    ),
+    errorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: const BorderSide(
+        color: AppColors.expense,
+        width: 1.2,
+      ),
+    ),
+    focusedErrorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: const BorderSide(
+        color: AppColors.expense,
+        width: 1.5,
+      ),
+    ),
+  );
 }
 
 class _PasswordStrength {
@@ -738,102 +1000,6 @@ class _PasswordStrength {
   });
 }
 
-class _PasswordTextField extends StatelessWidget {
-  final TextEditingController controller;
-  final String hintText;
-  final bool obscureText;
-  final TextInputAction textInputAction;
-  final ValueChanged<String>? onChanged;
-  final VoidCallback onToggleObscure;
-  final IconData? suffixStatusIcon;
-  final Color? suffixStatusColor;
-
-  const _PasswordTextField({
-    required this.controller,
-    required this.hintText,
-    required this.obscureText,
-    required this.textInputAction,
-    required this.onToggleObscure,
-    this.onChanged,
-    this.suffixStatusIcon,
-    this.suffixStatusColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      obscureText: obscureText,
-      textInputAction: textInputAction,
-      onChanged: onChanged,
-      cursorColor: AppColors.primaryBlue,
-      style: AppTextStyles.body(context).copyWith(
-        fontWeight: FontWeight.w700,
-      ),
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: AppTextStyles.bodySecondary(context).copyWith(
-          fontWeight: FontWeight.w600,
-        ),
-        prefixIcon: Icon(
-          Icons.lock_outline_rounded,
-          color: AppColors.textSecondary(context),
-        ),
-        suffixIcon: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (suffixStatusIcon != null) ...[
-              Icon(
-                suffixStatusIcon,
-                color: suffixStatusColor,
-                size: 20,
-              ),
-              const SizedBox(width: 2),
-            ],
-            IconButton(
-              tooltip: obscureText
-                  ? context.l10n.showPassword
-                  : context.l10n.hidePassword,
-              onPressed: onToggleObscure,
-              icon: Icon(
-                obscureText
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined,
-                color: AppColors.textSecondary(context),
-              ),
-            ),
-          ],
-        ),
-        filled: true,
-        fillColor: AppColors.surface(context),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-          borderSide: BorderSide(
-            color: AppColors.innerBorder(context),
-          ),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-          borderSide: BorderSide(
-            color: AppColors.innerBorder(context),
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-          borderSide: const BorderSide(
-            color: AppColors.primaryBlue,
-            width: 1.3,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _PasswordStrengthView extends StatelessWidget {
   final _PasswordStrength strength;
 
@@ -844,24 +1010,25 @@ class _PasswordStrengthView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
       decoration: BoxDecoration(
         color: strength.color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: strength.color.withValues(alpha: 0.18),
         ),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Icon(
                 Icons.shield_outlined,
                 color: strength.color,
-                size: 17,
+                size: 16,
               ),
-              const SizedBox(width: 7),
+              const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   context.l10n.passwordStrengthTitle(strength.label),
@@ -870,38 +1037,32 @@ class _PasswordStrengthView extends StatelessWidget {
                   style: TextStyle(
                     color: strength.color,
                     fontSize: 13,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 9),
+          const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(999),
             child: LinearProgressIndicator(
               value: strength.progress,
-              minHeight: 6,
+              minHeight: 5,
               backgroundColor: AppColors.innerBorder(context),
               valueColor: AlwaysStoppedAnimation<Color>(
                 strength.color,
               ),
             ),
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  strength.description,
-                  style: AppTextStyles.caption(context).copyWith(
-                    fontSize: 12.5,
-                    height: 1.25,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
+          const SizedBox(height: 6),
+          Text(
+            strength.description,
+            style: AppTextStyles.caption(context).copyWith(
+              fontSize: 12,
+              height: 1.25,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
@@ -925,12 +1086,12 @@ class _AuthErrorBox extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(
-        horizontal: 12,
+        horizontal: 14,
         vertical: 12,
       ),
       decoration: BoxDecoration(
-        color: AppColors.expense.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.expense.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: AppColors.expense.withValues(alpha: 0.22),
         ),

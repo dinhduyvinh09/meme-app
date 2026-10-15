@@ -1861,6 +1861,7 @@
   "photoCaption": "Tiêu đề ảnh (Caption)",
   "photoCaptionHint": "Thêm chữ hiển thị trên ảnh...",
   "photoCaptionSub": "Chữ hiển thị trực tiếp đè lên ảnh khoảnh khắc (hỗ trợ @tag)",
+  "aiAnalyzing": "Đang phân tích...",
   "expenseNote": "Ghi chú thu chi",
   "expenseNoteHint": "Ghi chú chi tiết cho sổ thu chi...",
   "expenseNoteSub": "Lưu vào sổ thu chi, không hiển thị đè lên ảnh",

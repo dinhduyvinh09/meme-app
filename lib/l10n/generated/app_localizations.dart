@@ -5109,6 +5109,12 @@ abstract class AppLocalizations {
   /// **'Chữ hiển thị trực tiếp đè lên ảnh khoảnh khắc (hỗ trợ @tag)'**
   String get photoCaptionSub;
 
+  /// No description provided for @aiAnalyzing.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang phân tích...'**
+  String get aiAnalyzing;
+
   /// No description provided for @expenseNote.
   ///
   /// In vi, this message translates to:

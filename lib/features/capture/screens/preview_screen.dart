@@ -17,6 +17,7 @@ import '../../../core/constants/app_sizes.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/routes/route_names.dart';
 import '../../../core/services/post_publishing_service.dart';
+import '../../../core/services/tflite_service.dart';
 import '../../../core/utils/app_toast.dart';
 import '../../../core/utils/budget_name_localizer.dart';
 import '../../../core/utils/currency_formatter.dart';
@@ -33,6 +34,7 @@ import '../../../data/models/failed_post_model.dart';
 import '../controllers/capture_controller.dart';
 import '../widgets/amount_calculator_keypad_sheet.dart';
 import 'camera_screen.dart';
+import '../../../services/genz_caption_service.dart';
 
 class PreviewScreen extends StatefulWidget {
   final File? imageFile;
@@ -74,6 +76,10 @@ class _PreviewScreenState extends State<PreviewScreen> {
   final amountController = TextEditingController();
   final captionController = TextEditingController();
   final ValueNotifier<bool> _hasAmountNotifier = ValueNotifier<bool>(false);
+
+  bool _isAutoSuggestedCaption = false;
+  bool _isProgrammaticCaptionUpdate = false;
+  String _lastCaptionText = '';
 
   static const int kMaxAmountDigits = 12;
   static const double kMaxAmountValue = 999999999999;
@@ -118,6 +124,8 @@ class _PreviewScreenState extends State<PreviewScreen> {
   bool _loadedBudgets = false;
   bool _loadedUserCategories = false;
   bool _submitTapBusy = false;
+  bool _isAiClassifying = false;
+  bool _userSelectedCategoryManually = false;
 
   void _openCalculatorKeypad() {
     FocusScope.of(context).unfocus();
@@ -269,6 +277,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
       case 'shopping':
         return 'Mua sắm';
       case 'đi lại':
+      case 'di chuyển':
       case 'transport':
         return 'Đi lại';
       case 'học tập':
@@ -333,6 +342,8 @@ class _PreviewScreenState extends State<PreviewScreen> {
   @override
   void initState() {
     super.initState();
+    _lastCaptionText = captionController.text;
+    captionController.addListener(_onCaptionUserChanged);
     if (widget.initialType != null) {
       type = widget.initialType!;
     }
@@ -353,6 +364,9 @@ class _PreviewScreenState extends State<PreviewScreen> {
     }
     _prepareVideoIfNeeded();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _autoClassifyCategory();
+      }
       final uid = context.read<AuthController>().user?.uid;
       if (uid != null && uid.isNotEmpty) {
         final userRepo = context.read<UserRepository>();
@@ -412,6 +426,53 @@ class _PreviewScreenState extends State<PreviewScreen> {
     }
   }
 
+  /// Maps Teachable Machine labels to Meme's canonical category names.
+  static const Map<String, String> _aiLabelToCategory = {
+    'Di chuyển': 'Đi lại',
+    'Giáo dục': 'Học tập',
+  };
+
+  /// Runs the offline TFLite classifier on the captured/picked image and
+  /// pre-selects the category when the AI is confident enough.
+  Future<void> _autoClassifyCategory() async {
+    final file = widget.imageFile;
+    if (file == null || widget.isGroupContribution) return;
+
+    setState(() => _isAiClassifying = true);
+    try {
+      final result = await TFLiteService.instance.classifyImage(file.path);
+      if (!mounted) return;
+
+      if (_userSelectedCategoryManually) {
+        return;
+      }
+
+      if (result.confidence < 0.40) {
+        return;
+      }
+
+      final mapped = _aiLabelToCategory[result.label] ?? result.label;
+      final canonical = _toCanonicalCategory(mapped);
+
+      setState(() {
+        // 'Lương' / 'Quà tặng' are income categories in Meme — keep type and
+        // category consistent the same way the type toggle does.
+        if ((canonical == 'Lương' || canonical == 'Quà tặng') &&
+            type != 'income' &&
+            !widget.lockType) {
+          type = 'income';
+        }
+      });
+      _onCategoryChanged(canonical);
+    } catch (e) {
+      debugPrint('AI category classify error: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isAiClassifying = false);
+      }
+    }
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -439,6 +500,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
 
   @override
   void dispose() {
+    captionController.removeListener(_onCaptionUserChanged);
     _previewScrollController.dispose();
     _hasAmountNotifier.dispose();
     _friendsSub?.cancel();
@@ -448,6 +510,101 @@ class _PreviewScreenState extends State<PreviewScreen> {
     captionController.dispose();
     _videoController?.dispose();
     super.dispose();
+  }
+
+  String get _currentLanguageCode {
+    try {
+      final code = Localizations.localeOf(context).languageCode.toLowerCase();
+      return code == 'en' ? 'en' : 'vi';
+    } catch (_) {
+      try {
+        final code = context.read<ProfileController>().languageCode.toLowerCase();
+        return code == 'en' ? 'en' : 'vi';
+      } catch (_) {
+        return 'vi';
+      }
+    }
+  }
+
+  void _onCaptionUserChanged() {
+    final currentText = captionController.text;
+    if (currentText != _lastCaptionText) {
+      _lastCaptionText = currentText;
+      if (!_isProgrammaticCaptionUpdate) {
+        _isAutoSuggestedCaption = false;
+      }
+    }
+  }
+
+  void _handleMagicWandTap() {
+    final lang = _currentLanguageCode;
+    final canonicalCategory = isContribution ? 'Quỹ nhóm' : _toCanonicalCategory(category);
+    final currentText = captionController.text;
+    final String newCaption;
+    if (currentText.trim().isEmpty) {
+      newCaption = GenZCaptionService.instance.getDefaultCaption(canonicalCategory, lang);
+    } else {
+      newCaption = GenZCaptionService.instance.transformToGenZ(currentText, canonicalCategory, lang);
+    }
+
+    _isProgrammaticCaptionUpdate = true;
+    _lastCaptionText = newCaption;
+    captionController.value = TextEditingValue(
+      text: newCaption,
+      selection: TextSelection.collapsed(offset: newCaption.length),
+    );
+    _isProgrammaticCaptionUpdate = false;
+    _isAutoSuggestedCaption = true;
+  }
+
+  void _onCategoryChanged(String newCategory) {
+    if (category == newCategory) return;
+    setState(() {
+      category = newCategory;
+    });
+
+    if (_isAutoSuggestedCaption && captionController.text.trim().isNotEmpty) {
+      final lang = _currentLanguageCode;
+      final canonical = isContribution ? 'Quỹ nhóm' : _toCanonicalCategory(newCategory);
+      final newCaption = GenZCaptionService.instance.getDefaultCaption(canonical, lang);
+      _isProgrammaticCaptionUpdate = true;
+      _lastCaptionText = newCaption;
+      captionController.value = TextEditingValue(
+        text: newCaption,
+        selection: TextSelection.collapsed(offset: newCaption.length),
+      );
+      _isProgrammaticCaptionUpdate = false;
+      _isAutoSuggestedCaption = true;
+    }
+  }
+
+  /// Xử lý kết quả từ luồng OCR (nếu có):
+  /// - Nếu đọc được chữ: điền nội dung OCR vào ô Caption.
+  /// - Nếu không có kết quả: gọi getDefaultCaption(category, languageCode).
+  void applyOcrResult(String? recognizedText) {
+    final trimmed = recognizedText?.trim() ?? '';
+    if (trimmed.isNotEmpty) {
+      _isProgrammaticCaptionUpdate = true;
+      _lastCaptionText = trimmed;
+      captionController.value = TextEditingValue(
+        text: trimmed,
+        selection: TextSelection.collapsed(offset: trimmed.length),
+      );
+      _isProgrammaticCaptionUpdate = false;
+      _isAutoSuggestedCaption = false;
+    } else {
+      final lang = _currentLanguageCode;
+      final canonical = isContribution ? 'Quỹ nhóm' : _toCanonicalCategory(category);
+      final defaultCaption = GenZCaptionService.instance.getDefaultCaption(canonical, lang);
+      _isProgrammaticCaptionUpdate = true;
+      _lastCaptionText = defaultCaption;
+      captionController.value = TextEditingValue(
+        text: defaultCaption,
+        selection: TextSelection.collapsed(offset: defaultCaption.length),
+      );
+      _isProgrammaticCaptionUpdate = false;
+      _isAutoSuggestedCaption = true;
+    }
   }
 
   List<String> _mergedExpenseCategoryLabels(
@@ -938,8 +1095,22 @@ class _PreviewScreenState extends State<PreviewScreen> {
       effectiveCloseFriends = _selectedFriendUids.toList();
     }
 
-    final currentCaption = captionController.text.trim();
     final canonicalCategory = isContribution ? 'Quỹ nhóm' : _toCanonicalCategory(category);
+
+    var currentCaption = captionController.text.trim();
+    if (currentCaption.isEmpty) {
+      final lang = _currentLanguageCode;
+      final defaultCaption = GenZCaptionService.instance.getDefaultCaption(canonicalCategory, lang);
+      currentCaption = defaultCaption;
+      _isProgrammaticCaptionUpdate = true;
+      _lastCaptionText = defaultCaption;
+      captionController.value = TextEditingValue(
+        text: defaultCaption,
+        selection: TextSelection.collapsed(offset: defaultCaption.length),
+      );
+      _isProgrammaticCaptionUpdate = false;
+    }
+
     final mediaFile = widget.imageFile ?? widget.videoFile;
 
     // Create draft failed post in local persistent storage so it persists if offline/error
@@ -1095,11 +1266,13 @@ class _PreviewScreenState extends State<PreviewScreen> {
                     InkWell(
                       onTap: () {
                         HapticFeedback.selectionClick();
+                        final isBudget = item['isCustomBudget'] == true;
+                        final newCategory = isBudget ? label : _toCanonicalCategory(label);
                         setState(() {
-                          final isBudget = item['isCustomBudget'] == true;
-                          category = isBudget ? label : _toCanonicalCategory(label);
+                          _userSelectedCategoryManually = true;
                           categoryOpen = false;
                         });
+                        _onCategoryChanged(newCategory);
                       },
                       child: Container(
                         height: 46,
@@ -1284,17 +1457,19 @@ class _PreviewScreenState extends State<PreviewScreen> {
       if (type == 'expense') return;
 
       final categories = expenseCategoriesForAction();
+      final currentCanonical = _toCanonicalCategory(category);
+      final newCategory = categories.any(
+        (item) => _toCanonicalCategory(item) == currentCanonical,
+      )
+          ? currentCanonical
+          : _toCanonicalCategory(categories.first);
 
       setState(() {
+        _userSelectedCategoryManually = true;
         type = 'expense';
-        final currentCanonical = _toCanonicalCategory(category);
-        category = categories.any(
-          (item) => _toCanonicalCategory(item) == currentCanonical,
-        )
-            ? currentCanonical
-            : _toCanonicalCategory(categories.first);
         categoryOpen = false;
       });
+      _onCategoryChanged(newCategory);
 
       _onAmountChanged(amountController.text);
     }
@@ -1303,17 +1478,19 @@ class _PreviewScreenState extends State<PreviewScreen> {
       if (type == 'income') return;
 
       final categories = incomeCategoriesForAction();
+      final currentCanonical = _toCanonicalCategory(category);
+      final newCategory = categories.any(
+        (item) => _toCanonicalCategory(item) == currentCanonical,
+      )
+          ? currentCanonical
+          : _toCanonicalCategory(categories.first);
 
       setState(() {
+        _userSelectedCategoryManually = true;
         type = 'income';
-        final currentCanonical = _toCanonicalCategory(category);
-        category = categories.any(
-          (item) => _toCanonicalCategory(item) == currentCanonical,
-        )
-            ? currentCanonical
-            : _toCanonicalCategory(categories.first);
         categoryOpen = false;
       });
+      _onCategoryChanged(newCategory);
 
       _onAmountChanged(amountController.text);
     }
@@ -1493,6 +1670,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
                     accentColor: accentColor,
                     amountController: amountController,
                     captionController: captionController,
+                    category: category,
                     amountPrefix: isContribution ? '+' : (type == 'expense' ? '-' : '+'),
                     currency: currency,
                     onTapAmount: _openCalculatorKeypad,
@@ -1506,6 +1684,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
                     groupRemainingBalance: (privacy == 'group' && type == 'expense' && !isContribution)
                         ? _currentGroupRemainingBalance
                         : null,
+                    onMagicWandTap: _handleMagicWandTap,
                   ),
                 ),
               ),
@@ -1554,18 +1733,30 @@ class _PreviewScreenState extends State<PreviewScreen> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(
-                                    currentCategoryIcon,
-                                    color: currentCategoryColor,
-                                    size: 16,
-                                  ),
+                                  if (_isAiClassifying)
+                                    const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  else
+                                    Icon(
+                                      currentCategoryIcon,
+                                      color: currentCategoryColor,
+                                      size: 16,
+                                    ),
                                   const SizedBox(width: 8),
                                   ConstrainedBox(
                                     constraints: BoxConstraints(
                                       maxWidth: previewSize * 0.52,
                                     ),
                                     child: Text(
-                                      _localizedCategoryLabel(category),
+                                      _isAiClassifying
+                                          ? context.l10n.aiAnalyzing
+                                          : _localizedCategoryLabel(category),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
@@ -1771,10 +1962,10 @@ class _PreviewScreenState extends State<PreviewScreen> {
                                   _selectedGroupId = null;
                                   _selectedGroupName = null;
                                   _selectedGroupMemberIds = [];
-                                  if (category == 'Quỹ nhóm' || category == 'Group Fund') {
-                                    category = 'Ăn uống';
-                                  }
                                 });
+                                if (category == 'Quỹ nhóm' || category == 'Group Fund') {
+                                  _onCategoryChanged('Ăn uống');
+                                }
                                 _notifyPrivacyTagAdjustmentIfNeeded('private');
                               },
                               onAllFriendsSelected: () {
@@ -1784,10 +1975,10 @@ class _PreviewScreenState extends State<PreviewScreen> {
                                   _selectedGroupId = null;
                                   _selectedGroupName = null;
                                   _selectedGroupMemberIds = [];
-                                  if (category == 'Quỹ nhóm' || category == 'Group Fund') {
-                                    category = 'Ăn uống';
-                                  }
                                 });
+                                if (category == 'Quỹ nhóm' || category == 'Group Fund') {
+                                  _onCategoryChanged('Ăn uống');
+                                }
                                 _notifyPrivacyTagAdjustmentIfNeeded('friends');
                               },
                               onCloseFriendsSelected: () {
@@ -1798,10 +1989,10 @@ class _PreviewScreenState extends State<PreviewScreen> {
                                   _selectedGroupMemberIds = [];
                                   _selectedFriendUids.clear();
                                   _selectedFriendUids.addAll(_closeFriendUids);
-                                  if (category == 'Quỹ nhóm' || category == 'Group Fund') {
-                                    category = 'Ăn uống';
-                                  }
                                 });
+                                if (category == 'Quỹ nhóm' || category == 'Group Fund') {
+                                  _onCategoryChanged('Ăn uống');
+                                }
                                 _notifyPrivacyTagAdjustmentIfNeeded('close_friends');
                               },
                               onGroupSelected: (group) {
@@ -1836,11 +2027,10 @@ class _PreviewScreenState extends State<PreviewScreen> {
                                     _selectedFriendUids.add(fUid);
                                     privacy = 'friends_custom';
                                   }
-
-                                  if (category == 'Quỹ nhóm' || category == 'Group Fund') {
-                                    category = 'Ăn uống';
-                                  }
                                 });
+                                if (category == 'Quỹ nhóm' || category == 'Group Fund') {
+                                  _onCategoryChanged('Ăn uống');
+                                }
                                 _notifyPrivacyTagAdjustmentIfNeeded(privacy);
                               },
                               isDark: true,
@@ -2158,6 +2348,7 @@ class _InputOverlayCard extends StatefulWidget {
   final Color accentColor;
   final TextEditingController amountController;
   final TextEditingController captionController;
+  final String category;
   final String amountPrefix;
   final String currency;
   final VoidCallback onTapAmount;
@@ -2169,11 +2360,13 @@ class _InputOverlayCard extends StatefulWidget {
   final List<String> closeFriendUids;
   final List<String> groupMemberIds;
   final double? groupRemainingBalance;
+  final VoidCallback? onMagicWandTap;
 
   const _InputOverlayCard({
     required this.accentColor,
     required this.amountController,
     required this.captionController,
+    this.category = 'Ăn uống',
     required this.amountPrefix,
     required this.currency,
     required this.onTapAmount,
@@ -2185,6 +2378,7 @@ class _InputOverlayCard extends StatefulWidget {
     this.closeFriendUids = const [],
     this.groupMemberIds = const [],
     this.groupRemainingBalance,
+    this.onMagicWandTap,
   });
 
   @override
@@ -2193,6 +2387,7 @@ class _InputOverlayCard extends StatefulWidget {
 
 class _InputOverlayCardState extends State<_InputOverlayCard> {
   String? _activeMentionQuery;
+  late final FocusNode _captionFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -2203,9 +2398,37 @@ class _InputOverlayCardState extends State<_InputOverlayCard> {
 
   @override
   void dispose() {
+    _captionFocusNode.dispose();
     widget.captionController.removeListener(_checkMentionQuery);
     widget.amountController.removeListener(_onAmountChangedInternal);
     super.dispose();
+  }
+
+  void _handleMagicWandTap() {
+    HapticFeedback.lightImpact();
+    if (widget.onMagicWandTap != null) {
+      widget.onMagicWandTap!();
+    } else {
+      final lang = Localizations.localeOf(context).languageCode.toLowerCase() == 'en' ? 'en' : 'vi';
+      final currentText = widget.captionController.text;
+      final String newCaption;
+      if (currentText.trim().isEmpty) {
+        newCaption = GenZCaptionService.instance.getDefaultCaption(widget.category, lang);
+      } else {
+        newCaption = GenZCaptionService.instance.transformToGenZ(currentText, widget.category, lang);
+      }
+
+      if (!mounted) return;
+
+      widget.captionController.value = TextEditingValue(
+        text: newCaption,
+        selection: TextSelection.collapsed(offset: newCaption.length),
+      );
+    }
+
+    if (!_captionFocusNode.hasFocus) {
+      _captionFocusNode.requestFocus();
+    }
   }
 
   void _onAmountChangedInternal() {
@@ -2488,6 +2711,7 @@ class _InputOverlayCardState extends State<_InputOverlayCard> {
 
                     TextField(
                       controller: widget.captionController,
+                      focusNode: _captionFocusNode,
                       onTap: widget.onTapCaption,
                       textAlign: TextAlign.center,
                       textAlignVertical: TextAlignVertical.center,
@@ -2520,6 +2744,20 @@ class _InputOverlayCardState extends State<_InputOverlayCard> {
                           color: Colors.white.withValues(alpha: 0.50),
                           fontWeight: FontWeight.w600,
                           fontSize: 14.5,
+                        ),
+                        suffixIconConstraints: const BoxConstraints(
+                          minWidth: 42,
+                          minHeight: 36,
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            Icons.auto_fix_high,
+                            color: Colors.white.withValues(alpha: 0.85),
+                            size: 19,
+                          ),
+                          splashRadius: 18,
+                          tooltip: 'Gen Z Caption',
+                          onPressed: _handleMagicWandTap,
                         ),
                         filled: false,
                         fillColor: Colors.transparent,

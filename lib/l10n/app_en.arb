@@ -1861,6 +1861,7 @@
   "photoCaption": "Photo caption",
   "photoCaptionHint": "Add caption to show on photo...",
   "photoCaptionSub": "Text sticker displayed on moment photo (supports @tag)",
+  "aiAnalyzing": "Analyzing...",
   "expenseNote": "Transaction note",
   "expenseNoteHint": "Detailed note for your expense record...",
   "expenseNoteSub": "Saved in transaction record, not shown on photo",
