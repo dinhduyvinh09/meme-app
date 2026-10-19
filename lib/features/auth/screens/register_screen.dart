@@ -9,8 +9,8 @@ import '../../../core/extensions/localization_extension.dart';
 import '../../../core/routes/route_names.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/widgets/custom_button.dart';
-import '../../../core/widgets/meme_logo.dart';
 import '../controllers/auth_controller.dart';
+import '../widgets/auth_curved_header.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -53,7 +53,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return _PasswordStrength(
         label: l10n.passwordStrengthNone,
         progress: 0,
-        color: AppColors.textSecondary(context),
+        color: const Color(0xFF74788A),
         description: l10n.passwordDescEmpty,
       );
     }
@@ -125,7 +125,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     FocusScope.of(context).unfocus();
     final now = DateTime.now();
     DateTime tempDate = _dateOfBirth ?? DateTime(now.year, now.month, now.day);
-    final isDark = AppColors.isDark(context);
     final l10n = context.l10n;
 
     final picked = await showModalBottomSheet<DateTime>(
@@ -138,15 +137,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
             return Container(
               margin: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1B1D29) : Colors.white,
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(28),
                 border: Border.all(
-                  color: isDark ? Colors.white12 : Colors.black12,
+                  color: Colors.black12,
                   width: 0.8,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.25),
+                    color: Colors.black.withValues(alpha: 0.20),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),
@@ -162,7 +161,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       width: 40,
                       height: 4.5,
                       decoration: BoxDecoration(
-                        color: isDark ? Colors.white24 : Colors.black26,
+                        color: Colors.black26,
                         borderRadius: BorderRadius.circular(3),
                       ),
                     ),
@@ -177,7 +176,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             color: AppColors.primaryPink.withValues(alpha: 0.15),
                           ),
                           child: const Center(
-                            child: Text('🎂', style: TextStyle(fontSize: 22)),
+                            child: Icon(
+                              Icons.cake_outlined,
+                              color: AppColors.primaryPink,
+                              size: 22,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 14),
@@ -187,10 +190,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             children: [
                               Text(
                                 l10n.selectBirthday,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 17,
                                   fontWeight: FontWeight.w800,
-                                  color: AppColors.textPrimary(context),
+                                  color: Color(0xFF14151B),
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -208,28 +211,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ],
                     ),
                     const SizedBox(height: 10),
-                    Divider(
+                    const Divider(
                       height: 1,
-                      color: isDark ? Colors.white12 : Colors.black12,
+                      color: Colors.black12,
                     ),
                     const SizedBox(height: 8),
                     SizedBox(
                       height: 300,
                       child: Theme(
                         data: Theme.of(context).copyWith(
-                          colorScheme: isDark
-                              ? const ColorScheme.dark(
-                                  primary: AppColors.primaryBlue,
-                                  onPrimary: Colors.white,
-                                  surface: Color(0xFF1B1D29),
-                                  onSurface: Colors.white,
-                                )
-                              : const ColorScheme.light(
-                                  primary: AppColors.primaryBlue,
-                                  onPrimary: Colors.white,
-                                  surface: Colors.white,
-                                  onSurface: Colors.black87,
-                                ),
+                          colorScheme: const ColorScheme.light(
+                            primary: AppColors.primaryBlueDark,
+                            onPrimary: Colors.white,
+                            surface: Colors.white,
+                            onSurface: Colors.black87,
+                          ),
                         ),
                         child: CalendarDatePicker(
                           initialDate: tempDate.isAfter(now) ? now : tempDate,
@@ -251,8 +247,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             onPressed: () => Navigator.pop(sheetCtx),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 14),
-                              side: BorderSide(
-                                color: isDark ? Colors.white24 : Colors.black12,
+                              side: const BorderSide(
+                                color: Colors.black12,
                               ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
@@ -260,10 +256,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                             child: Text(
                               l10n.cancel,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.textSecondary(context),
+                                color: Color(0xFF74788A),
                               ),
                             ),
                           ),
@@ -274,7 +270,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             onPressed: () => Navigator.pop(sheetCtx, tempDate),
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 14),
-                              backgroundColor: AppColors.primaryBlue,
+                              backgroundColor: AppColors.primaryBlueDark,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
@@ -405,7 +401,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final auth = context.watch<AuthController>();
     final errorText = localError ?? auth.error;
     final authBusy = auth.isLoading || _primaryAuthBusy;
-    final isDark = AppColors.isDark(context);
     final passwordStrength = _passwordStrength(
       context,
       passwordController.text,
@@ -414,466 +409,391 @@ class _RegisterScreenState extends State<RegisterScreen> {
         passwordController.text.trim() == confirmPasswordController.text.trim();
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : const Color(0xFFFBFBFD),
+      backgroundColor: Colors.white,
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: const SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
           statusBarIconBrightness: Brightness.light,
           statusBarBrightness: Brightness.dark,
         ),
-        child: SingleChildScrollView(
-          physics: const ClampingScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header with sweeping curve
-              _AuthCurvedHeader(
-                subtitle: l10n.registerSubtitle,
-                showBackButton: true,
-                onBack: () => Navigator.pop(context),
-              ),
-
-              // Form Body
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 12),
-
-                    // Screen Title
-                    Text(
-                      l10n.register,
-                      style: TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary(context),
-                        letterSpacing: -0.6,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Expanded MeMe brand blue curved header with back button
+                      AuthCurvedHeader(
+                        showBackButton: true,
+                        onBack: authBusy ? null : () => Navigator.pop(context),
                       ),
-                    ),
-                    const SizedBox(height: 24),
 
-                    // Name Field
-                    _AuthLabeledField(
-                      label: l10n.displayName,
-                      child: TextField(
-                        controller: nameController,
-                        textInputAction: TextInputAction.next,
-                        cursorColor: AppColors.primaryBlue,
-                        style: TextStyle(
-                          color: AppColors.textPrimary(context),
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        decoration: _authInputDecoration(
-                          context,
-                          hintText: 'Nguyễn Văn A',
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-
-                    // Username Field
-                    _AuthLabeledField(
-                      label: l10n.username,
-                      note: l10n.usernameHint,
-                      child: TextField(
-                        controller: usernameController,
-                        textInputAction: TextInputAction.next,
-                        cursorColor: AppColors.primaryBlue,
-                        style: TextStyle(
-                          color: AppColors.textPrimary(context),
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        decoration: _authInputDecoration(
-                          context,
-                          hintText: 'nguyenvana',
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-
-                    // Date of Birth (Optional)
-                    _AuthLabeledField(
-                      label: l10n.selectBirthday,
-                      note: l10n.birthdayOptional,
-                      child: InkWell(
-                        onTap: authBusy ? null : _pickDateOfBirth,
-                        borderRadius: BorderRadius.circular(16),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 16,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isDark ? AppColors.darkSurface : Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: AppColors.innerBorder(context),
-                              width: 1.2,
-                            ),
-                          ),
-                          child: Row(
+                      // Form Body (seamless pure white canvas)
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                child: Text(
-                                  _dateOfBirth != null
-                                      ? DateFormat('dd/MM/yyyy').format(_dateOfBirth!)
-                                      : 'DD/MM/YYYY',
-                                  style: _dateOfBirth != null
-                                      ? TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.textPrimary(context),
-                                        )
-                                      : TextStyle(
-                                          fontSize: 14.5,
-                                          fontWeight: FontWeight.w500,
-                                          color: AppColors.textSecondary(context)
-                                              .withValues(alpha: 0.55),
-                                        ),
+                              const SizedBox(height: 12),
+
+                              // Screen Title
+                              Text(
+                                l10n.register,
+                                style: const TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF14151B),
+                                  letterSpacing: -0.5,
                                 ),
                               ),
-                              if (_dateOfBirth != null)
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _dateOfBirth = null;
-                                    });
-                                  },
-                                  child: Icon(
-                                    Icons.close_rounded,
-                                    size: 20,
-                                    color: AppColors.textSecondary(context),
-                                  ),
-                                )
-                              else
-                                Icon(
-                                  Icons.calendar_today_rounded,
-                                  size: 19,
-                                  color: AppColors.textSecondary(context),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-
-                    // Email Field
-                    _AuthLabeledField(
-                      label: l10n.email,
-                      child: TextField(
-                        controller: emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        textInputAction: TextInputAction.next,
-                        cursorColor: AppColors.primaryBlue,
-                        style: TextStyle(
-                          color: AppColors.textPrimary(context),
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        decoration: _authInputDecoration(
-                          context,
-                          hintText: 'name@example.com',
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-
-                    // Password Field
-                    _AuthLabeledField(
-                      label: l10n.password,
-                      child: TextField(
-                        controller: passwordController,
-                        obscureText: _obscurePassword,
-                        textInputAction: TextInputAction.next,
-                        cursorColor: AppColors.primaryBlue,
-                        onChanged: (_) => setState(() {}),
-                        style: TextStyle(
-                          color: AppColors.textPrimary(context),
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        decoration: _authInputDecoration(
-                          context,
-                          hintText: '••••••••',
-                          suffixIcon: IconButton(
-                            tooltip: _obscurePassword
-                                ? l10n.showPassword
-                                : l10n.hidePassword,
-                            onPressed: () {
-                              setState(() {
-                                _obscurePassword = !_obscurePassword;
-                              });
-                            },
-                            icon: Icon(
-                              _obscurePassword
-                                  ? Icons.visibility_off_outlined
-                                  : Icons.visibility_outlined,
-                              color: AppColors.textSecondary(context),
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // Password Strength Indicator
-                    _PasswordStrengthView(
-                      strength: passwordStrength,
-                    ),
-                    const SizedBox(height: 18),
-
-                    // Confirm Password Field
-                    _AuthLabeledField(
-                      label: l10n.confirmPassword,
-                      child: TextField(
-                        controller: confirmPasswordController,
-                        obscureText: _obscureConfirmPassword,
-                        textInputAction: TextInputAction.done,
-                        cursorColor: AppColors.primaryBlue,
-                        onChanged: (_) => setState(() {}),
-                        style: TextStyle(
-                          color: AppColors.textPrimary(context),
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        decoration: _authInputDecoration(
-                          context,
-                          hintText: '••••••••',
-                          suffixIcon: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (confirmPasswordController.text.trim().isNotEmpty) ...[
-                                Icon(
-                                  passwordsMatch
-                                      ? Icons.check_circle_rounded
-                                      : Icons.error_rounded,
-                                  color: passwordsMatch
-                                      ? AppColors.income
-                                      : AppColors.expense,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 4),
-                              ],
-                              IconButton(
-                                tooltip: _obscureConfirmPassword
-                                    ? l10n.showPassword
-                                    : l10n.hidePassword,
-                                onPressed: () {
-                                  setState(() {
-                                    _obscureConfirmPassword = !_obscureConfirmPassword;
-                                  });
-                                },
-                                icon: Icon(
-                                  _obscureConfirmPassword
-                                      ? Icons.visibility_off_outlined
-                                      : Icons.visibility_outlined,
-                                  color: AppColors.textSecondary(context),
-                                  size: 20,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    if (errorText != null && errorText.trim().isNotEmpty) ...[
-                      const SizedBox(height: 14),
-                      _AuthErrorBox(text: errorText),
-                    ],
-
-                    const SizedBox(height: 24),
-
-                    // Register Button
-                    CustomButton(
-                      text: l10n.register,
-                      isLoading: auth.isLoading,
-                      backgroundColor: isDark
-                          ? AppColors.primaryBlue
-                          : const Color(0xFF121520),
-                      foregroundColor: Colors.white,
-                      borderRadius: 27,
-                      height: 54,
-                      onPressedAsync: () => _register(auth),
-                      onBusyChanged: (busy) =>
-                          setState(() => _primaryAuthBusy = busy),
-                    ),
-
-                    // Bottom Link to Login
-                    SafeArea(
-                      top: false,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        child: Center(
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: authBusy ? null : () => Navigator.pop(context),
-                            child: RichText(
-                              text: TextSpan(
-                                style: TextStyle(
-                                  fontSize: 14,
+                              const SizedBox(height: 6),
+                              Text(
+                                l10n.registerSubtitle,
+                                style: const TextStyle(
+                                  fontSize: 13.5,
                                   fontWeight: FontWeight.w500,
-                                  color: AppColors.textSecondary(context),
+                                  color: Color(0xFF74788A),
+                                  height: 1.35,
                                 ),
-                                children: [
-                                  TextSpan(text: l10n.alreadyHaveAccount),
-                                  TextSpan(
-                                    text: l10n.login,
-                                    style: TextStyle(
-                                      color: isDark
-                                          ? AppColors.primaryBlue
-                                          : const Color(0xFF121520),
-                                      fontWeight: FontWeight.w800,
+                              ),
+                              const SizedBox(height: 24),
+
+                              // Display Name Field
+                              _AuthLabeledField(
+                                label: l10n.displayName,
+                                child: TextField(
+                                  controller: nameController,
+                                  textInputAction: TextInputAction.next,
+                                  cursorColor: AppColors.primaryBlueDark,
+                                  style: const TextStyle(
+                                    color: Color(0xFF14151B),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  decoration: _authInputDecoration(
+                                    context,
+                                    hintText: 'Nguyễn Văn A',
+                                    prefixIcon: const Icon(
+                                      Icons.person_outline_rounded,
+                                      size: 20,
+                                      color: Color(0xFF64748B),
                                     ),
                                   ),
-                                ],
+                                ),
                               ),
-                            ),
+                              const SizedBox(height: 18),
+
+                              // Username Field
+                              _AuthLabeledField(
+                                label: l10n.username,
+                                note: l10n.usernameHint,
+                                child: TextField(
+                                  controller: usernameController,
+                                  textInputAction: TextInputAction.next,
+                                  cursorColor: AppColors.primaryBlueDark,
+                                  style: const TextStyle(
+                                    color: Color(0xFF14151B),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  decoration: _authInputDecoration(
+                                    context,
+                                    hintText: 'nguyenvana',
+                                    prefixIcon: const Icon(
+                                      Icons.alternate_email_rounded,
+                                      size: 20,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+
+                              // Date of Birth (Optional)
+                              _AuthLabeledField(
+                                label: l10n.selectBirthday,
+                                note: l10n.birthdayOptional,
+                                child: InkWell(
+                                  onTap: authBusy ? null : _pickDateOfBirth,
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 16,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF8FAFD),
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        color: const Color(0xFFE2E8F0),
+                                        width: 1.2,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.calendar_today_rounded,
+                                          size: 19,
+                                          color: Color(0xFF64748B),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            _dateOfBirth != null
+                                                ? DateFormat('dd/MM/yyyy')
+                                                    .format(_dateOfBirth!)
+                                                : 'DD/MM/YYYY',
+                                            style: _dateOfBirth != null
+                                                ? const TextStyle(
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Color(0xFF14151B),
+                                                  )
+                                                : const TextStyle(
+                                                    fontSize: 14.5,
+                                                    fontWeight: FontWeight.w500,
+                                                    color: Color(0xFF94A3B8),
+                                                  ),
+                                          ),
+                                        ),
+                                        if (_dateOfBirth != null)
+                                          GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                _dateOfBirth = null;
+                                              });
+                                            },
+                                            child: const Icon(
+                                              Icons.close_rounded,
+                                              size: 19,
+                                              color: Color(0xFF74788A),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+
+                              // Email Field
+                              _AuthLabeledField(
+                                label: l10n.email,
+                                child: TextField(
+                                  controller: emailController,
+                                  keyboardType: TextInputType.emailAddress,
+                                  textInputAction: TextInputAction.next,
+                                  cursorColor: AppColors.primaryBlueDark,
+                                  style: const TextStyle(
+                                    color: Color(0xFF14151B),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  decoration: _authInputDecoration(
+                                    context,
+                                    hintText: 'name@example.com',
+                                    prefixIcon: const Icon(
+                                      Icons.mail_outline_rounded,
+                                      size: 20,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+
+                              // Password Field
+                              _AuthLabeledField(
+                                label: l10n.password,
+                                child: TextField(
+                                  controller: passwordController,
+                                  obscureText: _obscurePassword,
+                                  textInputAction: TextInputAction.next,
+                                  cursorColor: AppColors.primaryBlueDark,
+                                  onChanged: (_) => setState(() {}),
+                                  style: const TextStyle(
+                                    color: Color(0xFF14151B),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  decoration: _authInputDecoration(
+                                    context,
+                                    hintText: '••••••••',
+                                    prefixIcon: const Icon(
+                                      Icons.lock_outline_rounded,
+                                      size: 20,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                    suffixIcon: IconButton(
+                                      tooltip: _obscurePassword
+                                          ? l10n.showPassword
+                                          : l10n.hidePassword,
+                                      onPressed: () {
+                                        setState(() {
+                                          _obscurePassword =
+                                              !_obscurePassword;
+                                        });
+                                      },
+                                      icon: Icon(
+                                        _obscurePassword
+                                            ? Icons.visibility_off_outlined
+                                            : Icons.visibility_outlined,
+                                        color: const Color(0xFF74788A),
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+
+                              // Password Strength Indicator View
+                              _PasswordStrengthView(
+                                strength: passwordStrength,
+                              ),
+                              const SizedBox(height: 18),
+
+                              // Confirm Password Field
+                              _AuthLabeledField(
+                                label: l10n.confirmPassword,
+                                child: TextField(
+                                  controller: confirmPasswordController,
+                                  obscureText: _obscureConfirmPassword,
+                                  textInputAction: TextInputAction.done,
+                                  cursorColor: AppColors.primaryBlueDark,
+                                  onChanged: (_) => setState(() {}),
+                                  style: const TextStyle(
+                                    color: Color(0xFF14151B),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  decoration: _authInputDecoration(
+                                    context,
+                                    hintText: '••••••••',
+                                    prefixIcon: const Icon(
+                                      Icons.lock_outline_rounded,
+                                      size: 20,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                    suffixIcon: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        if (confirmPasswordController
+                                            .text
+                                            .trim()
+                                            .isNotEmpty) ...[
+                                          Icon(
+                                            passwordsMatch
+                                                ? Icons.check_circle_rounded
+                                                : Icons.error_rounded,
+                                            color: passwordsMatch
+                                                ? AppColors.income
+                                                : AppColors.expense,
+                                            size: 19,
+                                          ),
+                                          const SizedBox(width: 4),
+                                        ],
+                                        IconButton(
+                                          tooltip: _obscureConfirmPassword
+                                              ? l10n.showPassword
+                                              : l10n.hidePassword,
+                                          onPressed: () {
+                                            setState(() {
+                                              _obscureConfirmPassword =
+                                                  !_obscureConfirmPassword;
+                                            });
+                                          },
+                                          icon: Icon(
+                                            _obscureConfirmPassword
+                                                ? Icons.visibility_off_outlined
+                                                : Icons.visibility_outlined,
+                                            color: const Color(0xFF74788A),
+                                            size: 20,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              if (errorText != null &&
+                                  errorText.trim().isNotEmpty) ...[
+                                const SizedBox(height: 14),
+                                _AuthErrorBox(text: errorText),
+                              ],
+
+                              const SizedBox(height: 24),
+
+                              // Primary Register Button (MeMe Brand Blue)
+                              CustomButton(
+                                text: l10n.register,
+                                isLoading: auth.isLoading,
+                                backgroundColor: AppColors.primaryBlueDark,
+                                foregroundColor: Colors.white,
+                                borderRadius: 27,
+                                height: 54,
+                                onPressedAsync: () => _register(auth),
+                                onBusyChanged: (busy) =>
+                                    setState(() => _primaryAuthBusy = busy),
+                              ),
+
+                              const Spacer(),
+                              const SizedBox(height: 20),
+
+                              // Bottom Link to Login
+                              SafeArea(
+                                top: false,
+                                child: Center(
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: authBusy
+                                        ? null
+                                        : () => Navigator.pop(context),
+                                    child: RichText(
+                                      text: TextSpan(
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          color: Color(0xFF74788A),
+                                        ),
+                                        children: [
+                                          TextSpan(
+                                              text:
+                                                  '${l10n.alreadyHaveAccount} '),
+                                          TextSpan(
+                                            text: l10n.login,
+                                            style: const TextStyle(
+                                              color: AppColors.primaryBlueDark,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                            ],
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
   }
-}
-
-class _AuthCurvedHeader extends StatelessWidget {
-  final String subtitle;
-  final bool showBackButton;
-  final VoidCallback? onBack;
-
-  const _AuthCurvedHeader({
-    required this.subtitle,
-    this.showBackButton = false,
-    this.onBack,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final topPadding = MediaQuery.of(context).padding.top;
-    final isDark = AppColors.isDark(context);
-    final headerColor = isDark ? const Color(0xFF141724) : const Color(0xFF121520);
-    final headerHeight = topPadding + 165.0;
-
-    return SizedBox(
-      height: headerHeight,
-      width: double.infinity,
-      child: Stack(
-        children: [
-          // Background with organic curve
-          Positioned.fill(
-            child: ClipPath(
-              clipper: const _CurvedHeaderClipper(),
-              child: Container(
-                color: headerColor,
-              ),
-            ),
-          ),
-          // Header Content
-          Positioned(
-            top: topPadding + (showBackButton ? 6 : 14),
-            left: 24,
-            right: 24,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (showBackButton)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: GestureDetector(
-                      onTap: onBack ?? () => Navigator.pop(context),
-                      behavior: HitTestBehavior.opaque,
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.12),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.arrow_back_rounded,
-                          color: Colors.white,
-                          size: 19,
-                        ),
-                      ),
-                    ),
-                  ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const MemeLogo(
-                      height: 28,
-                      showSubtitle: false,
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'MEME',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2.2,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.78),
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w500,
-                    height: 1.35,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CurvedHeaderClipper extends CustomClipper<Path> {
-  const _CurvedHeaderClipper();
-
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-    path.lineTo(0, size.height * 0.74);
-
-    path.cubicTo(
-      size.width * 0.28,
-      size.height * 0.98,
-      size.width * 0.64,
-      size.height * 0.85,
-      size.width,
-      size.height * 0.28,
-    );
-
-    path.lineTo(size.width, 0);
-    path.close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
 
 class _AuthLabeledField extends StatelessWidget {
@@ -898,10 +818,10 @@ class _AuthLabeledField extends StatelessWidget {
           children: [
             Text(
               label,
-              style: TextStyle(
-                fontSize: 14,
+              style: const TextStyle(
+                fontSize: 13.5,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary(context),
+                color: Color(0xFF14151B),
                 letterSpacing: -0.2,
               ),
             ),
@@ -911,16 +831,16 @@ class _AuthLabeledField extends StatelessWidget {
                   note!,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.textSecondary(context),
+                    color: Color(0xFF74788A),
                   ),
                 ),
               ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 7),
         child,
       ],
     );
@@ -930,43 +850,43 @@ class _AuthLabeledField extends StatelessWidget {
 InputDecoration _authInputDecoration(
   BuildContext context, {
   required String hintText,
+  Widget? prefixIcon,
   Widget? suffixIcon,
 }) {
-  final isDark = AppColors.isDark(context);
-
   return InputDecoration(
     hintText: hintText,
-    hintStyle: TextStyle(
-      fontSize: 14.5,
-      fontWeight: FontWeight.w500,
-      color: AppColors.textSecondary(context).withValues(alpha: 0.55),
-    ),
+    prefixIcon: prefixIcon,
     suffixIcon: suffixIcon,
     filled: true,
-    fillColor: isDark ? AppColors.darkSurface : Colors.white,
+    fillColor: const Color(0xFFF8FAFD),
+    hintStyle: const TextStyle(
+      fontSize: 14.5,
+      fontWeight: FontWeight.w500,
+      color: Color(0xFF94A3B8),
+    ),
     contentPadding: const EdgeInsets.symmetric(
       horizontal: 16,
       vertical: 16,
     ),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(16),
-      borderSide: BorderSide(
-        color: AppColors.innerBorder(context),
+      borderSide: const BorderSide(
+        color: Color(0xFFE2E8F0),
         width: 1.2,
       ),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(16),
-      borderSide: BorderSide(
-        color: AppColors.innerBorder(context),
+      borderSide: const BorderSide(
+        color: Color(0xFFE2E8F0),
         width: 1.2,
       ),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(16),
-      borderSide: BorderSide(
-        color: isDark ? AppColors.primaryBlue : const Color(0xFF121520),
-        width: 1.5,
+      borderSide: const BorderSide(
+        color: AppColors.primaryBlueDark,
+        width: 1.6,
       ),
     ),
     errorBorder: OutlineInputBorder(
@@ -1049,7 +969,7 @@ class _PasswordStrengthView extends StatelessWidget {
             child: LinearProgressIndicator(
               value: strength.progress,
               minHeight: 5,
-              backgroundColor: AppColors.innerBorder(context),
+              backgroundColor: const Color(0xFFE2E8F0),
               valueColor: AlwaysStoppedAnimation<Color>(
                 strength.color,
               ),
@@ -1062,6 +982,7 @@ class _PasswordStrengthView extends StatelessWidget {
               fontSize: 12,
               height: 1.25,
               fontWeight: FontWeight.w500,
+              color: const Color(0xFF74788A),
             ),
           ),
         ],
@@ -1079,9 +1000,7 @@ class _AuthErrorBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final errorColor = AppColors.isDark(context)
-        ? const Color(0xFFFFB0B0)
-        : AppColors.expenseDark;
+    const errorColor = AppColors.expenseDark;
 
     return Container(
       width: double.infinity,
@@ -1099,7 +1018,7 @@ class _AuthErrorBox extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
+          const Icon(
             Icons.error_outline_rounded,
             color: errorColor,
             size: 18,
@@ -1108,7 +1027,7 @@ class _AuthErrorBox extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: TextStyle(
+              style: const TextStyle(
                 color: errorColor,
                 fontSize: 13,
                 height: 1.3,

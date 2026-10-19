@@ -7,8 +7,8 @@ import '../../../core/extensions/localization_extension.dart';
 import '../../../core/routes/route_names.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/widgets/custom_button.dart';
-import '../../../core/widgets/meme_logo.dart';
 import '../controllers/auth_controller.dart';
+import '../widgets/auth_curved_header.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -24,6 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String? localError;
   bool _primaryAuthBusy = false;
   bool _obscurePassword = true;
+  bool _rememberMe = true;
 
   @override
   void dispose() {
@@ -75,10 +76,9 @@ class _LoginScreenState extends State<LoginScreen> {
     final auth = context.watch<AuthController>();
     final errorText = localError ?? auth.error;
     final authBusy = auth.isLoading || _primaryAuthBusy;
-    final isDark = AppColors.isDark(context);
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : const Color(0xFFFBFBFD),
+      backgroundColor: Colors.white,
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: const SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
@@ -95,12 +95,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Header with sweeping curve
-                      _AuthCurvedHeader(
-                        subtitle: l10n.loginSubtitle,
-                      ),
+                      // Expanded MeMe brand blue curved header
+                      const AuthCurvedHeader(),
 
-                      // Form Body
+                      // Form Body (seamless pure white canvas)
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -112,11 +110,21 @@ class _LoginScreenState extends State<LoginScreen> {
                               // Screen Title
                               Text(
                                 l10n.login,
-                                style: TextStyle(
-                                  fontSize: 30,
+                                style: const TextStyle(
+                                  fontSize: 28,
                                   fontWeight: FontWeight.w800,
-                                  color: AppColors.textPrimary(context),
-                                  letterSpacing: -0.6,
+                                  color: Color(0xFF14151B),
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                l10n.loginSubtitle,
+                                style: const TextStyle(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF74788A),
+                                  height: 1.35,
                                 ),
                               ),
                               const SizedBox(height: 24),
@@ -128,15 +136,20 @@ class _LoginScreenState extends State<LoginScreen> {
                                   controller: emailController,
                                   keyboardType: TextInputType.emailAddress,
                                   textInputAction: TextInputAction.next,
-                                  cursorColor: AppColors.primaryBlue,
-                                  style: TextStyle(
-                                    color: AppColors.textPrimary(context),
+                                  cursorColor: AppColors.primaryBlueDark,
+                                  style: const TextStyle(
+                                    color: Color(0xFF14151B),
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
                                   ),
                                   decoration: _authInputDecoration(
                                     context,
                                     hintText: 'name@example.com',
+                                    prefixIcon: const Icon(
+                                      Icons.mail_outline_rounded,
+                                      size: 20,
+                                      color: Color(0xFF64748B),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -149,15 +162,20 @@ class _LoginScreenState extends State<LoginScreen> {
                                   controller: passwordController,
                                   obscureText: _obscurePassword,
                                   textInputAction: TextInputAction.done,
-                                  cursorColor: AppColors.primaryBlue,
-                                  style: TextStyle(
-                                    color: AppColors.textPrimary(context),
+                                  cursorColor: AppColors.primaryBlueDark,
+                                  style: const TextStyle(
+                                    color: Color(0xFF14151B),
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
                                   ),
                                   decoration: _authInputDecoration(
                                     context,
                                     hintText: '••••••••',
+                                    prefixIcon: const Icon(
+                                      Icons.lock_outline_rounded,
+                                      size: 20,
+                                      color: Color(0xFF64748B),
+                                    ),
                                     suffixIcon: IconButton(
                                       tooltip: _obscurePassword
                                           ? l10n.showPassword
@@ -171,59 +189,106 @@ class _LoginScreenState extends State<LoginScreen> {
                                         _obscurePassword
                                             ? Icons.visibility_off_outlined
                                             : Icons.visibility_outlined,
-                                        color: AppColors.textSecondary(context),
+                                        color: const Color(0xFF74788A),
                                         size: 20,
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 10),
+                              const SizedBox(height: 14),
 
-                              // Forgot Password Link
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
-                                  onTap: authBusy
-                                      ? null
-                                      : () => Navigator.pushNamed(
-                                            context,
-                                            RouteNames.forgotPassword,
+                              // Remember Me Checkbox & Forgot Password Link
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  // Remember me
+                                  GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () {
+                                      setState(() {
+                                        _rememberMe = !_rememberMe;
+                                      });
+                                    },
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: Checkbox(
+                                            value: _rememberMe,
+                                            activeColor:
+                                                AppColors.primaryBlueDark,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(5),
+                                            ),
+                                            side: const BorderSide(
+                                              color: Color(0xFFCBD5E1),
+                                              width: 1.5,
+                                            ),
+                                            onChanged: (val) {
+                                              setState(() {
+                                                _rememberMe = val ?? false;
+                                              });
+                                            },
                                           ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 4,
-                                      horizontal: 2,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        const Text(
+                                          'Ghi nhớ đăng nhập',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: Color(0xFF74788A),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    child: Text(
-                                      l10n.forgotPassword,
-                                      style: TextStyle(
-                                        fontSize: 13.5,
-                                        fontWeight: FontWeight.w600,
-                                        color: isDark
-                                            ? AppColors.primaryBlue
-                                            : const Color(0xFF121520),
+                                  ),
+
+                                  // Forgot password
+                                  GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: authBusy
+                                        ? null
+                                        : () => Navigator.pushNamed(
+                                              context,
+                                              RouteNames.forgotPassword,
+                                            ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 4,
+                                        horizontal: 2,
+                                      ),
+                                      child: Text(
+                                        l10n.forgotPassword,
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.primaryBlueDark,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
+                                ],
                               ),
 
-                              if (errorText != null && errorText.trim().isNotEmpty) ...[
+                              if (errorText != null &&
+                                  errorText.trim().isNotEmpty) ...[
                                 const SizedBox(height: 14),
                                 _AuthErrorBox(text: errorText),
                               ],
 
                               const SizedBox(height: 24),
 
-                              // Primary Login Button
+                              // Primary Login Button (MeMe Brand Blue)
                               CustomButton(
                                 text: l10n.login,
                                 isLoading: auth.isLoading,
-                                backgroundColor: isDark
-                                    ? AppColors.primaryBlue
-                                    : const Color(0xFF121520),
+                                backgroundColor: AppColors.primaryBlueDark,
                                 foregroundColor: Colors.white,
                                 borderRadius: 27,
                                 height: 54,
@@ -233,46 +298,45 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
 
                               const Spacer(),
+                              const SizedBox(height: 20),
 
                               // Bottom Link to Register
                               SafeArea(
                                 top: false,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 20),
-                                  child: Center(
-                                    child: GestureDetector(
-                                      behavior: HitTestBehavior.opaque,
-                                      onTap: authBusy
-                                          ? null
-                                          : () => Navigator.pushNamed(
-                                                context,
-                                                RouteNames.register,
-                                              ),
-                                      child: RichText(
-                                        text: TextSpan(
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500,
-                                            color: AppColors.textSecondary(context),
-                                          ),
-                                          children: [
-                                            TextSpan(text: l10n.dontHaveAccount),
-                                            TextSpan(
-                                              text: l10n.register,
-                                              style: TextStyle(
-                                                color: isDark
-                                                    ? AppColors.primaryBlue
-                                                    : const Color(0xFF121520),
-                                                fontWeight: FontWeight.w800,
-                                              ),
+                                child: Center(
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: authBusy
+                                        ? null
+                                        : () => Navigator.pushNamed(
+                                              context,
+                                              RouteNames.register,
                                             ),
-                                          ],
+                                    child: RichText(
+                                      text: TextSpan(
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          color: Color(0xFF74788A),
                                         ),
+                                        children: [
+                                          TextSpan(
+                                              text:
+                                                  '${l10n.dontHaveAccount} '),
+                                          TextSpan(
+                                            text: l10n.register,
+                                            style: const TextStyle(
+                                              color: AppColors.primaryBlueDark,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
+                              const SizedBox(height: 12),
                             ],
                           ),
                         ),
@@ -287,109 +351,6 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-}
-
-class _AuthCurvedHeader extends StatelessWidget {
-  final String subtitle;
-
-  const _AuthCurvedHeader({
-    required this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final topPadding = MediaQuery.of(context).padding.top;
-    final isDark = AppColors.isDark(context);
-    final headerColor = isDark ? const Color(0xFF141724) : const Color(0xFF121520);
-    final headerHeight = topPadding + 165.0;
-
-    return SizedBox(
-      height: headerHeight,
-      width: double.infinity,
-      child: Stack(
-        children: [
-          // Background with organic curve
-          Positioned.fill(
-            child: ClipPath(
-              clipper: const _CurvedHeaderClipper(),
-              child: Container(
-                color: headerColor,
-              ),
-            ),
-          ),
-          // Header Content
-          Positioned(
-            top: topPadding + 14,
-            left: 24,
-            right: 24,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const MemeLogo(
-                      height: 28,
-                      showSubtitle: false,
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'MEME',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2.2,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.78),
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w500,
-                    height: 1.35,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CurvedHeaderClipper extends CustomClipper<Path> {
-  const _CurvedHeaderClipper();
-
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-    path.lineTo(0, size.height * 0.74);
-
-    path.cubicTo(
-      size.width * 0.28,
-      size.height * 0.98,
-      size.width * 0.64,
-      size.height * 0.85,
-      size.width,
-      size.height * 0.28,
-    );
-
-    path.lineTo(size.width, 0);
-    path.close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
 
 class _AuthLabeledField extends StatelessWidget {
@@ -409,14 +370,14 @@ class _AuthLabeledField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(
-            fontSize: 14,
+          style: const TextStyle(
+            fontSize: 13.5,
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary(context),
+            color: Color(0xFF14151B),
             letterSpacing: -0.2,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 7),
         child,
       ],
     );
@@ -426,43 +387,43 @@ class _AuthLabeledField extends StatelessWidget {
 InputDecoration _authInputDecoration(
   BuildContext context, {
   required String hintText,
+  Widget? prefixIcon,
   Widget? suffixIcon,
 }) {
-  final isDark = AppColors.isDark(context);
-
   return InputDecoration(
     hintText: hintText,
-    hintStyle: TextStyle(
-      fontSize: 14.5,
-      fontWeight: FontWeight.w500,
-      color: AppColors.textSecondary(context).withValues(alpha: 0.55),
-    ),
+    prefixIcon: prefixIcon,
     suffixIcon: suffixIcon,
     filled: true,
-    fillColor: isDark ? AppColors.darkSurface : Colors.white,
+    fillColor: const Color(0xFFF8FAFD),
+    hintStyle: const TextStyle(
+      fontSize: 14.5,
+      fontWeight: FontWeight.w500,
+      color: Color(0xFF94A3B8),
+    ),
     contentPadding: const EdgeInsets.symmetric(
       horizontal: 16,
       vertical: 16,
     ),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(16),
-      borderSide: BorderSide(
-        color: AppColors.innerBorder(context),
+      borderSide: const BorderSide(
+        color: Color(0xFFE2E8F0),
         width: 1.2,
       ),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(16),
-      borderSide: BorderSide(
-        color: AppColors.innerBorder(context),
+      borderSide: const BorderSide(
+        color: Color(0xFFE2E8F0),
         width: 1.2,
       ),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(16),
-      borderSide: BorderSide(
-        color: isDark ? AppColors.primaryBlue : const Color(0xFF121520),
-        width: 1.5,
+      borderSide: const BorderSide(
+        color: AppColors.primaryBlueDark,
+        width: 1.6,
       ),
     ),
     errorBorder: OutlineInputBorder(
@@ -491,9 +452,7 @@ class _AuthErrorBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final errorColor = AppColors.isDark(context)
-        ? const Color(0xFFFFB0B0)
-        : AppColors.expenseDark;
+    const errorColor = AppColors.expenseDark;
 
     return Container(
       width: double.infinity,
@@ -511,7 +470,7 @@ class _AuthErrorBox extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
+          const Icon(
             Icons.error_outline_rounded,
             color: errorColor,
             size: 18,
@@ -520,7 +479,7 @@ class _AuthErrorBox extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: TextStyle(
+              style: const TextStyle(
                 color: errorColor,
                 fontSize: 13,
                 height: 1.3,

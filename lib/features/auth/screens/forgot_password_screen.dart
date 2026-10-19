@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_durations.dart';
-import '../../../core/constants/app_sizes.dart';
-import '../../../core/constants/app_text_styles.dart';
+import '../../../core/extensions/localization_extension.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/widgets/custom_button.dart';
-import '../../../core/widgets/custom_text_field.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../controllers/auth_controller.dart';
+import '../widgets/auth_curved_header.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -32,7 +32,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   Future<void> _submit(AuthController auth) async {
     final l10n = AppLocalizations.of(context)!;
-
     final email = emailController.text.trim();
 
     setState(() {
@@ -47,7 +46,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     final ok = await auth.sendResetPassword(email);
 
-    if (!context.mounted) return;
+    if (!mounted) return;
 
     if (ok) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -68,172 +67,239 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.read<AuthController>();
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
 
     return Scaffold(
-      backgroundColor: AppColors.background(context),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(
-              AppSizes.pagePadding,
-              20,
-              AppSizes.pagePadding,
-              20,
-            ),
-            child: Column(
-              children: [
-                const _AuthLogo(
-                  icon: Icons.lock_reset_rounded,
-                ),
-                const SizedBox(height: 18),
-
-                Text(
-                  l10n.forgotPasswordTitle,
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.pageTitle(context),
-                ),
-                const SizedBox(height: 8),
-
-                Text(
-                  l10n.forgotPasswordInstruction,
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.bodySecondary(context),
-                ),
-                const SizedBox(height: 24),
-
-                _AuthCard(
+      backgroundColor: Colors.white,
+      body: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        l10n.recoveryPassword,
-                        style: AppTextStyles.pageTitle(context).copyWith(
-                          fontSize: 24,
-                        ),
+                      // Expanded MeMe brand blue curved header with back button
+                      AuthCurvedHeader(
+                        showBackButton: true,
+                        onBack: _recoveryBusy
+                            ? null
+                            : () => Navigator.pop(context),
                       ),
-                      const SizedBox(height: 8),
 
-                      Text(
-                        l10n.recoveryPasswordSubtitle,
-                        style: AppTextStyles.bodySecondary(context),
-                      ),
-                      const SizedBox(height: 20),
+                      // Form Body (seamless pure white canvas)
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 12),
 
-                      CustomTextField(
-                        controller: emailController,
-                        hintText: l10n.enterEmail,
-                        keyboardType: TextInputType.emailAddress,
-                        textInputAction: TextInputAction.done,
-                        prefixIcon: Icons.email_outlined,
-                      ),
-                      const SizedBox(height: 14),
+                              // Screen Title
+                              Text(
+                                l10n.forgotPasswordTitle,
+                                style: const TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF14151B),
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                l10n.forgotPasswordInstruction,
+                                style: const TextStyle(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF74788A),
+                                  height: 1.35,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
 
-                      if (localError != null &&
-                          localError!.trim().isNotEmpty) ...[
-                        _AuthErrorBox(text: localError!),
-                        const SizedBox(height: 14),
-                      ],
+                              // Email Field
+                              _AuthLabeledField(
+                                label: l10n.email,
+                                child: TextField(
+                                  controller: emailController,
+                                  keyboardType: TextInputType.emailAddress,
+                                  textInputAction: TextInputAction.done,
+                                  cursorColor: AppColors.primaryBlueDark,
+                                  style: const TextStyle(
+                                    color: Color(0xFF14151B),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  decoration: _authInputDecoration(
+                                    context,
+                                    hintText: 'name@example.com',
+                                    prefixIcon: const Icon(
+                                      Icons.mail_outline_rounded,
+                                      size: 20,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ),
+                              ),
 
-                      CustomButton(
-                        text: l10n.sendRecoveryEmail,
-                        onPressedAsync: () => _submit(auth),
-                        onBusyChanged: (busy) =>
-                            setState(() => _recoveryBusy = busy),
-                      ),
-                      const SizedBox(height: 14),
+                              if (localError != null &&
+                                  localError!.trim().isNotEmpty) ...[
+                                const SizedBox(height: 14),
+                                _AuthErrorBox(text: localError!),
+                              ],
 
-                      Center(
-                        child: TextButton(
-                          onPressed: _recoveryBusy
-                              ? null
-                              : () {
-                            Navigator.pop(context);
-                          },
-                          child: Text(
-                            l10n.backToLogin,
-                            style: TextStyle(
-                              color: AppColors.textSecondary(context),
-                              fontWeight: FontWeight.w600,
-                            ),
+                              const SizedBox(height: 24),
+
+                              // Submit Button (MeMe Brand Blue)
+                              CustomButton(
+                                text: l10n.sendRecoveryEmail,
+                                isLoading: _recoveryBusy,
+                                backgroundColor: AppColors.primaryBlueDark,
+                                foregroundColor: Colors.white,
+                                borderRadius: 27,
+                                height: 54,
+                                onPressedAsync: () => _submit(auth),
+                                onBusyChanged: (busy) =>
+                                    setState(() => _recoveryBusy = busy),
+                              ),
+
+                              const Spacer(),
+                              const SizedBox(height: 20),
+
+                              // Bottom Link back to Login
+                              SafeArea(
+                                top: false,
+                                child: Center(
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: _recoveryBusy
+                                        ? null
+                                        : () => Navigator.pop(context),
+                                    child: Text(
+                                      l10n.backToLogin,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.primaryBlueDark,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                            ],
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
   }
 }
 
-class _AuthLogo extends StatelessWidget {
-  final IconData icon;
-
-  const _AuthLogo({
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 94,
-      height: 94,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: AppColors.primaryBlue,
-        border: Border.all(
-          color: Colors.white.withOpacity(
-            AppColors.isDark(context) ? 0.14 : 0.92,
-          ),
-          width: 3,
-        ),
-      ),
-      child: Icon(
-        icon,
-        color: Colors.white,
-        size: 42,
-      ),
-    );
-  }
-}
-
-class _AuthCard extends StatelessWidget {
+class _AuthLabeledField extends StatelessWidget {
+  final String label;
   final Widget child;
 
-  const _AuthCard({
+  const _AuthLabeledField({
+    required this.label,
     required this.child,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 480),
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(18, 22, 18, 18),
-      decoration: BoxDecoration(
-        color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(AppSizes.radiusXLarge),
-        border: Border.all(
-          color: AppColors.border(context),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(
-              AppColors.isDark(context) ? 0.16 : 0.05,
-            ),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13.5,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF14151B),
+            letterSpacing: -0.2,
           ),
-        ],
-      ),
-      child: child,
+        ),
+        const SizedBox(height: 7),
+        child,
+      ],
     );
   }
+}
+
+InputDecoration _authInputDecoration(
+  BuildContext context, {
+  required String hintText,
+  Widget? prefixIcon,
+  Widget? suffixIcon,
+}) {
+  return InputDecoration(
+    hintText: hintText,
+    prefixIcon: prefixIcon,
+    suffixIcon: suffixIcon,
+    filled: true,
+    fillColor: const Color(0xFFF8FAFD),
+    hintStyle: const TextStyle(
+      fontSize: 14.5,
+      fontWeight: FontWeight.w500,
+      color: Color(0xFF94A3B8),
+    ),
+    contentPadding: const EdgeInsets.symmetric(
+      horizontal: 16,
+      vertical: 16,
+    ),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: const BorderSide(
+        color: Color(0xFFE2E8F0),
+        width: 1.2,
+      ),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: const BorderSide(
+        color: Color(0xFFE2E8F0),
+        width: 1.2,
+      ),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: const BorderSide(
+        color: AppColors.primaryBlueDark,
+        width: 1.6,
+      ),
+    ),
+    errorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: const BorderSide(
+        color: AppColors.expense,
+        width: 1.2,
+      ),
+    ),
+    focusedErrorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: const BorderSide(
+        color: AppColors.expense,
+        width: 1.5,
+      ),
+    ),
+  );
 }
 
 class _AuthErrorBox extends StatelessWidget {
@@ -245,27 +311,25 @@ class _AuthErrorBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final errorColor = AppColors.isDark(context)
-        ? const Color(0xFFFFB0B0)
-        : AppColors.expenseDark;
+    const errorColor = AppColors.expenseDark;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(
-        horizontal: 12,
+        horizontal: 14,
         vertical: 12,
       ),
       decoration: BoxDecoration(
-        color: AppColors.expense.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.expense.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: AppColors.expense.withOpacity(0.22),
+          color: AppColors.expense.withValues(alpha: 0.22),
         ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
+          const Icon(
             Icons.error_outline_rounded,
             color: errorColor,
             size: 18,
@@ -274,7 +338,7 @@ class _AuthErrorBox extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: TextStyle(
+              style: const TextStyle(
                 color: errorColor,
                 fontSize: 13,
                 height: 1.3,

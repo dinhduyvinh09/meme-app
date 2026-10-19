@@ -34,6 +34,8 @@ import '../../../data/models/failed_post_model.dart';
 import '../controllers/capture_controller.dart';
 import '../widgets/amount_calculator_keypad_sheet.dart';
 import 'camera_screen.dart';
+import 'square_crop_screen.dart';
+import '../../../services/genz_caption_service.dart';
 
 class PreviewScreen extends StatefulWidget {
   final File? imageFile;
@@ -1135,7 +1137,22 @@ class _PreviewScreenState extends State<PreviewScreen> {
     }
 
     final canonicalCategory = isContribution ? 'Quỹ nhóm' : _toCanonicalCategory(category);
-    final mediaFile = widget.imageFile ?? widget.videoFile;
+
+    var currentCaption = captionController.text.trim();
+    if (currentCaption.isEmpty) {
+      final lang = _currentLanguageCode;
+      final defaultCaption = GenZCaptionService.instance.getDefaultCaption(canonicalCategory, lang);
+      currentCaption = defaultCaption;
+      _isProgrammaticCaptionUpdate = true;
+      _lastCaptionText = defaultCaption;
+      captionController.value = TextEditingValue(
+        text: defaultCaption,
+        selection: TextSelection.collapsed(offset: defaultCaption.length),
+      );
+      _isProgrammaticCaptionUpdate = false;
+    }
+
+    final mediaFile = _currentImageFile ?? widget.videoFile;
 
     // Create draft failed post in local persistent storage so it persists if offline/error
     FailedPostModel? draftFailedPost;
