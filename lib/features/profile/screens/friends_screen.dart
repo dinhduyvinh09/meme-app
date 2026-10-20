@@ -336,9 +336,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                   isCloseFriend
                       ? Icons.star_rounded
                       : Icons.star_outline_rounded,
-                  color: isCloseFriend
-                      ? const Color(0xFFF59E0B)
-                      : textPrimary,
+                  color: isCloseFriend ? const Color(0xFFF59E0B) : textPrimary,
                 ),
                 title: Text(
                   isCloseFriend
@@ -402,8 +400,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
           stream: repo.streamSentFriendRequests(uid),
           builder: (context, snapshot) {
             final sentList = snapshot.data ?? [];
-            final isLoading = snapshot.connectionState == ConnectionState.waiting &&
-                !snapshot.hasData;
+            final isLoading =
+                snapshot.connectionState == ConnectionState.waiting &&
+                    !snapshot.hasData;
 
             return Container(
               constraints: BoxConstraints(
@@ -448,8 +447,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
                           Container(
                             padding: const EdgeInsets.all(7),
                             decoration: BoxDecoration(
-                              color: AppColors.primaryBlue
-                                  .withValues(alpha: 0.12),
+                              color:
+                                  AppColors.primaryBlue.withValues(alpha: 0.12),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
@@ -476,7 +475,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
                                 if (!isLoading) ...[
                                   const SizedBox(height: 1),
                                   Text(
-                                    context.l10n.sentRequestsCount(sentList.length),
+                                    context.l10n
+                                        .sentRequestsCount(sentList.length),
                                     style: TextStyle(
                                       color: textSecondary,
                                       fontSize: 12.5,
@@ -512,7 +512,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
                             return const Padding(
                               padding: EdgeInsets.symmetric(vertical: 40),
                               child: Center(
-                                child: CircularProgressIndicator(strokeWidth: 2.5),
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2.5),
                               ),
                             );
                           }
@@ -851,7 +852,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
   Widget build(BuildContext context) {
     final uid = context.read<AuthController>().user?.uid;
     final repo = context.read<UserRepository>();
-    final myShowActiveStatus = context.watch<LocalSettingsService>().showActiveStatus;
+    final myShowActiveStatus =
+        context.watch<LocalSettingsService>().showActiveStatus;
     final isDark = AppColors.isDark(context);
     final textPrimary = AppColors.textPrimary(context);
     final textSecondary = AppColors.textSecondary(context);
@@ -873,569 +875,598 @@ class _FriendsScreenState extends State<FriendsScreen> {
           child: StreamBuilder<List<Map<String, dynamic>>>(
             stream: repo.streamFriends(uid),
             builder: (context, friendsSnapshot) {
-            final allFriends = friendsSnapshot.data ?? [];
+              final allFriends = friendsSnapshot.data ?? [];
 
-            return StreamBuilder<List<Map<String, dynamic>>>(
-              stream: repo.streamFriendRequests(uid),
-              builder: (context, receivedSnapshot) {
-                final receivedRequests = receivedSnapshot.data ?? [];
-                final pendingCount = receivedRequests.length;
+              return StreamBuilder<List<Map<String, dynamic>>>(
+                stream: repo.streamFriendRequests(uid),
+                builder: (context, receivedSnapshot) {
+                  final receivedRequests = receivedSnapshot.data ?? [];
+                  final pendingCount = receivedRequests.length;
 
-                return StreamBuilder<List<Map<String, dynamic>>>(
-                  stream: repo.streamSentFriendRequests(uid),
-                  builder: (context, sentSnapshot) {
-                    final sentRequests = sentSnapshot.data ?? [];
+                  return StreamBuilder<List<Map<String, dynamic>>>(
+                    stream: repo.streamSentFriendRequests(uid),
+                    builder: (context, sentSnapshot) {
+                      final sentRequests = sentSnapshot.data ?? [];
 
-                    // Accurate search filter: Name & Username (Vietnamese normalized)
-                    final filteredFriends = allFriends.where((item) {
-                      final rawName = (item['name'] ?? '').toString();
-                      final rawUsername = (item['username'] ?? '').toString();
+                      // Accurate search filter: Name & Username (Vietnamese normalized)
+                      final filteredFriends = allFriends.where((item) {
+                        final rawName = (item['name'] ?? '').toString();
+                        final rawUsername = (item['username'] ?? '').toString();
+
+                        if (_searchQuery.isNotEmpty) {
+                          final q = _searchQuery.toLowerCase();
+                          final qNoDia = _removeVietnameseDiacritics(q);
+                          final cleanQ = q.startsWith('@') ? q.substring(1) : q;
+                          final cleanQNoDia =
+                              _removeVietnameseDiacritics(cleanQ);
+
+                          final nameLower = rawName.toLowerCase();
+                          final nameNoDia =
+                              _removeVietnameseDiacritics(rawName);
+
+                          final userLower = rawUsername.toLowerCase();
+                          final userNoDia =
+                              _removeVietnameseDiacritics(rawUsername);
+
+                          final matchName = nameLower.contains(q) ||
+                              nameNoDia.contains(qNoDia);
+                          final matchUser = userLower.contains(cleanQ) ||
+                              userNoDia.contains(cleanQNoDia);
+
+                          if (!matchName && !matchUser) {
+                            return false;
+                          }
+                        }
+
+                        if (_activeTab == 'close') {
+                          return item['isCloseFriend'] == true;
+                        }
+
+                        return true;
+                      }).toList();
+
+                      // Filter & Sort received requests when active tab is requests
+                      List<Map<String, dynamic>> filteredRequests =
+                          List.from(receivedRequests);
 
                       if (_searchQuery.isNotEmpty) {
-                        final q = _searchQuery.toLowerCase();
-                        final qNoDia = _removeVietnameseDiacritics(q);
-                        final cleanQ = q.startsWith('@') ? q.substring(1) : q;
-                        final cleanQNoDia = _removeVietnameseDiacritics(cleanQ);
-
-                        final nameLower = rawName.toLowerCase();
-                        final nameNoDia = _removeVietnameseDiacritics(rawName);
-
-                        final userLower = rawUsername.toLowerCase();
-                        final userNoDia =
-                            _removeVietnameseDiacritics(rawUsername);
-
-                        final matchName =
-                            nameLower.contains(q) || nameNoDia.contains(qNoDia);
-                        final matchUser = userLower.contains(cleanQ) ||
-                            userNoDia.contains(cleanQNoDia);
-
-                        if (!matchName && !matchUser) {
-                          return false;
-                        }
+                        final cleanQ =
+                            _removeVietnameseDiacritics(_searchQuery);
+                        filteredRequests = filteredRequests.where((req) {
+                          final name = _removeVietnameseDiacritics(
+                              (req['fromName'] ?? '').toString());
+                          final username = _removeVietnameseDiacritics(
+                              (req['fromUsername'] ?? '').toString());
+                          return name.contains(cleanQ) ||
+                              username.contains(cleanQ);
+                        }).toList();
                       }
 
-                      if (_activeTab == 'close') {
-                        return item['isCloseFriend'] == true;
+                      if (_requestSortOrder == 'newest') {
+                        filteredRequests.sort((a, b) {
+                          final aTime =
+                              (a['createdAt'] as Timestamp?)?.toDate() ??
+                                  DateTime.fromMillisecondsSinceEpoch(0);
+                          final bTime =
+                              (b['createdAt'] as Timestamp?)?.toDate() ??
+                                  DateTime.fromMillisecondsSinceEpoch(0);
+                          return bTime.compareTo(aTime);
+                        });
+                      } else if (_requestSortOrder == 'oldest') {
+                        filteredRequests.sort((a, b) {
+                          final aTime =
+                              (a['createdAt'] as Timestamp?)?.toDate() ??
+                                  DateTime.fromMillisecondsSinceEpoch(0);
+                          final bTime =
+                              (b['createdAt'] as Timestamp?)?.toDate() ??
+                                  DateTime.fromMillisecondsSinceEpoch(0);
+                          return aTime.compareTo(bTime);
+                        });
                       }
 
-                      return true;
-                    }).toList();
+                      String screenTitle;
+                      if (_activeTab == 'requests') {
+                        screenTitle =
+                            '${context.l10n.friendRequests} ($pendingCount)';
+                      } else if (_activeTab == 'close') {
+                        final closeCount = allFriends
+                            .where((f) => f['isCloseFriend'] == true)
+                            .length;
+                        screenTitle =
+                            '${context.l10n.friendsTabClose} ($closeCount)';
+                      } else {
+                        screenTitle =
+                            context.l10n.friendsCountTitle(allFriends.length);
+                      }
 
-                    // Filter & Sort received requests when active tab is requests
-                    List<Map<String, dynamic>> filteredRequests =
-                        List.from(receivedRequests);
-
-                    if (_searchQuery.isNotEmpty) {
-                      final cleanQ =
-                          _removeVietnameseDiacritics(_searchQuery);
-                      filteredRequests = filteredRequests.where((req) {
-                        final name = _removeVietnameseDiacritics(
-                            (req['fromName'] ?? '').toString());
-                        final username = _removeVietnameseDiacritics(
-                            (req['fromUsername'] ?? '').toString());
-                        return name.contains(cleanQ) ||
-                            username.contains(cleanQ);
-                      }).toList();
-                    }
-
-                    if (_requestSortOrder == 'newest') {
-                      filteredRequests.sort((a, b) {
-                        final aTime = (a['createdAt'] as Timestamp?)?.toDate() ??
-                            DateTime.fromMillisecondsSinceEpoch(0);
-                        final bTime = (b['createdAt'] as Timestamp?)?.toDate() ??
-                            DateTime.fromMillisecondsSinceEpoch(0);
-                        return bTime.compareTo(aTime);
-                      });
-                    } else if (_requestSortOrder == 'oldest') {
-                      filteredRequests.sort((a, b) {
-                        final aTime = (a['createdAt'] as Timestamp?)?.toDate() ??
-                            DateTime.fromMillisecondsSinceEpoch(0);
-                        final bTime = (b['createdAt'] as Timestamp?)?.toDate() ??
-                            DateTime.fromMillisecondsSinceEpoch(0);
-                        return aTime.compareTo(bTime);
-                      });
-                    }
-
-                    String screenTitle;
-                    if (_activeTab == 'requests') {
-                      screenTitle =
-                          '${context.l10n.friendRequests} ($pendingCount)';
-                    } else if (_activeTab == 'close') {
-                      final closeCount = allFriends
-                          .where((f) => f['isCloseFriend'] == true)
-                          .length;
-                      screenTitle =
-                          '${context.l10n.friendsTabClose} ($closeCount)';
-                    } else {
-                      screenTitle =
-                          context.l10n.friendsCountTitle(allFriends.length);
-                    }
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Top Bar: Back Circle Button & + Tìm người mới
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                            AppSizes.pagePadding,
-                            12,
-                            AppSizes.pagePadding,
-                            0,
-                          ),
-                          child: Row(
-                            children: [
-                              _TopCircleButton(
-                                icon: Icons.arrow_back_ios_new_rounded,
-                                onTap: () => Navigator.pop(context),
-                              ),
-                              const Spacer(),
-                              GestureDetector(
-                                onTap: () => _openAddFriendScreen(context),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 10,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primaryBlue,
-                                    borderRadius: BorderRadius.circular(
-                                      AppSizes.radiusPill,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: AppColors.primaryBlue
-                                            .withValues(alpha: 0.30),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 3),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        Icons.person_add_alt_1_rounded,
-                                        color: Colors.white,
-                                        size: 18,
-                                      ),
-                                      const SizedBox(width: 7),
-                                      Text(
-                                        context.l10n.findNewFriends,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 18),
-
-                        // Title Header
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Text(
-                            screenTitle,
-                            style: TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.w900,
-                              color: textPrimary,
-                              letterSpacing: -0.4,
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 14),
-
-                        // Search Bar
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 180),
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? const Color(0xFF1B1E2B)
-                                  : AppColors.card(context),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: _searchFocusNode.hasFocus
-                                    ? AppColors.primaryBlue
-                                    : AppColors.border(context),
-                                width: _searchFocusNode.hasFocus ? 1.4 : 1.2,
-                              ),
-                            ),
-                            child: TextField(
-                              controller: _searchController,
-                              focusNode: _searchFocusNode,
-                              cursorColor: AppColors.primaryBlue,
-                              textAlignVertical: TextAlignVertical.center,
-                              style: TextStyle(
-                                color: textPrimary,
-                                fontSize: 14.5,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: context.l10n.searchInFriends,
-                                hintStyle: TextStyle(
-                                  color:
-                                      textSecondary.withValues(alpha: 0.65),
-                                  fontSize: 14.5,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                prefixIcon: Icon(
-                                  Icons.search_rounded,
-                                  color: _searchFocusNode.hasFocus
-                                      ? AppColors.primaryBlue
-                                      : textSecondary.withValues(alpha: 0.70),
-                                  size: 22,
-                                ),
-                                suffixIcon: _searchQuery.isNotEmpty
-                                    ? IconButton(
-                                        icon: Icon(
-                                          Icons.close_rounded,
-                                          color: textSecondary,
-                                          size: 18,
-                                        ),
-                                        onPressed: () {
-                                          _searchController.clear();
-                                        },
-                                      )
-                                    : null,
-                                border: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                focusedBorder: InputBorder.none,
-                                disabledBorder: InputBorder.none,
-                                errorBorder: InputBorder.none,
-                                focusedErrorBorder: InputBorder.none,
-                                filled: false,
-                                fillColor: Colors.transparent,
-                                isDense: true,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 14),
-
-                        // Filter Tabs: Tất cả | ⭐ Bạn thân | Lời mời (N)
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Row(
-                            children: [
-                              _buildFilterPill(
-                                label: context.l10n.friendsTabAll,
-                                isSelected: _activeTab == 'all',
-                                onTap: () =>
-                                    setState(() {
-                                      _activeTab = 'all';
-                                      _displayedCount = _pageSize;
-                                    }),
-                              ),
-                              const SizedBox(width: 8),
-                              _buildFilterPill(
-                                label: context.l10n.friendsTabClose,
-                                leadingIcon: Icons.star_rounded,
-                                iconColor: const Color(0xFFF59E0B),
-                                isSelected: _activeTab == 'close',
-                                onTap: () =>
-                                    setState(() {
-                                      _activeTab = 'close';
-                                      _displayedCount = _pageSize;
-                                    }),
-                              ),
-                              const SizedBox(width: 8),
-                              _buildFilterPill(
-                                label: context.l10n.friendsTabRequests,
-                                badgeCount: pendingCount,
-                                isSelected: _activeTab == 'requests',
-                                onTap: () =>
-                                    setState(() {
-                                      _activeTab = 'requests';
-                                      _displayedCount = _pageSize;
-                                    }),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        // When in Requests Tab: Show Sub-Bar (View Sent Requests & Sort Menu)
-                        if (_activeTab == 'requests')
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Top Bar: Back Circle Button & + Tìm người mới
                           Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 4,
+                            padding: const EdgeInsets.fromLTRB(
+                              AppSizes.pagePadding,
+                              12,
+                              AppSizes.pagePadding,
+                              0,
                             ),
                             child: Row(
                               children: [
-                                // "Xem lời mời đã gửi" Button
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () =>
-                                        _showSentRequestsModal(context, uid),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 14,
-                                        vertical: 9,
+                                _TopCircleButton(
+                                  icon: Icons.arrow_back_ios_new_rounded,
+                                  onTap: () => Navigator.pop(context),
+                                ),
+                                const Spacer(),
+                                GestureDetector(
+                                  onTap: () => _openAddFriendScreen(context),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 10,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primaryBlue,
+                                      borderRadius: BorderRadius.circular(
+                                        AppSizes.radiusPill,
                                       ),
-                                      decoration: BoxDecoration(
-                                        color: isDark
-                                            ? const Color(0xFF1E2235)
-                                            : const Color(0xFFEFF6FF),
-                                        borderRadius:
-                                            BorderRadius.circular(14),
-                                        border: Border.all(
-                                          color: isDark
-                                              ? const Color(0xFF2E3856)
-                                              : const Color(0xFFBFDBFE),
-                                          width: 1.1,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AppColors.primaryBlue
+                                              .withValues(alpha: 0.30),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 3),
                                         ),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            Icons.send_rounded,
-                                            size: 15,
-                                            color: isDark
-                                                ? const Color(0xFF60A5FA)
-                                                : const Color(0xFF2563EB),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.person_add_alt_1_rounded,
+                                          color: Colors.white,
+                                          size: 18,
+                                        ),
+                                        const SizedBox(width: 7),
+                                        Text(
+                                          context.l10n.findNewFriends,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w800,
                                           ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: Text(
-                                              context.l10n.viewSentRequests,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w700,
-                                                color: isDark
-                                                    ? const Color(0xFF93C5FD)
-                                                    : const Color(0xFF1D4ED8),
-                                              ),
-                                            ),
-                                          ),
-                                          if (sentRequests.isNotEmpty) ...[
-                                            const SizedBox(width: 6),
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 6,
-                                                vertical: 2,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: isDark
-                                                    ? const Color(0xFF3B82F6)
-                                                    : const Color(0xFF2563EB),
-                                                borderRadius:
-                                                    BorderRadius.circular(99),
-                                              ),
-                                              child: Text(
-                                                '${sentRequests.length}',
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w800,
-                                                  height: 1.0,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
-
-                                const SizedBox(width: 10),
-
-                                // Sort Menu Button
-                                _buildSortRequestsButton(context),
                               ],
                             ),
                           ),
 
-                        const SizedBox(height: 6),
+                          const SizedBox(height: 18),
 
-                        // Content List: Requests or Friends
-                        Expanded(
-                          child: _activeTab == 'requests'
-                              ? (filteredRequests.isEmpty
-                                  ? _buildEmptyState(context)
-                                  : ListView.separated(
-                                      keyboardDismissBehavior:
-                                          ScrollViewKeyboardDismissBehavior.onDrag,
-                                      cacheExtent: 800,
-                                      padding: const EdgeInsets.fromLTRB(
-                                        20,
-                                        4,
-                                        20,
-                                        24,
-                                      ),
-                                      itemCount: filteredRequests.length,
-                                      separatorBuilder: (_, __) =>
-                                          const SizedBox(height: 10),
-                                      itemBuilder: (context, index) {
-                                        final req = filteredRequests[index];
-                                        return _ReceivedRequestItemCard(
-                                          item: req,
-                                          onReject: () async {
-                                            await repo.rejectFriendRequest(
-                                              myUid: uid,
-                                              fromUid: req['fromUid'],
-                                            );
-                                          },
-                                          onAccept: () async {
-                                            await repo.acceptFriendRequest(
-                                              myUid: uid,
-                                              requestData: req,
-                                            );
-                                          },
-                                        );
-                                      },
-                                    ))
-                              : (filteredFriends.isEmpty
-                                  ? _buildEmptyState(context)
-                                  : RefreshIndicator(
-                                      onRefresh: () async {
-                                        await repo.refreshFriends(uid);
-                                      },
-                                      child: Builder(
-                                        builder: (context) {
-                                          _totalFilteredCount = filteredFriends.length;
-                                          final displayedFriends = filteredFriends
-                                              .take(_displayedCount)
-                                              .toList();
-                                          final bool hasMore =
-                                              _displayedCount < filteredFriends.length;
-                                          final int totalItems = displayedFriends.length +
-                                              (hasMore ? 1 : 0);
+                          // Title Header
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Text(
+                              screenTitle,
+                              style: TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w900,
+                                color: textPrimary,
+                                letterSpacing: -0.4,
+                              ),
+                            ),
+                          ),
 
-                                          return ListView.separated(
-                                            controller: _scrollController,
-                                            keyboardDismissBehavior:
-                                                ScrollViewKeyboardDismissBehavior.onDrag,
-                                            physics:
-                                                const AlwaysScrollableScrollPhysics(
-                                              parent: BouncingScrollPhysics(),
+                          const SizedBox(height: 14),
+
+                          // Search Bar
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 180),
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF1B1E2B)
+                                    : AppColors.card(context),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: _searchFocusNode.hasFocus
+                                      ? AppColors.primaryBlue
+                                      : AppColors.border(context),
+                                  width: _searchFocusNode.hasFocus ? 1.4 : 1.2,
+                                ),
+                              ),
+                              child: TextField(
+                                controller: _searchController,
+                                focusNode: _searchFocusNode,
+                                cursorColor: AppColors.primaryBlue,
+                                textAlignVertical: TextAlignVertical.center,
+                                style: TextStyle(
+                                  color: textPrimary,
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: context.l10n.searchInFriends,
+                                  hintStyle: TextStyle(
+                                    color:
+                                        textSecondary.withValues(alpha: 0.65),
+                                    fontSize: 14.5,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  prefixIcon: Icon(
+                                    Icons.search_rounded,
+                                    color: _searchFocusNode.hasFocus
+                                        ? AppColors.primaryBlue
+                                        : textSecondary.withValues(alpha: 0.70),
+                                    size: 22,
+                                  ),
+                                  suffixIcon: _searchQuery.isNotEmpty
+                                      ? IconButton(
+                                          icon: Icon(
+                                            Icons.close_rounded,
+                                            color: textSecondary,
+                                            size: 18,
+                                          ),
+                                          onPressed: () {
+                                            _searchController.clear();
+                                          },
+                                        )
+                                      : null,
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  disabledBorder: InputBorder.none,
+                                  errorBorder: InputBorder.none,
+                                  focusedErrorBorder: InputBorder.none,
+                                  filled: false,
+                                  fillColor: Colors.transparent,
+                                  isDense: true,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 14),
+
+                          // Filter Tabs: Tất cả | ⭐ Bạn thân | Lời mời (N)
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            physics: const BouncingScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Row(
+                              children: [
+                                _buildFilterPill(
+                                  label: context.l10n.friendsTabAll,
+                                  isSelected: _activeTab == 'all',
+                                  onTap: () => setState(() {
+                                    _activeTab = 'all';
+                                    _displayedCount = _pageSize;
+                                  }),
+                                ),
+                                const SizedBox(width: 8),
+                                _buildFilterPill(
+                                  label: context.l10n.friendsTabClose,
+                                  leadingIcon: Icons.star_rounded,
+                                  iconColor: const Color(0xFFF59E0B),
+                                  isSelected: _activeTab == 'close',
+                                  onTap: () => setState(() {
+                                    _activeTab = 'close';
+                                    _displayedCount = _pageSize;
+                                  }),
+                                ),
+                                const SizedBox(width: 8),
+                                _buildFilterPill(
+                                  label: context.l10n.friendsTabRequests,
+                                  badgeCount: pendingCount,
+                                  isSelected: _activeTab == 'requests',
+                                  onTap: () => setState(() {
+                                    _activeTab = 'requests';
+                                    _displayedCount = _pageSize;
+                                  }),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          // When in Requests Tab: Show Sub-Bar (View Sent Requests & Sort Menu)
+                          if (_activeTab == 'requests')
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 4,
+                              ),
+                              child: Row(
+                                children: [
+                                  // "Xem lời mời đã gửi" Button
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () =>
+                                          _showSentRequestsModal(context, uid),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 14,
+                                          vertical: 9,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: isDark
+                                              ? const Color(0xFF1E2235)
+                                              : const Color(0xFFEFF6FF),
+                                          borderRadius:
+                                              BorderRadius.circular(14),
+                                          border: Border.all(
+                                            color: isDark
+                                                ? const Color(0xFF2E3856)
+                                                : const Color(0xFFBFDBFE),
+                                            width: 1.1,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.send_rounded,
+                                              size: 15,
+                                              color: isDark
+                                                  ? const Color(0xFF60A5FA)
+                                                  : const Color(0xFF2563EB),
                                             ),
-                                            cacheExtent: 800,
-                                            padding: const EdgeInsets.fromLTRB(
-                                              20,
-                                              4,
-                                              20,
-                                              24,
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                context.l10n.viewSentRequests,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: isDark
+                                                      ? const Color(0xFF93C5FD)
+                                                      : const Color(0xFF1D4ED8),
+                                                ),
+                                              ),
                                             ),
-                                            itemCount: totalItems,
-                                            separatorBuilder: (_, __) =>
-                                                const SizedBox(height: 10),
-                                            itemBuilder: (context, index) {
-                                              if (hasMore &&
-                                                  index == displayedFriends.length) {
-                                                return const Padding(
-                                                  padding: EdgeInsets.symmetric(
-                                                      vertical: 16),
-                                                  child: Center(
-                                                    child: SizedBox(
-                                                      width: 22,
-                                                      height: 22,
-                                                      child:
-                                                          CircularProgressIndicator(
-                                                              strokeWidth: 2.2),
-                                                    ),
+                                            if (sentRequests.isNotEmpty) ...[
+                                              const SizedBox(width: 6),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  horizontal: 6,
+                                                  vertical: 2,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: isDark
+                                                      ? const Color(0xFF3B82F6)
+                                                      : const Color(0xFF2563EB),
+                                                  borderRadius:
+                                                      BorderRadius.circular(99),
+                                                ),
+                                                child: Text(
+                                                  '${sentRequests.length}',
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w800,
+                                                    height: 1.0,
                                                   ),
-                                                );
-                                              }
-
-                                              final item = displayedFriends[index];
-
-                                              final friendUid =
-                                                  (item['uid'] ?? '').toString();
-                                              final friendName =
-                                                  (item['name'] ?? '').toString();
-                                              final friendUsername =
-                                                  (item['username'] ?? '').toString();
-                                              final avatarUrl =
-                                                  (item['avatarUrl'] ?? '').toString();
-                                              final avatarFrame =
-                                                  (item['avatarFrame'] ?? 'plain')
-                                                      .toString();
-                                              final isCloseFriend =
-                                                  item['isCloseFriend'] == true;
-                                              final isOnline = myShowActiveStatus &&
-                                                  item['isOnline'] == true &&
-                                                  item['showActiveStatus'] != false;
-
-                                              return _FriendCardItem(
-                                                friendUid: friendUid,
-                                                friendName: friendName.isEmpty
-                                                    ? 'Người dùng'
-                                                    : friendName,
-                                                friendUsername: friendUsername,
-                                                avatarUrl: avatarUrl,
-                                                avatarFrame: avatarFrame,
-                                                isCloseFriend: isCloseFriend,
-                                                isOnline: isOnline,
-                                                onOpenChat: () =>
-                                                    Navigator.pushNamed(
-                                                  context,
-                                                  RouteNames.chatConversation,
-                                                  arguments: {
-                                                    'friend':
-                                                        UserModel.fromMap(item),
-                                                  },
                                                 ),
-                                                onToggleClose: () =>
-                                                    _toggleCloseFriend(
-                                                  myUid: uid,
-                                                  friendUid: friendUid,
-                                                  currentStatus: isCloseFriend,
-                                                  friendName: friendName,
-                                                ),
-                                                onOpenOptions: () =>
-                                                    _showFriendOptionsModal(
-                                                  context: context,
-                                                  myUid: uid,
-                                                  friendUid: friendUid,
-                                                  friendName: friendName,
-                                                  friendUsername: friendUsername,
-                                                  avatarUrl: avatarUrl,
-                                                  avatarFrame: avatarFrame,
-                                                  isCloseFriend: isCloseFriend,
-                                                ),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+
+                                  const SizedBox(width: 10),
+
+                                  // Sort Menu Button
+                                  _buildSortRequestsButton(context),
+                                ],
+                              ),
+                            ),
+
+                          const SizedBox(height: 6),
+
+                          // Content List: Requests or Friends
+                          Expanded(
+                            child: _activeTab == 'requests'
+                                ? (filteredRequests.isEmpty
+                                    ? _buildEmptyState(context)
+                                    : ListView.separated(
+                                        keyboardDismissBehavior:
+                                            ScrollViewKeyboardDismissBehavior
+                                                .onDrag,
+                                        cacheExtent: 800,
+                                        padding: const EdgeInsets.fromLTRB(
+                                          20,
+                                          4,
+                                          20,
+                                          24,
+                                        ),
+                                        itemCount: filteredRequests.length,
+                                        separatorBuilder: (_, __) =>
+                                            const SizedBox(height: 10),
+                                        itemBuilder: (context, index) {
+                                          final req = filteredRequests[index];
+                                          return _ReceivedRequestItemCard(
+                                            item: req,
+                                            onReject: () async {
+                                              await repo.rejectFriendRequest(
+                                                myUid: uid,
+                                                fromUid: req['fromUid'],
+                                              );
+                                            },
+                                            onAccept: () async {
+                                              await repo.acceptFriendRequest(
+                                                myUid: uid,
+                                                requestData: req,
                                               );
                                             },
                                           );
                                         },
-                                      ),
-                                    )),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-            );
-          },
+                                      ))
+                                : (filteredFriends.isEmpty
+                                    ? _buildEmptyState(context)
+                                    : RefreshIndicator(
+                                        onRefresh: () async {
+                                          await repo.refreshFriends(uid);
+                                        },
+                                        child: Builder(
+                                          builder: (context) {
+                                            _totalFilteredCount =
+                                                filteredFriends.length;
+                                            final displayedFriends =
+                                                filteredFriends
+                                                    .take(_displayedCount)
+                                                    .toList();
+                                            final bool hasMore =
+                                                _displayedCount <
+                                                    filteredFriends.length;
+                                            final int totalItems =
+                                                displayedFriends.length +
+                                                    (hasMore ? 1 : 0);
+
+                                            return ListView.separated(
+                                              controller: _scrollController,
+                                              keyboardDismissBehavior:
+                                                  ScrollViewKeyboardDismissBehavior
+                                                      .onDrag,
+                                              physics:
+                                                  const AlwaysScrollableScrollPhysics(
+                                                parent: BouncingScrollPhysics(),
+                                              ),
+                                              cacheExtent: 800,
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                20,
+                                                4,
+                                                20,
+                                                24,
+                                              ),
+                                              itemCount: totalItems,
+                                              separatorBuilder: (_, __) =>
+                                                  const SizedBox(height: 10),
+                                              itemBuilder: (context, index) {
+                                                if (hasMore &&
+                                                    index ==
+                                                        displayedFriends
+                                                            .length) {
+                                                  return const Padding(
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                            vertical: 16),
+                                                    child: Center(
+                                                      child: SizedBox(
+                                                        width: 22,
+                                                        height: 22,
+                                                        child:
+                                                            CircularProgressIndicator(
+                                                                strokeWidth:
+                                                                    2.2),
+                                                      ),
+                                                    ),
+                                                  );
+                                                }
+
+                                                final item =
+                                                    displayedFriends[index];
+
+                                                final friendUid =
+                                                    (item['uid'] ?? '')
+                                                        .toString();
+                                                final friendName =
+                                                    (item['name'] ?? '')
+                                                        .toString();
+                                                final friendUsername =
+                                                    (item['username'] ?? '')
+                                                        .toString();
+                                                final avatarUrl =
+                                                    (item['avatarUrl'] ?? '')
+                                                        .toString();
+                                                final avatarFrame =
+                                                    (item['avatarFrame'] ??
+                                                            'plain')
+                                                        .toString();
+                                                final isCloseFriend =
+                                                    item['isCloseFriend'] ==
+                                                        true;
+                                                final isOnline =
+                                                    myShowActiveStatus &&
+                                                        item['isOnline'] ==
+                                                            true &&
+                                                        item['showActiveStatus'] !=
+                                                            false;
+
+                                                return _FriendCardItem(
+                                                  friendUid: friendUid,
+                                                  friendName: friendName.isEmpty
+                                                      ? 'Người dùng'
+                                                      : friendName,
+                                                  friendUsername:
+                                                      friendUsername,
+                                                  avatarUrl: avatarUrl,
+                                                  avatarFrame: avatarFrame,
+                                                  isCloseFriend: isCloseFriend,
+                                                  isOnline: isOnline,
+                                                  onOpenChat: () =>
+                                                      Navigator.pushNamed(
+                                                    context,
+                                                    RouteNames.chatConversation,
+                                                    arguments: {
+                                                      'friend':
+                                                          UserModel.fromMap(
+                                                              item),
+                                                    },
+                                                  ),
+                                                  onToggleClose: () =>
+                                                      _toggleCloseFriend(
+                                                    myUid: uid,
+                                                    friendUid: friendUid,
+                                                    currentStatus:
+                                                        isCloseFriend,
+                                                    friendName: friendName,
+                                                  ),
+                                                  onOpenOptions: () =>
+                                                      _showFriendOptionsModal(
+                                                    context: context,
+                                                    myUid: uid,
+                                                    friendUid: friendUid,
+                                                    friendName: friendName,
+                                                    friendUsername:
+                                                        friendUsername,
+                                                    avatarUrl: avatarUrl,
+                                                    avatarFrame: avatarFrame,
+                                                    isCloseFriend:
+                                                        isCloseFriend,
+                                                  ),
+                                                );
+                                              },
+                                            );
+                                          },
+                                        ),
+                                      )),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+              );
+            },
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildFilterPill({
     required String label,
@@ -1645,7 +1676,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
             ),
             child: Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 child: content,
               ),
             ),
@@ -2012,9 +2044,7 @@ class _FriendCardItem extends StatelessWidget {
             constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
             padding: const EdgeInsets.all(5),
             icon: Icon(
-              isCloseFriend
-                  ? Icons.star_rounded
-                  : Icons.star_outline_rounded,
+              isCloseFriend ? Icons.star_rounded : Icons.star_outline_rounded,
               color: isCloseFriend
                   ? const Color(0xFFF59E0B)
                   : textSecondary.withValues(alpha: 0.5),

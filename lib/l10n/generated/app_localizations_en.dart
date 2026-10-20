@@ -3306,4 +3306,223 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cropFailed => 'Unable to crop image. Please try again!';
+
+  @override
+  String activeGroupsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count active groups',
+      one: '1 active group',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get groupFundBalance => 'Fund balance';
+
+  @override
+  String get groupFundSpent => 'Spent';
+
+  @override
+  String groupGoalWithAmount(String amount) {
+    return 'Goal: $amount';
+  }
+
+  @override
+  String groupFundGoalWithAmount(String amount) {
+    return 'Fund goal: $amount';
+  }
+
+  @override
+  String get newGroupDefaultName => 'New group name';
+
+  @override
+  String get noGoalSetYet => 'No goal set';
+
+  @override
+  String get groupInfoTitle => 'Group Information';
+
+  @override
+  String get groupOwnerYou => 'You (Owner)';
+
+  @override
+  String groupYouAndFriends(int count) {
+    return 'You + $count friends';
+  }
+
+  @override
+  String get unsavedChangesLabel => 'Unsaved';
+
+  @override
+  String get cropAvatarTitle => 'Crop Avatar';
+
+  @override
+  String get tapToChangePhoto => 'Tap to change avatar';
+
+  @override
+  String get changePhoto => 'Change photo';
+
+  @override
+  String get personalInfo => 'Personal Information';
+
+  @override
+  String get displayNameLabel => 'Display Name';
+
+  @override
+  String get displayNameHint => 'Enter your display name';
+
+  @override
+  String get displayNameHelper =>
+      'This name will be shown to your friends and group expenses.';
+
+  @override
+  String get usernameLabel => 'Username';
+
+  @override
+  String get usernameReadOnlyHelper =>
+      'Username is your unique account handle.';
+
+  @override
+  String get emailLabel => 'Login Email';
+
+  @override
+  String get changeEmailAction => 'Change email';
+
+  @override
+  String get categoryPreviewTitle => 'Category Preview';
+
+  @override
+  String get categoryPreviewSubtitle => 'Real-time look and feel in the app';
+
+  @override
+  String totalCategoriesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count categories',
+      one: '1 category',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String customCategoriesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count custom',
+      one: '1 custom',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String builtinCategoriesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count built-in',
+      one: '1 built-in',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get createCategoryAction => 'New Category';
+
+  @override
+  String get searchCategoriesHint => 'Search categories...';
+
+  @override
+  String get noMatchingCategories => 'No matching categories found';
+
+  @override
+  String allCategoriesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count total',
+      one: '1 total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get streakFlameActiveToday => 'Flame ignited today! 🔥';
+
+  @override
+  String get streakFlamePendingToday => 'Flame pending today';
+
+  @override
+  String get streakFlameKeepHint =>
+      'Log 1 expense or moment before 23:59 to keep the flame!';
+
+  @override
+  String get streakWeeklyTracker => 'This Week\'s Activity';
+
+  @override
+  String get streakLevelTitle => 'Flame Tier';
+
+  @override
+  String get streakHowItWorksTitle => 'How Streaks Work';
+
+  @override
+  String get streakRule1 =>
+      'Log at least 1 expense or photo moment every single day.';
+
+  @override
+  String get streakRule2 =>
+      'Streak levels up automatically with each consecutive day.';
+
+  @override
+  String get streakRule3 =>
+      'Unlock legendary Avatar frames and exclusive camera themes!';
+
+  @override
+  String get equipFrameAction => 'Equip This Frame';
+
+  @override
+  String get equippedFrameStatus => 'Equipped';
+
+  @override
+  String lockedFrameStatus(int days) {
+    return 'Unlocks at $days days';
+  }
+
+  @override
+  String get tryOnFrameTitle => 'Avatar Frame Chamber';
+
+  @override
+  String streakDaysRemaining(int days) {
+    return '$days days left to unlock';
+  }
+
+  @override
+  String get streakConsecutiveSubtitle => 'Consecutive active days';
+
+  @override
+  String get dailyStreakHeader => 'STREAK';
+
+  @override
+  String get completedTodayStatus => 'Completed today';
+
+  @override
+  String get pendingTodayStatus => 'Pending today';
+
+  @override
+  String streakGoalLabel(int days) {
+    return 'Goal: $days days 🎯';
+  }
+
+  @override
+  String streakUnlockFrameGoal(int days) {
+    return 'Unlock frame: $days days 🎯';
+  }
+
+  @override
+  String get todayDayLabel => 'Today';
+
+  @override
+  String get streakDaysInARow => 'days streak 🔥';
 }

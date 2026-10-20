@@ -9,8 +9,9 @@ class CalendarWidgetData {
   final String totalIncomeCompact;
   final int year;
   final int month;
-  final Map<int, Uint8List> dayThumbnails; // Day -> Image bytes
+  final Map<int, Uint8List> dayThumbnails; // Kept for backward compatibility
   final Set<int> daysWithSpending; // Days that had transactions
+  final Set<int> daysWithPhoto; // Days that had captured photo moments
   final int? today; // Today's day of month
   final bool isDark;
   final String expenseLabel;
@@ -26,8 +27,9 @@ class CalendarWidgetData {
     required this.totalIncomeCompact,
     required this.year,
     required this.month,
-    required this.dayThumbnails,
+    this.dayThumbnails = const {},
     this.daysWithSpending = const {},
+    this.daysWithPhoto = const {},
     this.today,
     this.isDark = true,
     this.expenseLabel = 'Chi tiêu',
@@ -73,18 +75,19 @@ class CalendarAppWidgetView extends StatelessWidget {
     }
 
     // Dynamic Theme Colors
-    final bgColor = isDark ? const Color(0xFF18191E) : Colors.white;
+    // Dynamic Theme Colors (Default Dark Theme for Launcher Widgets)
+    final bgColor = isDark ? const Color(0xFF14151A) : Colors.white;
     final borderColor = isDark
-        ? Colors.white.withValues(alpha: 0.08)
+        ? Colors.white.withValues(alpha: 0.12)
         : const Color(0xFFE5E9F2);
     final monthTextColor =
-        isDark ? const Color(0xFFE4E4E8) : const Color(0xFF181922);
+        isDark ? Colors.white : const Color(0xFF181922);
     final summaryBgColor =
-        isDark ? const Color(0xFF24252C) : const Color(0xFFF1F4F9);
+        isDark ? const Color(0xFF1E2028) : const Color(0xFFF1F4F9);
     final summarySubColor =
-        isDark ? const Color(0xFF8E8E93) : const Color(0xFF74788A);
+        isDark ? const Color(0xFF9EA2B4) : const Color(0xFF74788A);
     final weekdayTextColor =
-        isDark ? const Color(0xFF8E8E93) : const Color(0xFF74788A);
+        isDark ? const Color(0xFF9EA2B4) : const Color(0xFF74788A);
 
     return MediaQuery(
       data: const MediaQueryData(
@@ -335,135 +338,97 @@ class CalendarAppWidgetView extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final imageBytes = data.dayThumbnails[day];
+    final hasPhoto = data.daysWithPhoto.contains(day) ||
+        (data.dayThumbnails[day]?.isNotEmpty ?? false);
     final hasSpending = data.daysWithSpending.contains(day);
     final isToday = data.today == day;
 
-    // 1. Cell with Photo Moment
-    if (imageBytes != null && imageBytes.isNotEmpty) {
-      return Container(
+    Color cardColor;
+    Color borderColor;
+    double borderWidth;
+    Color numColor;
+    Widget? indicatorWidget;
+
+    if (hasPhoto) {
+      // 1. Ngày có ảnh khoảnh khắc (Cam ấm Terracotta / Copper nổi bật tách biệt hẳn với nền widget)
+      cardColor = isDark ? const Color(0xFF4A2514) : const Color(0xFFFFF0E6);
+      borderColor = isToday
+          ? const Color(0xFF2979FF)
+          : (isDark ? const Color(0xFFFF6A3D) : const Color(0xFFFF6A3D));
+      borderWidth = isToday ? 2.2 : 1.5;
+      numColor = isDark ? const Color(0xFFFFD4C4) : const Color(0xFFD84315);
+      indicatorWidget = Icon(
+        Icons.camera_alt_rounded,
+        size: 10.5,
+        color: isDark ? const Color(0xFFFF7A45) : const Color(0xFFFF5722),
+      );
+    } else if (hasSpending) {
+      // 2. Ngày có chi tiêu (chưa chụp) (Đỏ rượu Crimson nổi bật trên nền tối)
+      cardColor = isDark ? const Color(0xFF451724) : const Color(0xFFFFEAEC);
+      borderColor = isToday
+          ? const Color(0xFF2979FF)
+          : (isDark ? const Color(0xFFFF4D6D) : const Color(0xFFFF5252));
+      borderWidth = isToday ? 2.2 : 1.5;
+      numColor = isDark ? const Color(0xFFFFCCD5) : const Color(0xFFC62828);
+      indicatorWidget = Container(
+        width: 5.0,
+        height: 5.0,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(7),
-          border: isToday
-              ? Border.all(color: const Color(0xFF388AF6), width: 1.5)
-              : Border.all(
-                  color: isDark ? Colors.white12 : Colors.black12,
-                  width: 0.5,
-                ),
-          image: DecorationImage(
-            image: MemoryImage(imageBytes),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Align(
-          alignment: Alignment.topLeft,
-          child: Container(
-            margin: const EdgeInsets.all(2),
-            padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.65),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              '$day',
-              style: const TextStyle(
-                fontFamily: 'ProximaSoft',
-                fontSize: 8.5,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-              ),
-            ),
-          ),
+          color: isDark ? const Color(0xFFFF3366) : const Color(0xFFFF1744),
+          shape: BoxShape.circle,
         ),
       );
+    } else if (isToday) {
+      // 3. Hôm nay (chưa có chi tiêu & chưa chụp)
+      cardColor = isDark ? const Color(0xFF162744) : const Color(0xFFEEF5FF);
+      borderColor = const Color(0xFF2979FF);
+      borderWidth = 2.2;
+      numColor = isDark ? const Color(0xFF82B1FF) : const Color(0xFF1E88E5);
+      indicatorWidget = null;
+    } else {
+      // 4. Ngày trống (Thẻ màu sáng hơn nền widget 0xFF14151A, có viền rõ để thấy lưới lịch)
+      cardColor = isDark ? const Color(0xFF242632) : const Color(0xFFF3F5FA);
+      borderColor = isDark
+          ? const Color(0xFF35394A)
+          : const Color(0xFFE2E6F0);
+      borderWidth = 1.0;
+      numColor = isDark ? const Color(0xFF9095A8) : const Color(0xFF8A90A2);
+      indicatorWidget = null;
     }
-
-    // 2. Cell with Spending (Active transaction day but no photo)
-    if (hasSpending) {
-      final cardColor =
-          isDark ? const Color(0xFF2C2D38) : const Color(0xFFFFECEE);
-      final borderColor = isToday
-          ? const Color(0xFF388AF6)
-          : (isDark
-              ? const Color(0xFFFF5B5B).withValues(alpha: 0.4)
-              : const Color(0xFFFF7A7A).withValues(alpha: 0.4));
-      final numColor =
-          isDark ? Colors.white : const Color(0xFFD84B4B);
-
-      return Container(
-        decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(7),
-          border: Border.all(
-            color: borderColor,
-            width: isToday ? 1.5 : 1,
-          ),
-        ),
-        padding: const EdgeInsets.all(3),
-        child: Stack(
-          children: [
-            Align(
-              alignment: Alignment.topLeft,
-              child: Text(
-                '$day',
-                style: TextStyle(
-                  fontFamily: 'ProximaSoft',
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w800,
-                  color: numColor,
-                ),
-              ),
-            ),
-            // Spending dot indicator
-            Align(
-              alignment: Alignment.bottomRight,
-              child: Container(
-                width: 4.5,
-                height: 4.5,
-                margin: const EdgeInsets.only(bottom: 1, right: 1),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFF5B5B),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    // 3. Cell without Spending (Empty Day Card)
-    final emptyCardColor =
-        isDark ? const Color(0xFF22232A) : const Color(0xFFF2F5FA);
-    final emptyBorderColor = isToday
-        ? const Color(0xFF388AF6)
-        : (isDark
-            ? Colors.white.withValues(alpha: 0.04)
-            : const Color(0xFFE2E7F0));
-    final emptyNumColor =
-        isDark ? const Color(0xFF6E7280) : const Color(0xFFA0A5B5);
 
     return Container(
       decoration: BoxDecoration(
-        color: emptyCardColor,
+        color: cardColor,
         borderRadius: BorderRadius.circular(7),
         border: Border.all(
-          color: emptyBorderColor,
-          width: isToday ? 1.5 : 0.5,
+          color: borderColor,
+          width: borderWidth,
         ),
       ),
-      padding: const EdgeInsets.all(3),
-      child: Align(
-        alignment: Alignment.topLeft,
-        child: Text(
-          '$day',
-          style: TextStyle(
-            fontFamily: 'ProximaSoft',
-            fontSize: 9,
-            fontWeight: FontWeight.w600,
-            color: emptyNumColor,
+      padding: const EdgeInsets.all(3.5),
+      child: Stack(
+        children: [
+          Align(
+            alignment: Alignment.topLeft,
+            child: Text(
+              '$day',
+              style: TextStyle(
+                fontFamily: 'ProximaSoft',
+                fontSize: 9.5,
+                fontWeight: (hasPhoto || hasSpending || isToday)
+                    ? FontWeight.w900
+                    : FontWeight.w700,
+                color: numColor,
+                height: 1.0,
+              ),
+            ),
           ),
-        ),
+          if (indicatorWidget != null)
+            Align(
+              alignment: Alignment.bottomRight,
+              child: indicatorWidget,
+            ),
+        ],
       ),
     );
   }

@@ -29,10 +29,12 @@ class FcmPushService {
       if (jsonString.isNotEmpty) {
         final data = jsonDecode(jsonString) as Map<String, dynamic>;
         setServiceAccountCredentials(data);
-        debugPrint('FcmPushService: Loaded service account credentials successfully.');
+        debugPrint(
+            'FcmPushService: Loaded service account credentials successfully.');
       }
     } catch (e) {
-      debugPrint('FcmPushService init: Could not load assets/fcm_service_account.json: $e');
+      debugPrint(
+          'FcmPushService init: Could not load assets/fcm_service_account.json: $e');
     }
   }
 
@@ -50,7 +52,8 @@ class FcmPushService {
 
     if (_cachedAccessToken != null &&
         _tokenExpiry != null &&
-        DateTime.now().isBefore(_tokenExpiry!.subtract(const Duration(minutes: 5)))) {
+        DateTime.now()
+            .isBefore(_tokenExpiry!.subtract(const Duration(minutes: 5)))) {
       return _cachedAccessToken;
     }
 
@@ -78,7 +81,7 @@ class FcmPushService {
     required String bodyVi,
     required String bodyEn,
     required Map<String, dynamic> data,
-    String channelId = 'chat_messages_channel_v3',
+    String channelId = 'chat_messages_channel_v4',
   }) async {
     try {
       final userDoc = await _db.collection('users').doc(targetUserId).get();
@@ -130,7 +133,7 @@ class FcmPushService {
     required String title,
     required String body,
     required Map<String, dynamic> data,
-    String channelId = 'chat_messages_channel_v3',
+    String channelId = 'chat_messages_channel_v4',
   }) async {
     await sendLocalizedNotificationToUser(
       targetUserId: targetUserId,
@@ -151,7 +154,7 @@ class FcmPushService {
     required String bodyVi,
     required String bodyEn,
     required Map<String, dynamic> data,
-    String channelId = 'chat_messages_channel_v3',
+    String channelId = 'chat_messages_channel_v4',
   }) async {
     for (final uid in targetUserIds) {
       await sendLocalizedNotificationToUser(
@@ -172,7 +175,7 @@ class FcmPushService {
     required String title,
     required String body,
     required Map<String, dynamic> data,
-    String channelId = 'chat_messages_channel_v3',
+    String channelId = 'chat_messages_channel_v4',
   }) async {
     for (final uid in targetUserIds) {
       await sendNotificationToUser(
@@ -196,14 +199,16 @@ class FcmPushService {
     try {
       final accessToken = await _getAccessToken();
       if (accessToken == null) {
-        debugPrint('FCM access token not available. Skipping push notification.');
+        debugPrint(
+            'FCM access token not available. Skipping push notification.');
         return false;
       }
 
       final url = Uri.parse(
           'https://fcm.googleapis.com/v1/projects/$projectId/messages:send');
 
-      final stringData = data.map((key, value) => MapEntry(key, value.toString()));
+      final stringData =
+          data.map((key, value) => MapEntry(key, value.toString()));
       stringData['channelId'] = channelId;
 
       final payload = {
@@ -244,10 +249,12 @@ class FcmPushService {
       );
 
       if (response.statusCode == 200) {
-        debugPrint('FCM push sent successfully to token: ${token.substring(0, 10)}...');
+        debugPrint(
+            'FCM push sent successfully to token: ${token.substring(0, 10)}...');
         return true;
       } else {
-        debugPrint('FCM push failed with status ${response.statusCode}: ${response.body}');
+        debugPrint(
+            'FCM push failed with status ${response.statusCode}: ${response.body}');
         return false;
       }
     } catch (e) {
@@ -277,7 +284,7 @@ class FcmPushService {
       titleEn: senderName,
       bodyVi: bodyVi,
       bodyEn: bodyEn,
-      channelId: 'chat_messages_channel_v3',
+      channelId: 'chat_messages_channel_v4',
       data: {
         'type': 'chat',
         'senderUid': senderId,
@@ -335,7 +342,7 @@ class FcmPushService {
       titleEn: groupName,
       bodyVi: bodyVi,
       bodyEn: bodyEn,
-      channelId: 'chat_messages_channel_v3',
+      channelId: 'chat_messages_channel_v4',
       data: {
         'type': 'group_chat',
         'groupId': groupId,
@@ -364,7 +371,7 @@ class FcmPushService {
       titleEn: groupName,
       bodyVi: bodyVi,
       bodyEn: bodyEn,
-      channelId: 'chat_messages_channel_v3',
+      channelId: 'chat_messages_channel_v4',
       data: {
         'type': 'group_chat',
         'groupId': groupId,
@@ -386,7 +393,7 @@ class FcmPushService {
       titleEn: 'New friend request 👋',
       bodyVi: '$senderName vừa gửi cho bạn một lời mời kết bạn!',
       bodyEn: '$senderName sent you a friend request!',
-      channelId: 'friend_requests_channel_v3',
+      channelId: 'friend_requests_channel_v4',
       data: {
         'type': 'friend_request',
         'senderUid': senderId,
@@ -406,7 +413,7 @@ class FcmPushService {
       titleEn: 'Friend request accepted 🎉',
       bodyVi: '$myName đã chấp nhận lời mời kết bạn của bạn!',
       bodyEn: '$myName accepted your friend request!',
-      channelId: 'friend_requests_channel_v3',
+      channelId: 'friend_requests_channel_v4',
       data: {
         'type': 'friend_accepted',
         'senderUid': myUid,
@@ -431,7 +438,7 @@ class FcmPushService {
       titleEn: reactorName,
       bodyVi: '$reactorName đã thả cảm xúc $emoji lên bài viết của bạn',
       bodyEn: '$reactorName reacted $emoji to your post',
-      channelId: 'chat_messages_channel_v3',
+      channelId: 'chat_messages_channel_v4',
       data: {
         'type': 'post_reaction',
         'postId': postId,
@@ -456,7 +463,7 @@ class FcmPushService {
       titleEn: reactorName,
       bodyVi: '$reactorName đã thả cảm xúc $emoji lên ghi chú của bạn',
       bodyEn: '$reactorName reacted $emoji to your note',
-      channelId: 'chat_messages_channel_v3',
+      channelId: 'chat_messages_channel_v4',
       data: {
         'type': 'note_reaction',
         'senderUid': reactorId,
@@ -475,9 +482,8 @@ class FcmPushService {
   }) async {
     if (targetUserId.isEmpty || targetUserId == senderUid) return;
 
-    final desc = (caption != null && caption.trim().isNotEmpty)
-        ? ': "$caption"'
-        : '';
+    final desc =
+        (caption != null && caption.trim().isNotEmpty) ? ': "$caption"' : '';
 
     await sendLocalizedNotificationToUser(
       targetUserId: targetUserId,
@@ -485,7 +491,7 @@ class FcmPushService {
       titleEn: senderName,
       bodyVi: '$senderName đã nhắc đến bạn trong một bài viết$desc',
       bodyEn: '$senderName mentioned you in a post$desc',
-      channelId: 'chat_messages_channel_v3',
+      channelId: 'chat_messages_channel_v4',
       data: {
         'type': 'mention',
         'postId': postId,
@@ -516,7 +522,9 @@ class FcmPushService {
         );
     final desc = (caption != null && caption.isNotEmpty) ? caption : category;
 
-    final isFund = isGroupContribution || category == 'Quỹ nhóm' || category == 'Group Fund';
+    final isFund = isGroupContribution ||
+        category == 'Quỹ nhóm' ||
+        category == 'Group Fund';
 
     final titleVi = isFund ? '$groupName 💰' : '$groupName 💳';
     final titleEn = isFund ? '$groupName 💰' : '$groupName 💳';
@@ -535,7 +543,7 @@ class FcmPushService {
       titleEn: titleEn,
       bodyVi: bodyVi,
       bodyEn: bodyEn,
-      channelId: 'chat_messages_channel_v3',
+      channelId: 'chat_messages_channel_v4',
       data: {
         'type': 'group_transaction',
         'groupId': groupId,
@@ -563,7 +571,9 @@ class FcmPushService {
     if (receiverId.isEmpty || receiverId == senderId) return;
 
     final preview = messageText.trim().isNotEmpty
-        ? (messageText.length > 28 ? '${messageText.substring(0, 28)}...' : messageText)
+        ? (messageText.length > 28
+            ? '${messageText.substring(0, 28)}...'
+            : messageText)
         : '';
     final bodyVi = preview.isNotEmpty
         ? 'Đã bày tỏ cảm xúc $emoji về tin nhắn: "$preview"'
@@ -578,7 +588,7 @@ class FcmPushService {
       titleEn: senderName,
       bodyVi: bodyVi,
       bodyEn: bodyEn,
-      channelId: 'chat_messages_channel_v3',
+      channelId: 'chat_messages_channel_v4',
       data: {
         'type': 'chat',
         'senderUid': senderId,
@@ -602,7 +612,9 @@ class FcmPushService {
     if (targetUserId.isEmpty || targetUserId == senderId) return;
 
     final preview = messageText.trim().isNotEmpty
-        ? (messageText.length > 28 ? '${messageText.substring(0, 28)}...' : messageText)
+        ? (messageText.length > 28
+            ? '${messageText.substring(0, 28)}...'
+            : messageText)
         : '';
     final bodyVi = preview.isNotEmpty
         ? '$senderName đã bày tỏ cảm xúc $emoji về tin nhắn của bạn: "$preview"'
@@ -617,7 +629,7 @@ class FcmPushService {
       titleEn: groupName,
       bodyVi: bodyVi,
       bodyEn: bodyEn,
-      channelId: 'chat_messages_channel_v3',
+      channelId: 'chat_messages_channel_v4',
       data: {
         'type': 'group_chat',
         'groupId': groupId,
@@ -628,4 +640,3 @@ class FcmPushService {
     );
   }
 }
-

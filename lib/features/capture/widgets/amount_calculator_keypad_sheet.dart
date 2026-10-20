@@ -10,6 +10,7 @@ class AmountCalculatorKeypadSheet extends StatefulWidget {
   final ValueChanged<String> onAmountChanged;
   final VoidCallback? onConfirm;
   final VoidCallback? onMaxDigitsExceeded;
+  final bool? isDark;
 
   const AmountCalculatorKeypadSheet({
     super.key,
@@ -20,6 +21,7 @@ class AmountCalculatorKeypadSheet extends StatefulWidget {
     required this.onAmountChanged,
     this.onConfirm,
     this.onMaxDigitsExceeded,
+    this.isDark,
   });
 
   static Future<String?> show(
@@ -31,6 +33,7 @@ class AmountCalculatorKeypadSheet extends StatefulWidget {
     required ValueChanged<String> onAmountChanged,
     VoidCallback? onConfirm,
     VoidCallback? onMaxDigitsExceeded,
+    bool? isDark,
   }) {
     return showModalBottomSheet<String>(
       context: context,
@@ -45,6 +48,7 @@ class AmountCalculatorKeypadSheet extends StatefulWidget {
         onAmountChanged: onAmountChanged,
         onConfirm: onConfirm,
         onMaxDigitsExceeded: onMaxDigitsExceeded,
+        isDark: isDark,
       ),
     );
   }
@@ -311,6 +315,21 @@ class _AmountCalculatorKeypadSheetState
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode =
+        widget.isDark ?? (Theme.of(context).brightness == Brightness.dark);
+
+    final sheetBg =
+        isDarkMode ? const Color(0xFF141622) : const Color(0xFFFFFFFF);
+    final sheetBorderColor = isDarkMode
+        ? Colors.white.withValues(alpha: 0.10)
+        : const Color(0xFFE5E9F2);
+    final sheetShadowColor = isDarkMode
+        ? Colors.black.withValues(alpha: 0.45)
+        : const Color(0xFF0F172A).withValues(alpha: 0.08);
+    final handleColor = isDarkMode
+        ? Colors.white.withValues(alpha: 0.22)
+        : const Color(0xFFD3D7E3);
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {}, // Absorb all taps so fast typing never dismisses the keyboard
@@ -326,16 +345,16 @@ class _AmountCalculatorKeypadSheetState
       },
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF161822),
+          color: sheetBg,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           border: Border.all(
-            color: Colors.white.withValues(alpha: 0.14),
+            color: sheetBorderColor,
             width: 1.0,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.45),
-              blurRadius: 24,
+              color: sheetShadowColor,
+              blurRadius: 28,
               offset: const Offset(0, -6),
             ),
           ],
@@ -355,18 +374,61 @@ class _AmountCalculatorKeypadSheetState
                   }
                 },
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 32),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 6, horizontal: 32),
                   child: Container(
                     width: 38,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.25),
+                      color: handleColor,
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
+
+              // Live calculation preview banner if expression has operators
+              if (_hasOperator)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isDarkMode
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : const Color(0xFF0F172A).withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDarkMode
+                          ? Colors.white.withValues(alpha: 0.10)
+                          : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        _formattedDisplayExpression,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: isDarkMode
+                              ? Colors.white.withValues(alpha: 0.70)
+                              : const Color(0xFF64748B),
+                        ),
+                      ),
+                      if (_calculatedResult != null)
+                        Text(
+                          '= $_finalFormattedAmountText ${widget.currency}',
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w800,
+                            color: widget.accentColor,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
 
               // Row 1: C, ÷, ×, ⌫
               Row(
@@ -375,26 +437,37 @@ class _AmountCalculatorKeypadSheetState
                     label: 'C',
                     isSpecial: true,
                     textColor: const Color(0xFFFF5252),
+                    backgroundColor: isDarkMode
+                        ? const Color(0xFFFF5252).withValues(alpha: 0.14)
+                        : const Color(0xFFFF5252).withValues(alpha: 0.09),
+                    borderColor:
+                        const Color(0xFFFF5252).withValues(alpha: 0.25),
                     onTap: _onClearPressed,
+                    isDarkMode: isDarkMode,
                   ),
                   const SizedBox(width: 8),
                   _buildCalcKey(
                     label: '÷',
                     isOperator: true,
                     onTap: () => _onOperatorPressed('/'),
+                    isDarkMode: isDarkMode,
                   ),
                   const SizedBox(width: 8),
                   _buildCalcKey(
                     label: '×',
                     isOperator: true,
                     onTap: () => _onOperatorPressed('*'),
+                    isDarkMode: isDarkMode,
                   ),
                   const SizedBox(width: 8),
                   _buildCalcKey(
                     icon: Icons.backspace_outlined,
                     isSpecial: true,
-                    textColor: Colors.white70,
+                    textColor: isDarkMode
+                        ? Colors.white.withValues(alpha: 0.85)
+                        : const Color(0xFF475569),
                     onTap: _onBackspacePressed,
+                    isDarkMode: isDarkMode,
                   ),
                 ],
               ),
@@ -403,16 +476,29 @@ class _AmountCalculatorKeypadSheetState
               // Row 2: 7, 8, 9, -
               Row(
                 children: [
-                  _buildCalcKey(label: '7', onTap: () => _onDigitPressed('7')),
+                  _buildCalcKey(
+                    label: '7',
+                    onTap: () => _onDigitPressed('7'),
+                    isDarkMode: isDarkMode,
+                  ),
                   const SizedBox(width: 8),
-                  _buildCalcKey(label: '8', onTap: () => _onDigitPressed('8')),
+                  _buildCalcKey(
+                    label: '8',
+                    onTap: () => _onDigitPressed('8'),
+                    isDarkMode: isDarkMode,
+                  ),
                   const SizedBox(width: 8),
-                  _buildCalcKey(label: '9', onTap: () => _onDigitPressed('9')),
+                  _buildCalcKey(
+                    label: '9',
+                    onTap: () => _onDigitPressed('9'),
+                    isDarkMode: isDarkMode,
+                  ),
                   const SizedBox(width: 8),
                   _buildCalcKey(
                     label: '-',
                     isOperator: true,
                     onTap: () => _onOperatorPressed('-'),
+                    isDarkMode: isDarkMode,
                   ),
                 ],
               ),
@@ -421,16 +507,29 @@ class _AmountCalculatorKeypadSheetState
               // Row 3: 4, 5, 6, +
               Row(
                 children: [
-                  _buildCalcKey(label: '4', onTap: () => _onDigitPressed('4')),
+                  _buildCalcKey(
+                    label: '4',
+                    onTap: () => _onDigitPressed('4'),
+                    isDarkMode: isDarkMode,
+                  ),
                   const SizedBox(width: 8),
-                  _buildCalcKey(label: '5', onTap: () => _onDigitPressed('5')),
+                  _buildCalcKey(
+                    label: '5',
+                    onTap: () => _onDigitPressed('5'),
+                    isDarkMode: isDarkMode,
+                  ),
                   const SizedBox(width: 8),
-                  _buildCalcKey(label: '6', onTap: () => _onDigitPressed('6')),
+                  _buildCalcKey(
+                    label: '6',
+                    onTap: () => _onDigitPressed('6'),
+                    isDarkMode: isDarkMode,
+                  ),
                   const SizedBox(width: 8),
                   _buildCalcKey(
                     label: '+',
                     isOperator: true,
                     onTap: () => _onOperatorPressed('+'),
+                    isDarkMode: isDarkMode,
                   ),
                 ],
               ),
@@ -439,18 +538,34 @@ class _AmountCalculatorKeypadSheetState
               // Row 4: 1, 2, 3, =
               Row(
                 children: [
-                  _buildCalcKey(label: '1', onTap: () => _onDigitPressed('1')),
+                  _buildCalcKey(
+                    label: '1',
+                    onTap: () => _onDigitPressed('1'),
+                    isDarkMode: isDarkMode,
+                  ),
                   const SizedBox(width: 8),
-                  _buildCalcKey(label: '2', onTap: () => _onDigitPressed('2')),
+                  _buildCalcKey(
+                    label: '2',
+                    onTap: () => _onDigitPressed('2'),
+                    isDarkMode: isDarkMode,
+                  ),
                   const SizedBox(width: 8),
-                  _buildCalcKey(label: '3', onTap: () => _onDigitPressed('3')),
+                  _buildCalcKey(
+                    label: '3',
+                    onTap: () => _onDigitPressed('3'),
+                    isDarkMode: isDarkMode,
+                  ),
                   const SizedBox(width: 8),
                   _buildCalcKey(
                     label: '=',
                     isOperator: true,
-                    backgroundColor: widget.accentColor.withValues(alpha: 0.25),
+                    backgroundColor: widget.accentColor.withValues(
+                      alpha: isDarkMode ? 0.28 : 0.20,
+                    ),
+                    borderColor: widget.accentColor.withValues(alpha: 0.45),
                     textColor: widget.accentColor,
                     onTap: _onEqualsPressed,
+                    isDarkMode: isDarkMode,
                   ),
                 ],
               ),
@@ -465,14 +580,20 @@ class _AmountCalculatorKeypadSheetState
                     onTap: _isUsd
                         ? () => _onOperatorPressed('-')
                         : _onThousandShortcutsPressed,
+                    isDarkMode: isDarkMode,
                   ),
                   const SizedBox(width: 8),
-                  _buildCalcKey(label: '0', onTap: () => _onDigitPressed('0')),
+                  _buildCalcKey(
+                    label: '0',
+                    onTap: () => _onDigitPressed('0'),
+                    isDarkMode: isDarkMode,
+                  ),
                   const SizedBox(width: 8),
                   _buildCalcKey(
                     label: '.',
                     isSpecial: true,
                     onTap: _onDotPressed,
+                    isDarkMode: isDarkMode,
                   ),
                   const SizedBox(width: 8),
                   _buildCalcKey(
@@ -481,6 +602,7 @@ class _AmountCalculatorKeypadSheetState
                     backgroundColor: widget.accentColor,
                     textColor: Colors.white,
                     onTap: _onDonePressed,
+                    isDarkMode: isDarkMode,
                   ),
                 ],
               ),
@@ -498,49 +620,104 @@ class _AmountCalculatorKeypadSheetState
     bool isSpecial = false,
     bool isAction = false,
     Color? backgroundColor,
+    Color? borderColor,
     Color? textColor,
     required VoidCallback onTap,
+    required bool isDarkMode,
   }) {
+    // Determine effective background
     final effectiveBg = backgroundColor ??
-        (isOperator
-            ? widget.accentColor.withValues(alpha: 0.16)
-            : isSpecial
-                ? Colors.white.withValues(alpha: 0.08)
-                : const Color(0xFF222533));
-
-    final effectiveTextColor = textColor ??
-        (isOperator
+        (isAction
             ? widget.accentColor
-            : isAction
-                ? Colors.white
-                : Colors.white.withValues(alpha: 0.95));
+            : isOperator
+                ? widget.accentColor.withValues(
+                    alpha: isDarkMode ? 0.16 : 0.12,
+                  )
+                : isSpecial
+                    ? (isDarkMode
+                        ? const Color(0xFF222636)
+                        : const Color(0xFFEFF2F8))
+                    : (isDarkMode
+                        ? const Color(0xFF1E212E)
+                        : const Color(0xFFF9FAFD)));
+
+    // Determine effective border
+    final effectiveBorder = borderColor ??
+        (isAction
+            ? widget.accentColor
+            : isOperator
+                ? widget.accentColor.withValues(
+                    alpha: isDarkMode ? 0.35 : 0.28,
+                  )
+                : isSpecial
+                    ? (isDarkMode
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : const Color(0xFFE2E7F0))
+                    : (isDarkMode
+                        ? Colors.white.withValues(alpha: 0.07)
+                        : const Color(0xFFE8ECF4)));
+
+    // Determine effective text/icon color
+    final effectiveTextColor = textColor ??
+        (isAction
+            ? Colors.white
+            : isOperator
+                ? widget.accentColor
+                : isSpecial
+                    ? (isDarkMode
+                        ? Colors.white.withValues(alpha: 0.90)
+                        : const Color(0xFF334155))
+                    : (isDarkMode
+                        ? Colors.white
+                        : const Color(0xFF0F172A)));
+
+    // Key elevation shadow
+    final keyShadow = isAction
+        ? BoxShadow(
+            color: widget.accentColor.withValues(alpha: 0.40),
+            blurRadius: 10,
+            spreadRadius: 0.5,
+            offset: const Offset(0, 3),
+          )
+        : isOperator
+            ? BoxShadow(
+                color: widget.accentColor.withValues(
+                  alpha: isDarkMode ? 0.18 : 0.10,
+                ),
+                blurRadius: 6,
+                offset: const Offset(0, 1.5),
+              )
+            : BoxShadow(
+                color: isDarkMode
+                    ? Colors.black.withValues(alpha: 0.25)
+                    : const Color(0xFF64748B).withValues(alpha: 0.06),
+                blurRadius: 4,
+                offset: const Offset(0, 1.5),
+              );
 
     return Expanded(
       child: Container(
-        height: 52,
+        height: 54,
         decoration: BoxDecoration(
           color: effectiveBg,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isAction
-                ? widget.accentColor
-                : isOperator
-                    ? widget.accentColor.withValues(alpha: 0.35)
-                    : Colors.white.withValues(alpha: 0.08),
+            color: effectiveBorder,
             width: isAction || isOperator ? 1.4 : 1.0,
           ),
+          boxShadow: [keyShadow],
         ),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
             onTap: onTap,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(18),
             splashColor: isAction
                 ? Colors.white.withValues(alpha: 0.25)
-                : widget.accentColor.withValues(alpha: 0.25),
+                : widget.accentColor.withValues(alpha: 0.20),
             highlightColor: isAction
                 ? Colors.white.withValues(alpha: 0.12)
-                : widget.accentColor.withValues(alpha: 0.12),
+                : widget.accentColor.withValues(alpha: 0.10),
             child: Center(
               child: icon != null
                   ? (label != null
@@ -559,14 +736,21 @@ class _AmountCalculatorKeypadSheetState
                             ),
                           ],
                         )
-                      : Icon(icon, size: 22, color: effectiveTextColor))
+                      : Icon(
+                          icon,
+                          size: isAction ? 24 : 22,
+                          color: effectiveTextColor,
+                        ))
                   : Text(
                       label ?? '',
                       style: TextStyle(
                         color: effectiveTextColor,
-                        fontSize: isOperator ? 23 : (label == '000' ? 17 : 20),
+                        fontSize: isOperator
+                            ? 24
+                            : (label == '000' || label == '+/-' ? 16.5 : 21),
                         fontWeight:
-                            isOperator ? FontWeight.w900 : FontWeight.w800,
+                            isOperator ? FontWeight.w900 : FontWeight.w700,
+                        letterSpacing: label == '000' ? -0.5 : 0,
                       ),
                     ),
             ),

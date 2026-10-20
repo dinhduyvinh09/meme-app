@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
@@ -62,7 +63,6 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     return double.tryParse(value.toString()) ?? 0;
   }
 
-
   String _cachedMemberIdsKey = '';
   Future<List<Map<String, dynamic>>>? _cachedMembersFuture;
 
@@ -112,11 +112,11 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     return results;
   }
 
-
-
   @override
   Widget build(BuildContext context) {
-    final initialGroupId = (widget.groupData['id'] ?? widget.groupData['groupId'] ?? '').toString();
+    final initialGroupId =
+        (widget.groupData['id'] ?? widget.groupData['groupId'] ?? '')
+            .toString();
     final myUid = context.read<AuthController>().user?.uid;
     final currency = context.watch<ProfileController>().currency;
 
@@ -160,7 +160,8 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                     'id': initialGroupId,
                   };
 
-            final groupName = (groupData['name'] ?? context.l10n.group).toString();
+            final groupName =
+                (groupData['name'] ?? context.l10n.group).toString();
             final colorHex = (groupData['color'] ?? '#79AFFF').toString();
             final createdAt = groupData['createdAt'];
 
@@ -215,273 +216,269 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                   },
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(
-                    AppSizes.pagePadding,
-                    12,
-                    AppSizes.pagePadding,
-                    28,
-                  ),
-                  children: [
-                    Row(
-                      children: [
-                        _TopCircleButton(
-                          icon: Icons.arrow_back_ios_new_rounded,
-                          onTap: () => Navigator.pop(context),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Text(
-                            context.l10n.groupDetails,
-                            style: AppTextStyles.pageTitle(context),
-                          ),
-                        ),
-                        _TopCircleButton(
-                          icon: Icons.chat_bubble_outline_rounded,
-                          onTap: () => Navigator.pushNamed(
-                            context,
-                            RouteNames.groupChatConversation,
-                            arguments: {
-                              'groupId': groupId,
-                              'groupName': groupName,
-                              'groupColor': colorHex,
-                              'memberUids': memberIds,
+                      AppSizes.pagePadding,
+                      12,
+                      AppSizes.pagePadding,
+                      28,
+                    ),
+                    children: [
+                      Row(
+                        children: [
+                          _TopCircleButton(
+                            icon: Icons.arrow_back_ios_new_rounded,
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              Navigator.pop(context);
                             },
                           ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 18),
-
-                    _GroupHeroCard(
-                      groupName: groupName,
-                      memberCount: memberCount,
-                      groupColor: groupColor,
-                      createdAtText: _formatCreatedAt(context, createdAt),
-                      isOwner: isOwner,
-                      onOpenChat: () => Navigator.pushNamed(
-                        context,
-                        RouteNames.groupChatConversation,
-                        arguments: {
-                          'groupId': groupId,
-                          'groupName': groupName,
-                          'groupColor': colorHex,
-                          'memberUids': memberIds,
-                        },
-                      ),
-                    ),
-
-                    const SizedBox(height: 18),
-
-                    _GoalProgressCard(
-                      groupColor: groupColor,
-                      currentAmount: currentAmount,
-                      currentAmountText: money(currentAmount),
-                      spentAmount: spentAmount,
-                      spentAmountText: money(spentAmount),
-                      remainingBalance: remainingBalance,
-                      remainingBalanceText: money(remainingBalance),
-                      goalAmountText: money(goalAmount),
-                      progress: progress,
-                      onAddContribution: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => CameraScreen(
-                            initialType: 'expense',
-                            initialPrivacy: 'group',
-                            initialGroupId: groupId,
-                            initialGroupName: groupName,
-                            initialGroupMemberIds: memberIds,
-                            lockType: true,
-                            lockPrivacy: true,
-                            isGroupContribution: true,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 18),
-
-                    _GroupFundStatisticsCard(
-                      groupId: groupId,
-                      groupColor: groupColor,
-                      currency: currency,
-                      money: money,
-                      goalAmount: goalAmount,
-                    ),
-
-                    const SizedBox(height: 18),
-
-                    _GroupTransactionActivitySection(
-                      groupId: groupId,
-                      groupColor: groupColor,
-                      currency: currency,
-                      members: members,
-                      money: money,
-                      myUid: myUid,
-                    ),
-
-                    const SizedBox(height: 18),
-
-                    _MembersContributionCard(
-                      members: members,
-                      isLoadingMembers: isLoadingMembers,
-                      goalAmount: goalAmount,
-                      memberContributions: memberContributions,
-                      memberSpent: memberSpent,
-                      groupColor: groupColor,
-                      money: money,
-                      toDouble: _toDouble,
-                      isOwner: isOwner,
-                      myUid: myUid,
-                      groupId: groupId,
-                      onMemberKicked: () {
-                        setState(() {
-                          _cachedMemberIdsKey = '';
-                          _cachedMembersFuture = null;
-                        });
-                      },
-                    ),
-
-                    const SizedBox(height: 18),
-
-                    _GroupOptionsCard(
-                      isOwner: isOwner,
-                      groupColor: groupColor,
-                      groupId: groupId,
-                      myUid: myUid,
-                      onEdit: () async {
-                        final changed = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => EditGroupScreen(
-                              groupData: groupData,
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Text(
+                              context.l10n.groupDetails,
+                              style: AppTextStyles.pageTitle(context),
                             ),
                           ),
-                        );
-
-                        if (changed == true && mounted) {
+                          _TopCircleButton(
+                            icon: Icons.chat_bubble_outline_rounded,
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              Navigator.pushNamed(
+                                context,
+                                RouteNames.groupChatConversation,
+                                arguments: {
+                                  'groupId': groupId,
+                                  'groupName': groupName,
+                                  'groupColor': colorHex,
+                                  'memberUids': memberIds,
+                                },
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      _GroupHeroCard(
+                        groupName: groupName,
+                        memberCount: memberCount,
+                        groupColor: groupColor,
+                        createdAtText: _formatCreatedAt(context, createdAt),
+                        isOwner: isOwner,
+                        onOpenChat: () => Navigator.pushNamed(
+                          context,
+                          RouteNames.groupChatConversation,
+                          arguments: {
+                            'groupId': groupId,
+                            'groupName': groupName,
+                            'groupColor': colorHex,
+                            'memberUids': memberIds,
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      _GoalProgressCard(
+                        groupColor: groupColor,
+                        currentAmount: currentAmount,
+                        currentAmountText: money(currentAmount),
+                        spentAmount: spentAmount,
+                        spentAmountText: money(spentAmount),
+                        remainingBalance: remainingBalance,
+                        remainingBalanceText: money(remainingBalance),
+                        goalAmountText: money(goalAmount),
+                        progress: progress,
+                        onAddContribution: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => CameraScreen(
+                              initialType: 'expense',
+                              initialPrivacy: 'group',
+                              initialGroupId: groupId,
+                              initialGroupName: groupName,
+                              initialGroupMemberIds: memberIds,
+                              lockType: true,
+                              lockPrivacy: true,
+                              isGroupContribution: true,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      _GroupFundStatisticsCard(
+                        groupId: groupId,
+                        groupColor: groupColor,
+                        currency: currency,
+                        money: money,
+                        goalAmount: goalAmount,
+                      ),
+                      const SizedBox(height: 18),
+                      _GroupTransactionActivitySection(
+                        groupId: groupId,
+                        groupColor: groupColor,
+                        currency: currency,
+                        members: members,
+                        money: money,
+                        myUid: myUid,
+                      ),
+                      const SizedBox(height: 18),
+                      _MembersContributionCard(
+                        members: members,
+                        isLoadingMembers: isLoadingMembers,
+                        goalAmount: goalAmount,
+                        memberContributions: memberContributions,
+                        memberSpent: memberSpent,
+                        groupColor: groupColor,
+                        money: money,
+                        toDouble: _toDouble,
+                        isOwner: isOwner,
+                        myUid: myUid,
+                        groupId: groupId,
+                        onMemberKicked: () {
                           setState(() {
                             _cachedMemberIdsKey = '';
                             _cachedMembersFuture = null;
                           });
-                        }
-                      },
-                      onDeleteOrLeave: () async {
-                        if (groupId.isEmpty) return;
-
-                        final messenger = ScaffoldMessenger.of(context);
-                        final l10n = context.l10n;
-                        final repo = context.read<UserRepository>();
-                        final navigator = Navigator.of(context);
-
-                        final ok = await showDialog<bool>(
-                          context: context,
-                          builder: (dialogCtx) => AlertDialog(
-                            title: Text(
-                              isOwner ? l10n.deleteGroup : l10n.leaveGroup,
+                        },
+                      ),
+                      const SizedBox(height: 18),
+                      _GroupOptionsCard(
+                        isOwner: isOwner,
+                        groupColor: groupColor,
+                        groupId: groupId,
+                        myUid: myUid,
+                        onEdit: () async {
+                          final changed = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => EditGroupScreen(
+                                groupData: groupData,
+                              ),
                             ),
-                            content: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Text(
+                          );
+
+                          if (changed == true && mounted) {
+                            setState(() {
+                              _cachedMemberIdsKey = '';
+                              _cachedMembersFuture = null;
+                            });
+                          }
+                        },
+                        onDeleteOrLeave: () async {
+                          if (groupId.isEmpty) return;
+
+                          final messenger = ScaffoldMessenger.of(context);
+                          final l10n = context.l10n;
+                          final repo = context.read<UserRepository>();
+                          final navigator = Navigator.of(context);
+
+                          final ok = await showDialog<bool>(
+                            context: context,
+                            builder: (dialogCtx) => AlertDialog(
+                              title: Text(
+                                isOwner ? l10n.deleteGroup : l10n.leaveGroup,
+                              ),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Text(
+                                    isOwner
+                                        ? l10n.deleteGroupConfirmation
+                                        : l10n.leaveGroupConfirmation,
+                                  ),
+                                  const SizedBox(height: 22),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: OutlinedButton(
+                                          onPressed: () =>
+                                              Navigator.pop(dialogCtx, false),
+                                          style: OutlinedButton.styleFrom(
+                                            minimumSize:
+                                                const Size.fromHeight(48),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(14),
+                                            ),
+                                          ),
+                                          child: Text(l10n.cancel),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: FilledButton(
+                                          style: FilledButton.styleFrom(
+                                            minimumSize:
+                                                const Size.fromHeight(48),
+                                            backgroundColor: AppColors.expense,
+                                            foregroundColor: Colors.white,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(14),
+                                            ),
+                                          ),
+                                          onPressed: () =>
+                                              Navigator.pop(dialogCtx, true),
+                                          child: Text(
+                                            isOwner
+                                                ? l10n.deleteGroup
+                                                : l10n.leaveGroup,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+
+                          if (ok != true) return;
+
+                          try {
+                            if (isOwner) {
+                              await repo.deleteGroup(
+                                myUid: myUid,
+                                groupId: groupId,
+                              );
+                            } else {
+                              await repo.leaveGroup(
+                                myUid: myUid,
+                                groupId: groupId,
+                              );
+                            }
+
+                            if (!mounted) return;
+
+                            messenger.showSnackBar(
+                              SnackBar(
+                                duration: AppDurations.snackBar,
+                                content: Text(
                                   isOwner
-                                      ? l10n.deleteGroupConfirmation
-                                      : l10n.leaveGroupConfirmation,
+                                      ? l10n.groupDeleted
+                                      : l10n.youLeftGroup,
                                 ),
-                                const SizedBox(height: 22),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: OutlinedButton(
-                                        onPressed: () =>
-                                            Navigator.pop(dialogCtx, false),
-                                        style: OutlinedButton.styleFrom(
-                                          minimumSize:
-                                              const Size.fromHeight(48),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(14),
-                                          ),
-                                        ),
-                                        child: Text(l10n.cancel),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: FilledButton(
-                                        style: FilledButton.styleFrom(
-                                          minimumSize:
-                                              const Size.fromHeight(48),
-                                          backgroundColor: AppColors.expense,
-                                          foregroundColor: Colors.white,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(14),
-                                          ),
-                                        ),
-                                        onPressed: () =>
-                                            Navigator.pop(dialogCtx, true),
-                                        child: Text(
-                                          isOwner
-                                              ? l10n.deleteGroup
-                                              : l10n.leaveGroup,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-
-                        if (ok != true) return;
-
-                        try {
-                          if (isOwner) {
-                            await repo.deleteGroup(
-                              myUid: myUid,
-                              groupId: groupId,
+                              ),
                             );
-                          } else {
-                            await repo.leaveGroup(
-                              myUid: myUid,
-                              groupId: groupId,
+
+                            navigator.pop(true);
+                          } catch (e) {
+                            if (!mounted) return;
+
+                            messenger.showSnackBar(
+                              SnackBar(
+                                duration: AppDurations.snackBar,
+                                content: Text(
+                                  isOwner
+                                      ? l10n.cannotDeleteGroup(e.toString())
+                                      : l10n.cannotLeaveGroup(e.toString()),
+                                ),
+                              ),
                             );
                           }
-
-                          if (!mounted) return;
-
-                          messenger.showSnackBar(
-                            SnackBar(
-                              duration: AppDurations.snackBar,
-                              content: Text(
-                                isOwner ? l10n.groupDeleted : l10n.youLeftGroup,
-                              ),
-                            ),
-                          );
-
-                          navigator.pop(true);
-                        } catch (e) {
-                          if (!mounted) return;
-
-                          messenger.showSnackBar(
-                            SnackBar(
-                              duration: AppDurations.snackBar,
-                              content: Text(
-                                isOwner
-                                    ? l10n.cannotDeleteGroup(e.toString())
-                                    : l10n.cannotLeaveGroup(e.toString()),
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              );
+                        },
+                      ),
+                    ],
+                  ),
+                );
               },
             );
           },
@@ -592,7 +589,8 @@ class _GroupHeroCard extends StatelessWidget {
               onTap: onOpenChat,
               borderRadius: BorderRadius.circular(14),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                 decoration: BoxDecoration(
                   color: groupColor.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(14),
@@ -702,7 +700,8 @@ class _GoalProgressCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: balanceStatusColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(AppSizes.radiusPill),
@@ -722,7 +721,9 @@ class _GoalProgressCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      isSurplus ? context.l10n.groupFundSurplus : context.l10n.groupFundDeficit,
+                      isSurplus
+                          ? context.l10n.groupFundSurplus
+                          : context.l10n.groupFundDeficit,
                       style: TextStyle(
                         color: balanceStatusColor,
                         fontSize: 11,
@@ -1052,22 +1053,24 @@ class _GroupFundStatisticsCardState extends State<_GroupFundStatisticsCard>
         final allTxs = snapshot.data ?? [];
 
         // Tiền nạp/góp vào quỹ nhóm
-        final contributionTxs = allTxs.where((tx) =>
-            tx.isGroupContribution ||
-            tx.category == 'Quỹ nhóm' ||
-            tx.category == 'Group Fund' ||
-            (tx.privacy == 'group' && tx.type == 'income')
-        ).toList();
+        final contributionTxs = allTxs
+            .where((tx) =>
+                tx.isGroupContribution ||
+                tx.category == 'Quỹ nhóm' ||
+                tx.category == 'Group Fund' ||
+                (tx.privacy == 'group' && tx.type == 'income'))
+            .toList();
 
         // Tiền chi tiêu từ quỹ nhóm
-        final expenseTxs = allTxs.where((tx) =>
-            tx.isGroupExpense ||
-            (tx.privacy == 'group' &&
-                tx.type == 'expense' &&
-                !tx.isGroupContribution &&
-                tx.category != 'Quỹ nhóm' &&
-                tx.category != 'Group Fund')
-        ).toList();
+        final expenseTxs = allTxs
+            .where((tx) =>
+                tx.isGroupExpense ||
+                (tx.privacy == 'group' &&
+                    tx.type == 'expense' &&
+                    !tx.isGroupContribution &&
+                    tx.category != 'Quỹ nhóm' &&
+                    tx.category != 'Group Fund'))
+            .toList();
 
         double totalContributed = 0;
         for (final tx in contributionTxs) {
@@ -1092,7 +1095,8 @@ class _GroupFundStatisticsCardState extends State<_GroupFundStatisticsCard>
             ? (totalSpent / totalContributed).clamp(0.0, 1.0)
             : (totalSpent > 0 ? 1.0 : 0.0);
         final double remainingRatio = totalContributed > 0
-            ? (remainingFund > 0 ? remainingFund / totalContributed : 0.0).clamp(0.0, 1.0)
+            ? (remainingFund > 0 ? remainingFund / totalContributed : 0.0)
+                .clamp(0.0, 1.0)
             : 0.0;
 
         // Sắp xếp top danh mục chi tiêu
@@ -1154,12 +1158,15 @@ class _GroupFundStatisticsCardState extends State<_GroupFundStatisticsCard>
                     // Cột Góp
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 14, horizontal: 12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.09),
+                          color:
+                              const Color(0xFF10B981).withValues(alpha: 0.09),
                           borderRadius: BorderRadius.circular(18),
                           border: Border.all(
-                            color: const Color(0xFF10B981).withValues(alpha: 0.22),
+                            color:
+                                const Color(0xFF10B981).withValues(alpha: 0.22),
                           ),
                         ),
                         child: Column(
@@ -1185,7 +1192,8 @@ class _GroupFundStatisticsCardState extends State<_GroupFundStatisticsCard>
                                     context.l10n.groupTotalContributed,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: AppTextStyles.caption(context).copyWith(
+                                    style:
+                                        AppTextStyles.caption(context).copyWith(
                                       fontWeight: FontWeight.w700,
                                       fontSize: 12,
                                       color: const Color(0xFF10B981),
@@ -1210,7 +1218,8 @@ class _GroupFundStatisticsCardState extends State<_GroupFundStatisticsCard>
                             ),
                             const SizedBox(height: 3),
                             Text(
-                              context.l10n.groupContributionCount(contributionTxs.length),
+                              context.l10n.groupContributionCount(
+                                  contributionTxs.length),
                               style: AppTextStyles.caption(context).copyWith(
                                 fontSize: 11,
                                 color: AppColors.textSecondary(context),
@@ -1224,7 +1233,8 @@ class _GroupFundStatisticsCardState extends State<_GroupFundStatisticsCard>
                     // Cột Chi
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 14, horizontal: 12),
                         decoration: BoxDecoration(
                           color: AppColors.expense.withValues(alpha: 0.09),
                           borderRadius: BorderRadius.circular(18),
@@ -1255,7 +1265,8 @@ class _GroupFundStatisticsCardState extends State<_GroupFundStatisticsCard>
                                     context.l10n.groupTotalSpent,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: AppTextStyles.caption(context).copyWith(
+                                    style:
+                                        AppTextStyles.caption(context).copyWith(
                                       fontWeight: FontWeight.w700,
                                       fontSize: 12,
                                       color: AppColors.expense,
@@ -1320,8 +1331,10 @@ class _GroupFundStatisticsCardState extends State<_GroupFundStatisticsCard>
                             ),
                             Text(
                               isSurplus
-                                  ? context.l10n.groupSurplusWithAmount(widget.money(remainingFund))
-                                  : context.l10n.groupDeficitWithAmount(widget.money(remainingFund.abs())),
+                                  ? context.l10n.groupSurplusWithAmount(
+                                      widget.money(remainingFund))
+                                  : context.l10n.groupDeficitWithAmount(
+                                      widget.money(remainingFund.abs())),
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w800,
@@ -1340,10 +1353,13 @@ class _GroupFundStatisticsCardState extends State<_GroupFundStatisticsCard>
                             final anim = _curvedAnimation.value;
                             final currentSpent = spentRatio * anim;
                             final currentRemaining = remainingRatio * anim;
-                            final currentEmpty = (1.0 - currentSpent - currentRemaining).clamp(0.0, 1.0);
+                            final currentEmpty =
+                                (1.0 - currentSpent - currentRemaining)
+                                    .clamp(0.0, 1.0);
 
                             return ClipRRect(
-                              borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+                              borderRadius:
+                                  BorderRadius.circular(AppSizes.radiusPill),
                               child: Container(
                                 height: 8,
                                 color: AppColors.innerBorder(context),
@@ -1351,21 +1367,27 @@ class _GroupFundStatisticsCardState extends State<_GroupFundStatisticsCard>
                                   children: [
                                     if (spentRatio > 0)
                                       Flexible(
-                                        flex: (currentSpent * 1000).toInt().clamp(0, 1000),
+                                        flex: (currentSpent * 1000)
+                                            .toInt()
+                                            .clamp(0, 1000),
                                         child: Container(
                                           color: AppColors.expense,
                                         ),
                                       ),
                                     if (remainingRatio > 0)
                                       Flexible(
-                                        flex: (currentRemaining * 1000).toInt().clamp(0, 1000),
+                                        flex: (currentRemaining * 1000)
+                                            .toInt()
+                                            .clamp(0, 1000),
                                         child: Container(
                                           color: const Color(0xFF10B981),
                                         ),
                                       ),
                                     if (currentEmpty > 0.001)
                                       Flexible(
-                                        flex: (currentEmpty * 1000).toInt().clamp(0, 1000),
+                                        flex: (currentEmpty * 1000)
+                                            .toInt()
+                                            .clamp(0, 1000),
                                         child: const SizedBox.shrink(),
                                       ),
                                   ],
@@ -1391,8 +1413,10 @@ class _GroupFundStatisticsCardState extends State<_GroupFundStatisticsCard>
                                 ),
                                 const SizedBox(width: 5),
                                 Text(
-                                  context.l10n.groupSpentPercent((spentRatio * 100).toStringAsFixed(1)),
-                                  style: AppTextStyles.caption(context).copyWith(fontSize: 11),
+                                  context.l10n.groupSpentPercent(
+                                      (spentRatio * 100).toStringAsFixed(1)),
+                                  style: AppTextStyles.caption(context)
+                                      .copyWith(fontSize: 11),
                                 ),
                               ],
                             ),
@@ -1409,8 +1433,11 @@ class _GroupFundStatisticsCardState extends State<_GroupFundStatisticsCard>
                                 ),
                                 const SizedBox(width: 5),
                                 Text(
-                                  context.l10n.groupRemainingPercent((remainingRatio * 100).toStringAsFixed(1)),
-                                  style: AppTextStyles.caption(context).copyWith(fontSize: 11),
+                                  context.l10n.groupRemainingPercent(
+                                      (remainingRatio * 100)
+                                          .toStringAsFixed(1)),
+                                  style: AppTextStyles.caption(context)
+                                      .copyWith(fontSize: 11),
                                 ),
                               ],
                             ),
@@ -1434,9 +1461,12 @@ class _GroupFundStatisticsCardState extends State<_GroupFundStatisticsCard>
                   ),
                   const SizedBox(height: 8),
                   ...topCategories.map((entry) {
-                    final catName = BudgetNameLocalizer.display(context, entry.key);
+                    final catName =
+                        BudgetNameLocalizer.display(context, entry.key);
                     final catAmount = entry.value;
-                    final catRatio = totalSpent > 0 ? (catAmount / totalSpent).clamp(0.0, 1.0) : 0.0;
+                    final catRatio = totalSpent > 0
+                        ? (catAmount / totalSpent).clamp(0.0, 1.0)
+                        : 0.0;
 
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 8),
@@ -1466,9 +1496,11 @@ class _GroupFundStatisticsCardState extends State<_GroupFundStatisticsCard>
                           AnimatedBuilder(
                             animation: _curvedAnimation,
                             builder: (context, _) => ClipRRect(
-                              borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+                              borderRadius:
+                                  BorderRadius.circular(AppSizes.radiusPill),
                               child: LinearProgressIndicator(
-                                value: (catRatio * _curvedAnimation.value).clamp(0.0, 1.0),
+                                value: (catRatio * _curvedAnimation.value)
+                                    .clamp(0.0, 1.0),
                                 minHeight: 5,
                                 backgroundColor: AppColors.innerBorder(context),
                                 valueColor: AlwaysStoppedAnimation<Color>(
@@ -1608,21 +1640,25 @@ class _GroupTransactionActivitySectionState
               }
 
               final allTransactions = snapshot.data ?? [];
-              final contributions = allTransactions.where(_isContribution).toList();
+              final contributions =
+                  allTransactions.where(_isContribution).toList();
               final expenses = allTransactions.where(_isExpense).toList();
 
               final validTransactions = allTransactions
                   .where((tx) => _isContribution(tx) || _isExpense(tx))
                   .toList();
-              validTransactions.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+              validTransactions
+                  .sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
               final List<TransactionModel> displayTransactions;
               if (_activeFilter == 1) {
                 displayTransactions = contributions;
-                displayTransactions.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+                displayTransactions
+                    .sort((a, b) => b.createdAt.compareTo(a.createdAt));
               } else if (_activeFilter == 2) {
                 displayTransactions = expenses;
-                displayTransactions.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+                displayTransactions
+                    .sort((a, b) => b.createdAt.compareTo(a.createdAt));
               } else {
                 displayTransactions = validTransactions;
               }
@@ -1636,21 +1672,24 @@ class _GroupTransactionActivitySectionState
                     child: Row(
                       children: [
                         _buildFilterChip(
-                          label: context.l10n.groupFilterAllWithCount(validTransactions.length),
+                          label: context.l10n.groupFilterAllWithCount(
+                              validTransactions.length),
                           isSelected: _activeFilter == 0,
                           onTap: () => setState(() => _activeFilter = 0),
                           activeColor: widget.groupColor,
                         ),
                         const SizedBox(width: 8),
                         _buildFilterChip(
-                          label: context.l10n.groupFilterContributedWithCount(contributions.length),
+                          label: context.l10n.groupFilterContributedWithCount(
+                              contributions.length),
                           isSelected: _activeFilter == 1,
                           onTap: () => setState(() => _activeFilter = 1),
                           activeColor: const Color(0xFF10B981),
                         ),
                         const SizedBox(width: 8),
                         _buildFilterChip(
-                          label: context.l10n.groupFilterSpentWithCount(expenses.length),
+                          label: context.l10n
+                              .groupFilterSpentWithCount(expenses.length),
                           isSelected: _activeFilter == 2,
                           onTap: () => setState(() => _activeFilter = 2),
                           activeColor: AppColors.expense,
@@ -1663,7 +1702,8 @@ class _GroupTransactionActivitySectionState
                   if (displayTransactions.isEmpty)
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 24, horizontal: 16),
                       decoration: BoxDecoration(
                         color: AppColors.surface(context),
                         borderRadius: BorderRadius.circular(18),
@@ -1680,7 +1720,8 @@ class _GroupTransactionActivitySectionState
                                     ? Icons.shopping_bag_outlined
                                     : Icons.receipt_long_outlined),
                             size: 40,
-                            color: AppColors.textSecondary(context).withValues(alpha: 0.5),
+                            color: AppColors.textSecondary(context)
+                                .withValues(alpha: 0.5),
                           ),
                           const SizedBox(height: 10),
                           Text(
@@ -1718,9 +1759,13 @@ class _GroupTransactionActivitySectionState
                         final actorName = isMe
                             ? context.l10n.you
                             : (actor != null
-                                ? (actor['name'] ?? actor['username'] ?? context.l10n.member).toString()
+                                ? (actor['name'] ??
+                                        actor['username'] ??
+                                        context.l10n.member)
+                                    .toString()
                                 : context.l10n.member);
-                        final actorAvatar = (actor?['avatarUrl'] ?? '').toString();
+                        final actorAvatar =
+                            (actor?['avatarUrl'] ?? '').toString();
 
                         final imgUrl = tx.imageUrl.isNotEmpty
                             ? tx.imageUrl
@@ -1732,7 +1777,8 @@ class _GroupTransactionActivitySectionState
                         final categoryDisplay = isContribution
                             ? context.l10n.groupFundDeposit
                             : (tx.category.isNotEmpty
-                                ? BudgetNameLocalizer.display(context, tx.category)
+                                ? BudgetNameLocalizer.display(
+                                    context, tx.category)
                                 : context.l10n.groupExpense);
 
                         final purpose = tx.caption.trim().isNotEmpty
@@ -1778,13 +1824,15 @@ class _GroupTransactionActivitySectionState
                                       width: 50,
                                       height: 50,
                                       decoration: BoxDecoration(
-                                        color: actionColor.withValues(alpha: 0.12),
+                                        color:
+                                            actionColor.withValues(alpha: 0.12),
                                       ),
                                       child: hasImage
                                           ? Image.network(
                                               imgUrl,
                                               fit: BoxFit.cover,
-                                              errorBuilder: (_, __, ___) => Icon(
+                                              errorBuilder: (_, __, ___) =>
+                                                  Icon(
                                                 isContribution
                                                     ? Icons.savings_rounded
                                                     : Icons.receipt_rounded,
@@ -1804,13 +1852,15 @@ class _GroupTransactionActivitySectionState
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           categoryDisplay,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
-                                          style: AppTextStyles.body(context).copyWith(
+                                          style: AppTextStyles.body(context)
+                                              .copyWith(
                                             fontWeight: FontWeight.w800,
                                             fontSize: 14,
                                           ),
@@ -1821,9 +1871,13 @@ class _GroupTransactionActivitySectionState
                                             purpose,
                                             maxLines: 2,
                                             overflow: TextOverflow.ellipsis,
-                                            style: AppTextStyles.caption(context).copyWith(
+                                            style:
+                                                AppTextStyles.caption(context)
+                                                    .copyWith(
                                               fontSize: 12,
-                                              color: AppColors.textPrimary(context).withValues(alpha: 0.85),
+                                              color:
+                                                  AppColors.textPrimary(context)
+                                                      .withValues(alpha: 0.85),
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),
@@ -1833,12 +1887,16 @@ class _GroupTransactionActivitySectionState
                                           children: [
                                             CircleAvatar(
                                               radius: 8,
-                                              backgroundColor: AppColors.card(context),
-                                              backgroundImage: actorAvatar.isNotEmpty
-                                                  ? CachedNetworkImageProvider(actorAvatar)
+                                              backgroundColor:
+                                                  AppColors.card(context),
+                                              backgroundImage: actorAvatar
+                                                      .isNotEmpty
+                                                  ? CachedNetworkImageProvider(
+                                                      actorAvatar)
                                                   : null,
                                               child: actorAvatar.isEmpty
-                                                  ? const Icon(Icons.person, size: 9)
+                                                  ? const Icon(Icons.person,
+                                                      size: 9)
                                                   : null,
                                             ),
                                             const SizedBox(width: 5),
@@ -1847,7 +1905,9 @@ class _GroupTransactionActivitySectionState
                                                 '$actorName • ${_formatDateTime(context, tx.createdAt)}',
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
-                                                style: AppTextStyles.caption(context).copyWith(
+                                                style: AppTextStyles.caption(
+                                                        context)
+                                                    .copyWith(
                                                   fontSize: 11,
                                                 ),
                                               ),
@@ -1876,7 +1936,8 @@ class _GroupTransactionActivitySectionState
                                         Icon(
                                           Icons.photo_library_outlined,
                                           size: 14,
-                                          color: AppColors.textSecondary(context),
+                                          color:
+                                              AppColors.textSecondary(context),
                                         ),
                                       ],
                                     ],
@@ -1914,9 +1975,7 @@ class _GroupTransactionActivitySectionState
               : AppColors.surface(context),
           borderRadius: BorderRadius.circular(AppSizes.radiusPill),
           border: Border.all(
-            color: isSelected
-                ? activeColor
-                : AppColors.innerBorder(context),
+            color: isSelected ? activeColor : AppColors.innerBorder(context),
             width: isSelected ? 1.5 : 1.0,
           ),
         ),
@@ -2027,8 +2086,9 @@ class _MembersContributionCard extends StatelessWidget {
                   leading: CircleAvatar(
                     radius: 24,
                     backgroundColor: AppColors.card(context),
-                    backgroundImage:
-                        avatarUrl.isNotEmpty ? CachedNetworkImageProvider(avatarUrl) : null,
+                    backgroundImage: avatarUrl.isNotEmpty
+                        ? CachedNetworkImageProvider(avatarUrl)
+                        : null,
                     child: avatarUrl.isEmpty
                         ? Icon(
                             Icons.person,
@@ -2044,7 +2104,9 @@ class _MembersContributionCard extends StatelessWidget {
                       fontWeight: FontWeight.w800,
                     ),
                   ),
-                  trailing: (isOwner && memberUid != myUid && memberUid.isNotEmpty)
+                  trailing: (isOwner &&
+                          memberUid != myUid &&
+                          memberUid.isNotEmpty)
                       ? IconButton(
                           icon: const Icon(
                             Icons.person_remove_rounded,
@@ -2066,7 +2128,8 @@ class _MembersContributionCard extends StatelessWidget {
                                 ),
                                 actions: [
                                   TextButton(
-                                    onPressed: () => Navigator.pop(dialogCtx, false),
+                                    onPressed: () =>
+                                        Navigator.pop(dialogCtx, false),
                                     child: Text(l10n.cancel),
                                   ),
                                   FilledButton(
@@ -2077,7 +2140,8 @@ class _MembersContributionCard extends StatelessWidget {
                                         borderRadius: BorderRadius.circular(14),
                                       ),
                                     ),
-                                    onPressed: () => Navigator.pop(dialogCtx, true),
+                                    onPressed: () =>
+                                        Navigator.pop(dialogCtx, true),
                                     child: Text(l10n.removeMember),
                                   ),
                                 ],
@@ -2103,7 +2167,8 @@ class _MembersContributionCard extends StatelessWidget {
                               messenger.showSnackBar(
                                 SnackBar(
                                   duration: AppDurations.snackBar,
-                                  content: Text(l10n.cannotRemoveMember(e.toString())),
+                                  content: Text(
+                                      l10n.cannotRemoveMember(e.toString())),
                                 ),
                               );
                             }
@@ -2122,7 +2187,8 @@ class _MembersContributionCard extends StatelessWidget {
                         ),
                       const SizedBox(height: 7),
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+                        borderRadius:
+                            BorderRadius.circular(AppSizes.radiusPill),
                         child: LinearProgressIndicator(
                           value: paidProgress,
                           minHeight: 5,
@@ -2143,7 +2209,8 @@ class _MembersContributionCard extends StatelessWidget {
                               vertical: 3,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                              color: const Color(0xFF10B981)
+                                  .withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -2162,7 +2229,8 @@ class _MembersContributionCard extends StatelessWidget {
                                 vertical: 3,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.expense.withValues(alpha: 0.12),
+                                color:
+                                    AppColors.expense.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -2189,8 +2257,10 @@ class _MembersContributionCard extends StatelessWidget {
                               ),
                               child: Text(
                                 paidAmount >= spentAmount
-                                    ? context.l10n.groupMemberSurplus(money(paidAmount - spentAmount))
-                                    : context.l10n.groupMemberDeficit(money(spentAmount - paidAmount)),
+                                    ? context.l10n.groupMemberSurplus(
+                                        money(paidAmount - spentAmount))
+                                    : context.l10n.groupMemberDeficit(
+                                        money(spentAmount - paidAmount)),
                                 style: TextStyle(
                                   color: paidAmount >= spentAmount
                                       ? const Color(0xFF10B981)
@@ -2282,14 +2352,18 @@ class _GroupOptionsCard extends StatelessWidget {
                         height: 42,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: (isMuted ? const Color(0xFFFF5252) : AppColors.primaryBlue)
+                          color: (isMuted
+                                  ? const Color(0xFFFF5252)
+                                  : AppColors.primaryBlue)
                               .withValues(alpha: 0.16),
                         ),
                         child: Icon(
                           isMuted
                               ? Icons.notifications_off_rounded
                               : Icons.notifications_active_rounded,
-                          color: isMuted ? const Color(0xFFFF5252) : AppColors.primaryBlue,
+                          color: isMuted
+                              ? const Color(0xFFFF5252)
+                              : AppColors.primaryBlue,
                           size: 20,
                         ),
                       ),
@@ -2299,7 +2373,9 @@ class _GroupOptionsCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              isEn ? 'Mute group notifications' : 'Tắt thông báo nhóm',
+                              isEn
+                                  ? 'Mute group notifications'
+                                  : 'Tắt thông báo nhóm',
                               style: AppTextStyles.body(context).copyWith(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w800,
@@ -2361,7 +2437,9 @@ class _GroupOptionsCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           _ActionTile(
-            icon: isOwner ? Icons.delete_outline_rounded : Icons.exit_to_app_rounded,
+            icon: isOwner
+                ? Icons.delete_outline_rounded
+                : Icons.exit_to_app_rounded,
             title: isOwner ? context.l10n.deleteGroup : context.l10n.leaveGroup,
             subtitle: isOwner
                 ? context.l10n.deleteGroupSubtitle

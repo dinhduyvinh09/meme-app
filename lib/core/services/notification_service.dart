@@ -32,9 +32,9 @@ class NotificationService {
   bool _isInitialized = false;
 
   // Android Notification Channels
-  static const String chatChannelId = 'chat_messages_channel_v3';
-  static const String friendChannelId = 'friend_requests_channel_v3';
-  static const String reminderChannelId = 'expense_reminders_channel_v3';
+  static const String chatChannelId = 'chat_messages_channel_v4';
+  static const String friendChannelId = 'friend_requests_channel_v4';
+  static const String reminderChannelId = 'expense_reminders_channel_v4';
   static const String customSoundName = 'meme_sound';
 
   Future<void> init() async {
@@ -69,7 +69,8 @@ class NotificationService {
         enableVibration: true,
       );
 
-      const AndroidNotificationChannel friendChannel = AndroidNotificationChannel(
+      const AndroidNotificationChannel friendChannel =
+          AndroidNotificationChannel(
         friendChannelId,
         'Lời mời & Bạn bè',
         description: 'Thông báo lời mời kết bạn và tương tác bạn bè',
@@ -79,7 +80,8 @@ class NotificationService {
         enableVibration: true,
       );
 
-      const AndroidNotificationChannel reminderChannel = AndroidNotificationChannel(
+      const AndroidNotificationChannel reminderChannel =
+          AndroidNotificationChannel(
         reminderChannelId,
         'Nhắc nhở chi tiêu & Chuỗi',
         description: 'Nhắc nhở ghi chép chi tiêu và duy trì chuỗi hàng ngày',
@@ -89,18 +91,30 @@ class NotificationService {
         enableVibration: true,
       );
 
-      final androidPlugin = _localNotifications
-          .resolvePlatformSpecificImplementation<
+      final androidPlugin =
+          _localNotifications.resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>();
 
       if (androidPlugin != null) {
         // Clean up legacy channel IDs to ensure custom sound triggers immediately
-        await androidPlugin.deleteNotificationChannel(channelId: 'chat_messages_channel');
-        await androidPlugin.deleteNotificationChannel(channelId: 'chat_messages_channel_v2');
-        await androidPlugin.deleteNotificationChannel(channelId: 'friend_requests_channel');
-        await androidPlugin.deleteNotificationChannel(channelId: 'friend_requests_channel_v2');
-        await androidPlugin.deleteNotificationChannel(channelId: 'expense_reminders_channel');
-        await androidPlugin.deleteNotificationChannel(channelId: 'expense_reminders_channel_v2');
+        await androidPlugin.deleteNotificationChannel(
+            channelId: 'chat_messages_channel');
+        await androidPlugin.deleteNotificationChannel(
+            channelId: 'chat_messages_channel_v2');
+        await androidPlugin.deleteNotificationChannel(
+            channelId: 'chat_messages_channel_v3');
+        await androidPlugin.deleteNotificationChannel(
+            channelId: 'friend_requests_channel');
+        await androidPlugin.deleteNotificationChannel(
+            channelId: 'friend_requests_channel_v2');
+        await androidPlugin.deleteNotificationChannel(
+            channelId: 'friend_requests_channel_v3');
+        await androidPlugin.deleteNotificationChannel(
+            channelId: 'expense_reminders_channel');
+        await androidPlugin.deleteNotificationChannel(
+            channelId: 'expense_reminders_channel_v2');
+        await androidPlugin.deleteNotificationChannel(
+            channelId: 'expense_reminders_channel_v3');
 
         await androidPlugin.createNotificationChannel(chatChannel);
         await androidPlugin.createNotificationChannel(friendChannel);
@@ -254,7 +268,8 @@ class NotificationService {
 
     final type = data['type']?.toString() ?? 'text';
     final senderUid = data['senderUid']?.toString() ?? 'system';
-    final senderName = data['senderName']?.toString() ?? notification?.title ?? 'Meme';
+    final senderName =
+        data['senderName']?.toString() ?? notification?.title ?? 'Meme';
     final senderAvatar = data['senderAvatar']?.toString() ?? '';
     final msgText = notification?.body ?? data['body']?.toString() ?? '';
     final isGroup = type == 'group_chat' || type == 'group_transaction';
@@ -336,7 +351,8 @@ class NotificationService {
           .collection('users')
           .doc(uid)
           .collection('transactions')
-          .where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+          .where('createdAt',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
           .limit(1)
           .get();
       return snapshot.docs.isNotEmpty;
@@ -352,9 +368,11 @@ class NotificationService {
     try {
       // Cancel today's slot (ID 9000)
       await _localNotifications.cancel(id: 9000);
-      debugPrint('NotificationService: Expense recorded today! Cancelled today\'s 20:00 reminder.');
+      debugPrint(
+          'NotificationService: Expense recorded today! Cancelled today\'s 20:00 reminder.');
       // Re-schedule for next days
-      await scheduleGenZDailyReminders(hour: 20, minute: 0, checkSpentTodayForUid: uid);
+      await scheduleGenZDailyReminders(
+          hour: 20, minute: 0, checkSpentTodayForUid: uid);
     } catch (e) {
       debugPrint('Error in onExpenseRecordedToday: $e');
     }
@@ -397,7 +415,8 @@ class NotificationService {
         alreadySpentToday = await hasSpentToday(checkSpentTodayForUid);
         if (language == null) {
           try {
-            final userDoc = await _db.collection('users').doc(checkSpentTodayForUid).get();
+            final userDoc =
+                await _db.collection('users').doc(checkSpentTodayForUid).get();
             final lang = userDoc.data()?['language']?.toString();
             if (lang != null && lang.isNotEmpty) {
               userLanguage = lang;
@@ -407,7 +426,8 @@ class NotificationService {
       }
 
       final isEn = userLanguage.toLowerCase() == 'en';
-      final channelName = isEn ? 'Expense & Streak Reminders' : 'Nhắc nhở chi tiêu & Chuỗi';
+      final channelName =
+          isEn ? 'Expense & Streak Reminders' : 'Nhắc nhở chi tiêu & Chuỗi';
 
       // Schedule distinct rotating Gen Z quotes for the next 14 days
       for (int i = 0; i < 14; i++) {
@@ -459,7 +479,8 @@ class NotificationService {
           payload: jsonEncode({'type': 'daily_reminder'}),
         );
       }
-      debugPrint('Gen Z Daily reminders scheduled at $hour:$minute in $userLanguage (alreadySpentToday: $alreadySpentToday).');
+      debugPrint(
+          'Gen Z Daily reminders scheduled at $hour:$minute in $userLanguage (alreadySpentToday: $alreadySpentToday).');
     } catch (e) {
       debugPrint('Error scheduling Gen Z daily reminders: $e');
     }
@@ -607,7 +628,8 @@ class NotificationService {
         );
       }
 
-      debugPrint('Rewind reminders scheduled for upcoming weekends & month-ends in $userLanguage.');
+      debugPrint(
+          'Rewind reminders scheduled for upcoming weekends & month-ends in $userLanguage.');
     } catch (e) {
       debugPrint('Error scheduling Rewind reminders: $e');
     }
@@ -649,7 +671,9 @@ class NotificationService {
       }
 
       final isEn = (language ?? 'vi').toLowerCase() == 'en';
-      final displayName = name?.trim().isNotEmpty == true ? name!.trim() : (isEn ? 'friend' : 'bạn');
+      final displayName = name?.trim().isNotEmpty == true
+          ? name!.trim()
+          : (isEn ? 'friend' : 'bạn');
       final title = isEn
           ? 'Happy Birthday, $displayName! 🎂🎉'
           : 'Chúc mừng sinh nhật $displayName! 🎂🎉';
@@ -695,7 +719,8 @@ class NotificationService {
   }) async {
     if (user == null || user.dateOfBirth == null) return;
     final now = DateTime.now();
-    if (now.month != user.dateOfBirth!.month || now.day != user.dateOfBirth!.day) {
+    if (now.month != user.dateOfBirth!.month ||
+        now.day != user.dateOfBirth!.day) {
       return;
     }
 
@@ -703,7 +728,9 @@ class NotificationService {
     final notifKey = 'in_app_birthday_${user.uid}_${now.year}';
     if (!InAppNotificationService.instance.isNotificationShown(notifKey)) {
       final isEn = (language ?? user.language).toLowerCase() == 'en';
-      final displayName = user.name.trim().isNotEmpty ? user.name.trim() : (isEn ? 'friend' : 'bạn');
+      final displayName = user.name.trim().isNotEmpty
+          ? user.name.trim()
+          : (isEn ? 'friend' : 'bạn');
       await InAppNotificationService.instance.showNotification(
         InAppNotificationItem(
           id: notifKey,
@@ -862,7 +889,9 @@ class NotificationService {
           },
         );
       }
-    } else if (type == 'chat' || type == 'chat_message' || type == 'note_reaction') {
+    } else if (type == 'chat' ||
+        type == 'chat_message' ||
+        type == 'note_reaction') {
       final friendUid = data['senderUid']?.toString();
       final friendName = data['senderName']?.toString() ?? 'Bạn bè';
       final friendAvatar = data['senderAvatar']?.toString() ?? '';

@@ -183,9 +183,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         SnackBar(
           duration: AppDurations.snackBar,
           content: Text(
-            emailOpened
-                ? l10n.feedbackSentEmail
-                : l10n.feedbackSaved,
+            emailOpened ? l10n.feedbackSentEmail : l10n.feedbackSaved,
           ),
         ),
       );
@@ -251,9 +249,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 18),
-
                 Center(
                   child: Column(
                     children: [
@@ -262,7 +258,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                         height: 110,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: AppColors.primaryBlue.withOpacity(0.18),
+                          color: AppColors.primaryBlue.withValues(alpha: 0.18),
                         ),
                         child: const Icon(
                           Icons.mail_outline_rounded,
@@ -289,9 +285,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 22),
-
                 Text(
                   l10n.yourEmail,
                   style: AppTextStyles.body(context).copyWith(
@@ -330,9 +324,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                     fontSize: 13,
                   ),
                 ),
-
                 const SizedBox(height: 22),
-
                 Row(
                   children: [
                     Expanded(
@@ -363,11 +355,11 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                     cursorColor: AppColors.primaryBlue,
                     style: AppTextStyles.body(context),
                     buildCounter: (
-                        BuildContext context, {
-                          required int currentLength,
-                          required bool isFocused,
-                          required int? maxLength,
-                        }) {
+                      BuildContext context, {
+                      required int currentLength,
+                      required bool isFocused,
+                      required int? maxLength,
+                    }) {
                       return const SizedBox.shrink();
                     },
                     decoration: InputDecoration(
@@ -378,16 +370,13 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 24),
-
                 CustomButton(
                   height: 56,
                   borderRadius: AppSizes.radiusMedium,
                   text: l10n.sendFeedback,
                   icon: Icons.send_outlined,
-                  onPressedAsync:
-                      _canSubmitFeedback() ? submitFeedback : null,
+                  onPressedAsync: _canSubmitFeedback() ? submitFeedback : null,
                 ),
               ],
             ),

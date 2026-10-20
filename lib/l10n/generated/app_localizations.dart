@@ -4464,7 +4464,7 @@ abstract class AppLocalizations {
   /// No description provided for @groupMembersCount.
   ///
   /// In vi, this message translates to:
-  /// **'{count, plural, other{{count} thành viên}}'**
+  /// **'{count} thành viên'**
   String groupMembersCount(int count);
 
   /// No description provided for @everyoneActive.
@@ -5804,6 +5804,324 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Không thể cắt ảnh. Vui lòng thử lại!'**
   String get cropFailed;
+
+  /// No description provided for @activeGroupsCount.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} nhóm hoạt động'**
+  String activeGroupsCount(int count);
+
+  /// No description provided for @groupFundBalance.
+  ///
+  /// In vi, this message translates to:
+  /// **'Số dư quỹ'**
+  String get groupFundBalance;
+
+  /// No description provided for @groupFundSpent.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã chi tiêu'**
+  String get groupFundSpent;
+
+  /// No description provided for @groupGoalWithAmount.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mục tiêu: {amount}'**
+  String groupGoalWithAmount(String amount);
+
+  /// No description provided for @groupFundGoalWithAmount.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mục tiêu quỹ: {amount}'**
+  String groupFundGoalWithAmount(String amount);
+
+  /// No description provided for @newGroupDefaultName.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tên nhóm mới'**
+  String get newGroupDefaultName;
+
+  /// No description provided for @noGoalSetYet.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa đặt mục tiêu'**
+  String get noGoalSetYet;
+
+  /// No description provided for @groupInfoTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thông tin nhóm'**
+  String get groupInfoTitle;
+
+  /// No description provided for @groupOwnerYou.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn (Trưởng nhóm)'**
+  String get groupOwnerYou;
+
+  /// No description provided for @groupYouAndFriends.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn + {count} bạn bè'**
+  String groupYouAndFriends(int count);
+
+  /// No description provided for @unsavedChangesLabel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa lưu'**
+  String get unsavedChangesLabel;
+
+  /// No description provided for @cropAvatarTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cắt ảnh đại diện'**
+  String get cropAvatarTitle;
+
+  /// No description provided for @tapToChangePhoto.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chạm để đổi ảnh đại diện'**
+  String get tapToChangePhoto;
+
+  /// No description provided for @changePhoto.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đổi ảnh'**
+  String get changePhoto;
+
+  /// No description provided for @personalInfo.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thông tin cá nhân'**
+  String get personalInfo;
+
+  /// No description provided for @displayNameLabel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tên hiển thị'**
+  String get displayNameLabel;
+
+  /// No description provided for @displayNameHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập tên hiển thị của bạn'**
+  String get displayNameHint;
+
+  /// No description provided for @displayNameHelper.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tên này sẽ hiển thị với bạn bè và trong các nhóm chi tiêu.'**
+  String get displayNameHelper;
+
+  /// No description provided for @usernameLabel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tên người dùng'**
+  String get usernameLabel;
+
+  /// No description provided for @usernameReadOnlyHelper.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tên người dùng định danh tài khoản của bạn.'**
+  String get usernameReadOnlyHelper;
+
+  /// No description provided for @emailLabel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Email đăng nhập'**
+  String get emailLabel;
+
+  /// No description provided for @changeEmailAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đổi email'**
+  String get changeEmailAction;
+
+  /// No description provided for @categoryPreviewTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem trước danh mục'**
+  String get categoryPreviewTitle;
+
+  /// No description provided for @categoryPreviewSubtitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Giao diện hiển thị thực tế trên ứng dụng'**
+  String get categoryPreviewSubtitle;
+
+  /// No description provided for @totalCategoriesCount.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} danh mục'**
+  String totalCategoriesCount(int count);
+
+  /// No description provided for @customCategoriesCount.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} tuỳ chỉnh'**
+  String customCategoriesCount(int count);
+
+  /// No description provided for @builtinCategoriesCount.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} mặc định'**
+  String builtinCategoriesCount(int count);
+
+  /// No description provided for @createCategoryAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tạo danh mục'**
+  String get createCategoryAction;
+
+  /// No description provided for @searchCategoriesHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tìm kiếm danh mục...'**
+  String get searchCategoriesHint;
+
+  /// No description provided for @noMatchingCategories.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không tìm thấy danh mục phù hợp'**
+  String get noMatchingCategories;
+
+  /// No description provided for @allCategoriesCount.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} tổng cộng'**
+  String allCategoriesCount(int count);
+
+  /// No description provided for @streakFlameActiveToday.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã thắp lửa hôm nay 🔥'**
+  String get streakFlameActiveToday;
+
+  /// No description provided for @streakFlamePendingToday.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa thắp lửa hôm nay'**
+  String get streakFlamePendingToday;
+
+  /// No description provided for @streakFlameKeepHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ghi 1 giao dịch hoặc ảnh trước 23:59 để giữ lửa!'**
+  String get streakFlameKeepHint;
+
+  /// No description provided for @streakWeeklyTracker.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lịch chuỗi tuần này'**
+  String get streakWeeklyTracker;
+
+  /// No description provided for @streakLevelTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cấp độ lửa'**
+  String get streakLevelTitle;
+
+  /// No description provided for @streakHowItWorksTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bí kíp giữ chuỗi'**
+  String get streakHowItWorksTitle;
+
+  /// No description provided for @streakRule1.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ghi nhận ít nhất 1 giao dịch hoặc khoảnh khắc ảnh mỗi ngày.'**
+  String get streakRule1;
+
+  /// No description provided for @streakRule2.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chuỗi tự động tăng lên sau mỗi ngày liên tiếp.'**
+  String get streakRule2;
+
+  /// No description provided for @streakRule3.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mở khoá hàng loạt khung Avatar huyền thoại và chủ đề máy ảnh độc quyền!'**
+  String get streakRule3;
+
+  /// No description provided for @equipFrameAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Sử dụng khung này'**
+  String get equipFrameAction;
+
+  /// No description provided for @equippedFrameStatus.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang dùng'**
+  String get equippedFrameStatus;
+
+  /// No description provided for @lockedFrameStatus.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mở ở chuỗi {days} ngày'**
+  String lockedFrameStatus(int days);
+
+  /// No description provided for @tryOnFrameTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thử khung Avatar'**
+  String get tryOnFrameTitle;
+
+  /// No description provided for @streakDaysRemaining.
+  ///
+  /// In vi, this message translates to:
+  /// **'Còn {days} ngày nữa để mở khoá'**
+  String streakDaysRemaining(int days);
+
+  /// No description provided for @streakConsecutiveSubtitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Liên tục không ngắt quãng'**
+  String get streakConsecutiveSubtitle;
+
+  /// No description provided for @dailyStreakHeader.
+  ///
+  /// In vi, this message translates to:
+  /// **'CHUỖI NGÀY'**
+  String get dailyStreakHeader;
+
+  /// No description provided for @completedTodayStatus.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã hoàn thành hôm nay'**
+  String get completedTodayStatus;
+
+  /// No description provided for @pendingTodayStatus.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa hoàn thành hôm nay'**
+  String get pendingTodayStatus;
+
+  /// No description provided for @streakGoalLabel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mục tiêu: {days} ngày 🎯'**
+  String streakGoalLabel(int days);
+
+  /// No description provided for @streakUnlockFrameGoal.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mở khung: {days} ngày 🎯'**
+  String streakUnlockFrameGoal(int days);
+
+  /// No description provided for @todayDayLabel.
+  ///
+  /// In vi, this message translates to:
+  /// **'H.Nay'**
+  String get todayDayLabel;
+
+  /// No description provided for @streakDaysInARow.
+  ///
+  /// In vi, this message translates to:
+  /// **'ngày liên tiếp 🔥'**
+  String get streakDaysInARow;
 }
 
 class _AppLocalizationsDelegate

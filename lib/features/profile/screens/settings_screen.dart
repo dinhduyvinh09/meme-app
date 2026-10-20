@@ -55,7 +55,6 @@ class SettingsScreen extends StatelessWidget {
                 ],
               ),
             ),
-
             _SettingsSection(
               title: l10n.language,
               children: [
@@ -75,9 +74,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ],
             ),
-
             const SizedBox(height: 16),
-
             _SettingsSection(
               title: l10n.appearance,
               children: [
@@ -104,9 +101,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ],
             ),
-
             const SizedBox(height: 16),
-
             _SettingsSection(
               title: l10n.appIconSection,
               children: [
@@ -162,9 +157,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ],
             ),
-
             const SizedBox(height: 16),
-
             _SettingsSection(
               title: l10n.currency,
               children: [
@@ -185,9 +178,7 @@ class SettingsScreen extends StatelessWidget {
                 const _ExchangeRateRow(),
               ],
             ),
-
             const SizedBox(height: 16),
-
             _SettingsSection(
               title: l10n.privacySection,
               children: [
@@ -346,17 +337,17 @@ class _SettingsOptionTile extends StatelessWidget {
                   child: Center(
                     child: flagEmoji != null
                         ? Text(
-                      flagEmoji!,
-                      style: const TextStyle(
-                        fontSize: 21,
-                        height: 1,
-                      ),
-                    )
+                            flagEmoji!,
+                            style: const TextStyle(
+                              fontSize: 21,
+                              height: 1,
+                            ),
+                          )
                         : Icon(
-                      icon,
-                      color: iconColor,
-                      size: 20,
-                    ),
+                            icon,
+                            color: iconColor,
+                            size: 20,
+                          ),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -375,7 +366,8 @@ class _SettingsOptionTile extends StatelessWidget {
                   height: 24,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: selected ? AppColors.primaryBlue : Colors.transparent,
+                    color:
+                        selected ? AppColors.primaryBlue : Colors.transparent,
                     border: Border.all(
                       color: selected ? AppColors.primaryBlue : radioBorder,
                       width: 1.8,
@@ -383,12 +375,12 @@ class _SettingsOptionTile extends StatelessWidget {
                   ),
                   child: selected
                       ? const Center(
-                    child: Icon(
-                      Icons.check_rounded,
-                      color: Colors.white,
-                      size: 15,
-                    ),
-                  )
+                          child: Icon(
+                            Icons.check_rounded,
+                            color: Colors.white,
+                            size: 15,
+                          ),
+                        )
                       : null,
                 ),
               ],
@@ -480,7 +472,8 @@ class _SettingsActionTile extends StatelessWidget {
                 ),
                 Icon(
                   Icons.chevron_right_rounded,
-                  color: AppColors.textSecondary(context).withValues(alpha: 0.5),
+                  color:
+                      AppColors.textSecondary(context).withValues(alpha: 0.5),
                   size: 22,
                 ),
               ],
@@ -547,14 +540,14 @@ class _ExchangeRateRowState extends State<_ExchangeRateRow> {
             onPressed: isUpdating ? null : _refreshRate,
             icon: isUpdating
                 ? const SizedBox(
-              width: 15,
-              height: 15,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
+                    width: 15,
+                    height: 15,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : const Icon(
-              Icons.refresh_rounded,
-              size: 17,
-            ),
+                    Icons.refresh_rounded,
+                    size: 17,
+                  ),
             label: Text(
               isUpdating ? l10n.updating : l10n.update,
             ),

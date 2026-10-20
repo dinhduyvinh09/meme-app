@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -105,7 +106,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final profile = context.watch<ProfileController>();
     final currency = profile.currency;
 
-    final userCreated = profile.user?.createdAt ?? auth.user?.metadata.creationTime;
+    final userCreated =
+        profile.user?.createdAt ?? auth.user?.metadata.creationTime;
 
     DateTime earliestDate = userCreated ?? DateTime.now();
     if (home.transactions.isNotEmpty) {
@@ -124,7 +126,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
 
     final totalMemesCount = home.transactions.length;
-    final userStreak = home.profile?.currentStreak ?? profile.user?.currentStreak ?? 0;
+    final userStreak =
+        home.profile?.currentStreak ?? profile.user?.currentStreak ?? 0;
 
     final topPadding = MediaQuery.of(context).padding.top + 62;
     final bottomPadding = MediaQuery.of(context).padding.bottom + 20;
@@ -239,8 +242,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 );
                               },
                               child: Text(
-                                locale.toLowerCase().startsWith('vi') ? 'Kỷ niệm' : 'Moments',
-                                style: AppTextStyles.pageTitle(context).copyWith(
+                                locale.toLowerCase().startsWith('vi')
+                                    ? 'Kỷ niệm'
+                                    : 'Moments',
+                                style:
+                                    AppTextStyles.pageTitle(context).copyWith(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w800,
                                 ),
@@ -277,7 +283,8 @@ class _MemeStatsBadge extends StatelessWidget {
     final locale = Localizations.localeOf(context).toString();
     final isVi = locale.toLowerCase().startsWith('vi');
 
-    final countFormatted = NumberFormat.decimalPattern(isVi ? 'vi_VN' : 'en_US').format(totalMemes);
+    final countFormatted = NumberFormat.decimalPattern(isVi ? 'vi_VN' : 'en_US')
+        .format(totalMemes);
     final memeLabel = isVi ? 'Meme' : (totalMemes == 1 ? 'Meme' : 'Memes');
     final streakText = isVi
         ? '🔥 chuỗi $streak ngày'
@@ -285,6 +292,7 @@ class _MemeStatsBadge extends StatelessWidget {
 
     return InkWell(
       onTap: () {
+        HapticFeedback.lightImpact();
         StreakDetailSheet.show(context);
       },
       borderRadius: BorderRadius.circular(AppSizes.radiusPill),
@@ -364,9 +372,7 @@ class _FirstMemeMilestoneHeader extends StatelessWidget {
         ? (isVi
             ? 'Meme đầu tiên của bạn đã được gửi vào'
             : 'Your first Meme was sent on')
-        : (isVi
-            ? 'Bạn đã tham gia Meme vào'
-            : 'You joined Meme on');
+        : (isVi ? 'Bạn đã tham gia Meme vào' : 'You joined Meme on');
 
     final dateText = isVi
         ? 'ngày ${date.day} thg ${date.month}, ${date.year}'
@@ -409,8 +415,8 @@ class _FirstMemeMilestoneHeader extends StatelessWidget {
                     Icons.favorite_rounded,
                     size: 8,
                     color: isDark
-                      ? Colors.white.withValues(alpha: 0.65)
-                      : Colors.black.withValues(alpha: 0.65),
+                        ? Colors.white.withValues(alpha: 0.65)
+                        : Colors.black.withValues(alpha: 0.65),
                   ),
                 ),
               ],
@@ -457,7 +463,8 @@ class _TopThreadLoop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = AppColors.isDark(context);
-    final dashColor = isDark ? const Color(0xFF6B7280) : const Color(0xFF9CA3AF);
+    final dashColor =
+        isDark ? const Color(0xFF6B7280) : const Color(0xFF9CA3AF);
 
     return SizedBox(
       width: 44,
@@ -482,7 +489,8 @@ class _MonthDashedConnectorThread extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = AppColors.isDark(context);
-    final dashColor = isDark ? const Color(0xFF6B7280) : const Color(0xFF9CA3AF);
+    final dashColor =
+        isDark ? const Color(0xFF6B7280) : const Color(0xFF9CA3AF);
 
     return SizedBox(
       width: 52,
@@ -537,85 +545,108 @@ class _MonthUniqueDashedPainter extends CustomPainter {
       case 1:
         // Tháng 1: Loop 360 độ xoắn tròn số 9 tinh tế
         path.moveTo(centerX, 0);
-        path.cubicTo(centerX - 4, h * 0.2, centerX - 18, h * 0.28, centerX - 18, h * 0.48);
-        path.cubicTo(centerX - 18, h * 0.68, centerX + 18, h * 0.68, centerX + 18, h * 0.48);
-        path.cubicTo(centerX + 18, h * 0.32, centerX + 2, h * 0.32, centerX - 4, h * 0.52);
+        path.cubicTo(centerX - 4, h * 0.2, centerX - 18, h * 0.28, centerX - 18,
+            h * 0.48);
+        path.cubicTo(centerX - 18, h * 0.68, centerX + 18, h * 0.68,
+            centerX + 18, h * 0.48);
+        path.cubicTo(centerX + 18, h * 0.32, centerX + 2, h * 0.32, centerX - 4,
+            h * 0.52);
         path.cubicTo(centerX - 10, h * 0.72, centerX + 2, h * 0.88, centerX, h);
         break;
 
       case 2:
         // Tháng 2: Romantic Ribbon Swirl (Dải ruy băng xoắn chéo mềm mại)
         path.moveTo(centerX, 0);
-        path.cubicTo(centerX - 18, h * 0.15, centerX - 22, h * 0.38, centerX - 4, h * 0.44);
-        path.cubicTo(centerX + 14, h * 0.50, centerX + 22, h * 0.35, centerX + 16, h * 0.20);
-        path.cubicTo(centerX + 8, h * 0.08, centerX - 14, h * 0.68, centerX + 2, h * 0.80);
+        path.cubicTo(centerX - 18, h * 0.15, centerX - 22, h * 0.38,
+            centerX - 4, h * 0.44);
+        path.cubicTo(centerX + 14, h * 0.50, centerX + 22, h * 0.35,
+            centerX + 16, h * 0.20);
+        path.cubicTo(centerX + 8, h * 0.08, centerX - 14, h * 0.68, centerX + 2,
+            h * 0.80);
         path.cubicTo(centerX + 14, h * 0.88, centerX + 6, h * 0.98, centerX, h);
         break;
 
       case 3:
         // Tháng 3: Spring Leaf Clover Loop (Xoắn 3 nhịp chồi non mùa xuân)
         path.moveTo(centerX, 0);
-        path.cubicTo(centerX + 20, h * 0.14, centerX + 24, h * 0.32, centerX + 2, h * 0.36);
-        path.cubicTo(centerX - 22, h * 0.40, centerX - 22, h * 0.64, centerX - 2, h * 0.68);
-        path.cubicTo(centerX + 18, h * 0.72, centerX + 16, h * 0.90, centerX, h);
+        path.cubicTo(centerX + 20, h * 0.14, centerX + 24, h * 0.32,
+            centerX + 2, h * 0.36);
+        path.cubicTo(centerX - 22, h * 0.40, centerX - 22, h * 0.64,
+            centerX - 2, h * 0.68);
+        path.cubicTo(
+            centerX + 18, h * 0.72, centerX + 16, h * 0.90, centerX, h);
         break;
 
       case 4:
         // Tháng 4: Figure-8 Infinity (Nút thắt số 8 vô cực liền mạch một nét)
         path.moveTo(centerX, 0);
-        path.cubicTo(centerX + 16, h * 0.15, centerX + 20, h * 0.35, centerX, h * 0.5);
-        path.cubicTo(centerX - 20, h * 0.65, centerX - 16, h * 0.85, centerX, h);
+        path.cubicTo(
+            centerX + 16, h * 0.15, centerX + 20, h * 0.35, centerX, h * 0.5);
+        path.cubicTo(
+            centerX - 20, h * 0.65, centerX - 16, h * 0.85, centerX, h);
         break;
 
       case 5:
         // Tháng 5: Bowknot Loop (Dây nơ uốn vòng đôi nhịp nhàng)
         path.moveTo(centerX, 0);
-        path.cubicTo(centerX - 18, h * 0.2, centerX - 22, h * 0.45, centerX, h * 0.45);
-        path.cubicTo(centerX + 22, h * 0.45, centerX + 18, h * 0.7, centerX, h * 0.7);
+        path.cubicTo(
+            centerX - 18, h * 0.2, centerX - 22, h * 0.45, centerX, h * 0.45);
+        path.cubicTo(
+            centerX + 22, h * 0.45, centerX + 18, h * 0.7, centerX, h * 0.7);
         path.cubicTo(centerX - 8, h * 0.7, centerX - 4, h * 0.9, centerX, h);
         break;
 
       case 6:
         // Tháng 6: Zigzag Lò xo góc bo mềm
         path.moveTo(centerX, 0);
-        path.cubicTo(centerX - 18, h * 0.15, centerX - 20, h * 0.35, centerX - 12, h * 0.38);
-        path.cubicTo(centerX + 20, h * 0.45, centerX + 18, h * 0.65, centerX + 8, h * 0.68);
+        path.cubicTo(centerX - 18, h * 0.15, centerX - 20, h * 0.35,
+            centerX - 12, h * 0.38);
+        path.cubicTo(centerX + 20, h * 0.45, centerX + 18, h * 0.65,
+            centerX + 8, h * 0.68);
         path.cubicTo(centerX - 14, h * 0.75, centerX - 4, h * 0.92, centerX, h);
         break;
 
       case 7:
         // Tháng 7: Double Helix Loops (2 vòng xoắn nối tiếp)
         path.moveTo(centerX, 0);
-        path.cubicTo(centerX - 16, h * 0.15, centerX - 14, h * 0.35, centerX + 4, h * 0.35);
-        path.cubicTo(centerX + 20, h * 0.35, centerX + 14, h * 0.65, centerX - 4, h * 0.65);
-        path.cubicTo(centerX - 16, h * 0.65, centerX + 12, h * 0.85, centerX, h);
+        path.cubicTo(centerX - 16, h * 0.15, centerX - 14, h * 0.35,
+            centerX + 4, h * 0.35);
+        path.cubicTo(centerX + 20, h * 0.35, centerX + 14, h * 0.65,
+            centerX - 4, h * 0.65);
+        path.cubicTo(
+            centerX - 16, h * 0.65, centerX + 12, h * 0.85, centerX, h);
         break;
 
       case 8:
         // Tháng 8: Diamond Knot (Nút thắt hình thoi mở rộng)
         path.moveTo(centerX, 0);
-        path.cubicTo(centerX - 22, h * 0.25, centerX - 22, h * 0.45, centerX, h * 0.5);
-        path.cubicTo(centerX + 22, h * 0.55, centerX + 22, h * 0.75, centerX, h);
+        path.cubicTo(
+            centerX - 22, h * 0.25, centerX - 22, h * 0.45, centerX, h * 0.5);
+        path.cubicTo(
+            centerX + 22, h * 0.55, centerX + 22, h * 0.75, centerX, h);
         break;
 
       case 9:
         // Tháng 9: Xoáy ốc nghiêng bên phải (Spiral Curl)
         path.moveTo(centerX, 0);
-        path.cubicTo(centerX + 20, h * 0.22, centerX + 22, h * 0.55, centerX, h * 0.52);
+        path.cubicTo(
+            centerX + 20, h * 0.22, centerX + 22, h * 0.55, centerX, h * 0.52);
         path.cubicTo(centerX - 14, h * 0.5, centerX - 12, h * 0.78, centerX, h);
         break;
 
       case 10:
         // Tháng 10: Double Ribbon Wave (Làn sóng ruy băng kép mềm mại)
         path.moveTo(centerX, 0);
-        path.cubicTo(centerX + 18, h * 0.22, centerX - 18, h * 0.5, centerX + 12, h * 0.75);
+        path.cubicTo(centerX + 18, h * 0.22, centerX - 18, h * 0.5,
+            centerX + 12, h * 0.75);
         path.cubicTo(centerX + 4, h * 0.88, centerX - 4, h * 0.95, centerX, h);
         break;
 
       case 11:
         // Tháng 11: Tilted Oval Loop (Vòng elip xoắn nằm nghiêng)
         path.moveTo(centerX, 0);
-        path.cubicTo(centerX - 20, h * 0.22, centerX + 20, h * 0.35, centerX + 10, h * 0.55);
+        path.cubicTo(centerX - 20, h * 0.22, centerX + 20, h * 0.35,
+            centerX + 10, h * 0.55);
         path.cubicTo(centerX - 18, h * 0.65, centerX - 4, h * 0.85, centerX, h);
         break;
 
@@ -623,8 +654,10 @@ class _MonthUniqueDashedPainter extends CustomPainter {
       default:
         // Tháng 12: Festive Clover Knot (Nút thắt hoa lễ hội cuối năm)
         path.moveTo(centerX, 0);
-        path.cubicTo(centerX - 18, h * 0.2, centerX - 16, h * 0.45, centerX, h * 0.45);
-        path.cubicTo(centerX + 18, h * 0.45, centerX + 16, h * 0.75, centerX, h * 0.75);
+        path.cubicTo(
+            centerX - 18, h * 0.2, centerX - 16, h * 0.45, centerX, h * 0.45);
+        path.cubicTo(
+            centerX + 18, h * 0.45, centerX + 16, h * 0.75, centerX, h * 0.75);
         path.cubicTo(centerX - 8, h * 0.75, centerX + 4, h * 0.9, centerX, h);
         break;
     }
@@ -672,7 +705,8 @@ String _formatDailyCompact({
   if (amountVnd <= 0) return '';
   final normCurrency = AppCurrencyFormatter.normalizeCurrency(currency);
   if (normCurrency == 'USD') {
-    final usd = AppCurrencyFormatter.fromVnd(amountVnd: amountVnd, currency: 'USD');
+    final usd =
+        AppCurrencyFormatter.fromVnd(amountVnd: amountVnd, currency: 'USD');
     if (usd < 1) {
       return '\$${usd.toStringAsFixed(2)}';
     }
@@ -681,11 +715,13 @@ String _formatDailyCompact({
     }
     if (usd < 1000000) {
       final k = usd / 1000;
-      final text = k >= 10 || k % 1 == 0 ? k.round().toString() : k.toStringAsFixed(1);
+      final text =
+          k >= 10 || k % 1 == 0 ? k.round().toString() : k.toStringAsFixed(1);
       return '\$${text}k';
     }
     final m = usd / 1000000;
-    final text = m >= 10 || m % 1 == 0 ? m.round().toString() : m.toStringAsFixed(1);
+    final text =
+        m >= 10 || m % 1 == 0 ? m.round().toString() : m.toStringAsFixed(1);
     return '\$${text}M';
   }
 
@@ -698,11 +734,13 @@ String _formatDailyCompact({
   }
   if (amountVnd < 1000000000) {
     final m = amountVnd / 1000000;
-    final text = m >= 10 || m % 1 == 0 ? m.round().toString() : m.toStringAsFixed(1);
+    final text =
+        m >= 10 || m % 1 == 0 ? m.round().toString() : m.toStringAsFixed(1);
     return isVi ? '${text}tr' : '${text}M';
   }
   final b = amountVnd / 1000000000;
-  final text = b >= 10 || b % 1 == 0 ? b.round().toString() : b.toStringAsFixed(1);
+  final text =
+      b >= 10 || b % 1 == 0 ? b.round().toString() : b.toStringAsFixed(1);
   return isVi ? '${text}tỷ' : '${text}B';
 }
 
@@ -774,8 +812,7 @@ class _MonthCalendarCardState extends State<_MonthCalendarCard> {
     }
 
     // Tiêu đề tháng
-    final rawMonthTitle =
-        DateFormat('MMMM, yyyy', locale).format(widget.month);
+    final rawMonthTitle = DateFormat('MMMM, yyyy', locale).format(widget.month);
     final monthTitle = rawMonthTitle.isNotEmpty
         ? rawMonthTitle[0].toUpperCase() + rawMonthTitle.substring(1)
         : rawMonthTitle;
@@ -798,7 +835,7 @@ class _MonthCalendarCardState extends State<_MonthCalendarCard> {
       padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF131418) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
         border: Border.all(
           color: isDark ? const Color(0xFF222530) : const Color(0xFFE6E9F0),
           width: 1.2,
@@ -962,8 +999,8 @@ class _MonthCalendarCardState extends State<_MonthCalendarCard> {
                     }
 
                     final isToday = _sameDate(date, now);
-                    final isFuture =
-                        DateTime(date.year, date.month, date.day).isAfter(today);
+                    final isFuture = DateTime(date.year, date.month, date.day)
+                        .isAfter(today);
                     final hasData = displayedTransactions.isNotEmpty;
                     final isBirthday = widget.dateOfBirth != null &&
                         date.day == widget.dateOfBirth!.day &&
@@ -1091,7 +1128,10 @@ class _MonthlySummaryBox extends StatelessWidget {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: onTap,
+            onTap: () {
+              HapticFeedback.selectionClick();
+              onTap();
+            },
             borderRadius: BorderRadius.circular(12),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
@@ -1108,8 +1148,8 @@ class _MonthlySummaryBox extends StatelessWidget {
                           : badgeBgColor,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: accentColor
-                            .withValues(alpha: isSelected ? 0.9 : 0.6),
+                        color: accentColor.withValues(
+                            alpha: isSelected ? 0.9 : 0.6),
                         width: 1,
                       ),
                     ),
@@ -1324,9 +1364,11 @@ class _CalendarDayCell extends StatelessWidget {
     } else if (isToday) {
       dayNumberColor = const Color(0xFF29B6F6); // Cyan / Bright Blue
     } else if (isFuture) {
-      dayNumberColor = isDark ? const Color(0xFF4B5563) : const Color(0xFF9CA3AF);
+      dayNumberColor =
+          isDark ? const Color(0xFF4B5563) : const Color(0xFF9CA3AF);
     } else {
-      dayNumberColor = isDark ? const Color(0xFFD1D5DB) : const Color(0xFF374151);
+      dayNumberColor =
+          isDark ? const Color(0xFFD1D5DB) : const Color(0xFF374151);
     }
 
     final cellContent = Column(
@@ -1370,7 +1412,8 @@ class _CalendarDayCell extends StatelessWidget {
               '${date.day}',
               style: TextStyle(
                 fontSize: 11.5,
-                fontWeight: (isToday || isBirthday) ? FontWeight.w900 : FontWeight.w700,
+                fontWeight:
+                    (isToday || isBirthday) ? FontWeight.w900 : FontWeight.w700,
                 color: dayNumberColor,
                 height: 1.0,
               ),
@@ -1387,8 +1430,8 @@ class _CalendarDayCell extends StatelessWidget {
               style: TextStyle(
                 fontSize: 9.5,
                 fontWeight: FontWeight.w800,
-                color: amountColor ??
-                    (isDark ? Colors.white70 : Colors.black87),
+                color:
+                    amountColor ?? (isDark ? Colors.white70 : Colors.black87),
                 letterSpacing: -0.2,
                 height: 1.0,
               ),
@@ -1555,7 +1598,8 @@ class _StickerFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isExpense = transaction.type == 'expense' && !transaction.isGroupContribution;
+    final isExpense =
+        transaction.type == 'expense' && !transaction.isGroupContribution;
     final typeColor = isExpense ? AppColors.expense : AppColors.income;
     final borderColor = isBirthday
         ? const Color(0xFFFF4081)
@@ -1619,7 +1663,10 @@ class _TopCircleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onTap,
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
       borderRadius: BorderRadius.circular(AppSizes.radiusXLarge),
       child: Container(
         width: 44,

@@ -123,7 +123,8 @@ class _AppIconPickerScreenState extends State<AppIconPickerScreen> {
                         final isSmall = width < 370;
                         final isTablet = width >= 600;
                         final cols = isTablet ? 3 : 2;
-                        final aspectRatio = isTablet ? 0.9 : (isSmall ? 0.76 : 0.80);
+                        final aspectRatio =
+                            isTablet ? 0.9 : (isSmall ? 0.76 : 0.80);
 
                         return GridView.builder(
                           controller: _scrollController,
@@ -247,9 +248,8 @@ class _IconGridCard extends StatelessWidget {
           color: isDark ? const Color(0xFF1B1E2B) : AppColors.card(context),
           borderRadius: BorderRadius.circular(22),
           border: Border.all(
-            color: isSelected
-                ? AppColors.primaryBlue
-                : AppColors.border(context),
+            color:
+                isSelected ? AppColors.primaryBlue : AppColors.border(context),
             width: isSelected ? 2.2 : 1.1,
           ),
           boxShadow: [

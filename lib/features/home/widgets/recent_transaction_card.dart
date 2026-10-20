@@ -105,8 +105,8 @@ class RecentTransactionCard extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(
-                AppColors.isDark(context) ? 0.14 : 0.035,
+              color: Colors.black.withValues(
+                alpha: AppColors.isDark(context) ? 0.14 : 0.035,
               ),
               blurRadius: 12,
               offset: const Offset(0, 4),
@@ -247,7 +247,8 @@ class RecentTransactionCard extends StatelessWidget {
                       const SizedBox(height: 8),
                       Icon(
                         Icons.chevron_right_rounded,
-                        color: AppColors.textSecondary(context).withOpacity(0.8),
+                        color: AppColors.textSecondary(context)
+                            .withValues(alpha: 0.8),
                         size: 20,
                       ),
                     ],

@@ -12,9 +12,9 @@ import io.flutter.app.FlutterApplication
 
 class MainApplication : FlutterApplication() {
     companion object {
-        const val CHAT_CHANNEL_ID = "chat_messages_channel_v3"
-        const val FRIEND_CHANNEL_ID = "friend_requests_channel_v3"
-        const val REMINDER_CHANNEL_ID = "expense_reminders_channel_v3"
+        const val CHAT_CHANNEL_ID = "chat_messages_channel_v4"
+        const val FRIEND_CHANNEL_ID = "friend_requests_channel_v4"
+        const val REMINDER_CHANNEL_ID = "expense_reminders_channel_v4"
         const val SOUND_RES_NAME = "meme_sound"
     }
 
@@ -31,10 +31,13 @@ class MainApplication : FlutterApplication() {
             val legacyChannelIds = listOf(
                 "chat_messages_channel",
                 "chat_messages_channel_v2",
+                "chat_messages_channel_v3",
                 "friend_requests_channel",
                 "friend_requests_channel_v2",
+                "friend_requests_channel_v3",
                 "expense_reminders_channel",
-                "expense_reminders_channel_v2"
+                "expense_reminders_channel_v2",
+                "expense_reminders_channel_v3"
             )
             for (oldChannel in legacyChannelIds) {
                 try {

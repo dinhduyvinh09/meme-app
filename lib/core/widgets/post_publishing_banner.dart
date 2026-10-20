@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../constants/app_icon_registry.dart';
@@ -80,12 +81,26 @@ class _PostPublishingBannerHostState extends State<PostPublishingBannerHost>
     final locale = Localizations.maybeLocaleOf(context);
     final isEn = locale?.languageCode.toLowerCase() == 'en';
     final bottomInset = MediaQuery.of(context).padding.bottom;
-    final bannerBottom = bottomInset + 104.0;
+    final isCollapsed = service.isNavbarCollapsed;
+    final hasRightFab = service.hasRightFab;
 
-    return Positioned(
-      left: 16,
-      right: 16,
+    // Khi navbar thu gọn:
+    // - Nút navbar tròn bên trái: left 16, width 50 => kết thúc ở x = 66 => bannerLeft = 74.0
+    // - Phía bên phải:
+    //   + Nếu ở tab Trang chủ (index == 0): có nút FAB tròn (right 20, width 55) => bannerRight = 83.0 (để nằm giữa 2 nút)
+    //   + Nếu ở tab khác (Thống kê, Bạn bè, Ví, Cá nhân): KHÔNG CÓ nút FAB => bannerRight = 16.0 (kéo dài đều sang phải đẹp mắt)
+    final bannerBottom = bottomInset + (isCollapsed ? 24.0 : 104.0);
+    final bannerLeft = isCollapsed ? 74.0 : 16.0;
+    final bannerRight = isCollapsed ? (hasRightFab ? 83.0 : 16.0) : 16.0;
+    final bannerHeight = isCollapsed ? 52.0 : null;
+
+    return AnimatedPositioned(
+      duration: Duration(milliseconds: isCollapsed ? 280 : 240),
+      curve: isCollapsed ? Curves.easeInOutCubic : Curves.easeOutCubic,
+      left: bannerLeft,
+      right: bannerRight,
       bottom: bannerBottom,
+      height: bannerHeight,
       child: SlideTransition(
         position: _slideAnimation,
         child: FadeTransition(
@@ -98,72 +113,42 @@ class _PostPublishingBannerHostState extends State<PostPublishingBannerHost>
             },
             child: Material(
               color: Colors.transparent,
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 440),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF1E2028).withValues(alpha: 0.96)
-                      : const Color(0xFF181A20).withValues(alpha: 0.96),
-                  borderRadius: BorderRadius.circular(26),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.14),
-                    width: 1.0,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.45),
-                      blurRadius: 20,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(25),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
-                    ),
-                    child: Row(
-                      children: [
-                        // Status Icon & Status Text
-                        Expanded(
-                          child: _buildStatusSection(service, isEn),
-                        ),
-
-                        const SizedBox(width: 12),
-
-                        // Media Thumbnail with Paperclip
-                        _buildMediaThumbnailWithClip(service),
-
-                        // "Xem" action button when success
-                        if (service.isSuccess) ...[
-                          const SizedBox(width: 14),
-                          GestureDetector(
-                            onTap: () {
-                              HapticFeedback.selectionClick();
-                              service.viewPost();
-                            },
-                            behavior: HitTestBehavior.opaque,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                                vertical: 6,
-                              ),
-                              child: Text(
-                                isEn ? 'View' : 'Xem',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -0.2,
-                                ),
-                              ),
-                            ),
+              child: Center(
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 440),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(isCollapsed ? 25 : 26),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                      child: AnimatedContainer(
+                        duration: Duration(milliseconds: isCollapsed ? 280 : 240),
+                        curve: isCollapsed ? Curves.easeInOutCubic : Curves.easeOutCubic,
+                        decoration: BoxDecoration(
+                          // Popup trong suốt hơn với hiệu ứng frosted glass / blur
+                          color: isDark
+                              ? const Color(0xFF161922).withValues(alpha: 0.70)
+                              : const Color(0xFF141720).withValues(alpha: 0.66),
+                          borderRadius: BorderRadius.circular(isCollapsed ? 25 : 26),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: isDark ? 0.18 : 0.22),
+                            width: 1.1,
                           ),
-                          const SizedBox(width: 2),
-                        ],
-                      ],
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.32),
+                              blurRadius: 16,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: AnimatedSize(
+                          duration: Duration(milliseconds: isCollapsed ? 280 : 240),
+                          curve: isCollapsed ? Curves.easeInOutCubic : Curves.easeOutCubic,
+                          child: isCollapsed
+                              ? _buildCollapsedContent(service, isEn)
+                              : _buildExpandedContent(service, isEn),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -171,6 +156,173 @@ class _PostPublishingBannerHostState extends State<PostPublishingBannerHost>
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCollapsedContent(PostPublishingService service, bool isEn) {
+    return GestureDetector(
+      onTap: service.isSuccess
+          ? () {
+              HapticFeedback.selectionClick();
+              service.viewPost();
+            }
+          : null,
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        height: 52.0,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 10,
+            vertical: 4,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Thumbnail nhỏ 34x34
+              _buildMediaThumbnailWithClip(service, isMini: true),
+
+              const SizedBox(width: 8),
+
+              // Text tiêu đề & trạng thái
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      service.isUploading
+                          ? (isEn ? 'Posting...' : 'Đang đăng...')
+                          : (service.isSuccess
+                              ? (isEn ? 'Posted' : 'Đã đăng')
+                              : (isEn ? 'Failed' : 'Đăng lỗi')),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: service.isError
+                            ? const Color(0xFFEF4444)
+                            : Colors.white,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        height: 1.15,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      service.isUploading
+                          ? (isEn ? 'Uploading moment' : 'Đang tải lên...')
+                          : (service.isSuccess
+                              ? (isEn ? 'Tap to view' : 'Chạm để xem')
+                              : (isEn ? 'Tap to retry' : 'Thử lại')),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: service.isSuccess
+                            ? const Color(0xFF60A5FA)
+                            : Colors.white.withValues(alpha: 0.70),
+                        fontSize: 10.0,
+                        fontWeight: FontWeight.w500,
+                        height: 1.15,
+                        letterSpacing: -0.1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 6),
+
+              // Progress / Status indicator on right
+              if (service.isUploading)
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.0,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              else if (service.isSuccess)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3.5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.20),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    isEn ? 'View' : 'Xem',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                )
+              else
+                const Icon(
+                  Icons.error_outline_rounded,
+                  color: Color(0xFFEF4444),
+                  size: 18,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExpandedContent(PostPublishingService service, bool isEn) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 10,
+      ),
+      child: Row(
+        children: [
+          // Status Icon & Status Text
+          Expanded(
+            child: _buildStatusSection(service, isEn),
+          ),
+
+          const SizedBox(width: 12),
+
+          // Media Thumbnail with Paperclip
+          _buildMediaThumbnailWithClip(service, isMini: false),
+
+          // "Xem" action button when success
+          if (service.isSuccess) ...[
+            const SizedBox(width: 14),
+            GestureDetector(
+              onTap: () {
+                HapticFeedback.selectionClick();
+                service.viewPost();
+              },
+              behavior: HitTestBehavior.opaque,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 4,
+                  vertical: 6,
+                ),
+                child: Text(
+                  isEn ? 'View' : 'Xem',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 2),
+          ],
+        ],
       ),
     );
   }
@@ -384,20 +536,28 @@ class _PostPublishingBannerHostState extends State<PostPublishingBannerHost>
     },
   };
 
-  Widget _buildMediaThumbnailWithClip(PostPublishingService service) {
+  Widget _buildMediaThumbnailWithClip(PostPublishingService service, {bool isMini = false}) {
     final displayFile = service.thumbnailFile ??
         (!service.isVideo ? service.mediaFile : null);
+
+    final double size = isMini ? 34.0 : 42.0;
+    final double radius = isMini ? 8.0 : 10.0;
+    final double innerRadius = isMini ? 7.0 : 9.0;
+    final double clipW = isMini ? 11.0 : 14.0;
+    final double clipH = isMini ? 19.0 : 25.0;
+    final double clipTop = isMini ? -5.0 : -8.0;
+    final double clipRight = isMini ? 1.0 : 3.0;
 
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.center,
       children: [
         Container(
-          width: 42,
-          height: 42,
+          width: size,
+          height: size,
           decoration: BoxDecoration(
             color: const Color(0xFF2C2F38),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(radius),
             border: Border.all(
               color: Colors.white.withValues(alpha: 0.22),
               width: 1.1,
@@ -411,7 +571,7 @@ class _PostPublishingBannerHostState extends State<PostPublishingBannerHost>
             ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(9),
+            borderRadius: BorderRadius.circular(innerRadius),
             child: Stack(
               fit: StackFit.expand,
               alignment: Alignment.center,
@@ -419,20 +579,23 @@ class _PostPublishingBannerHostState extends State<PostPublishingBannerHost>
                 if (displayFile != null && displayFile.existsSync())
                   Image.file(
                     displayFile,
-                    width: 42,
-                    height: 42,
+                    width: size,
+                    height: size,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _buildFallbackThumbnail(service),
+                    cacheWidth: isMini ? 80 : 120,
+                    cacheHeight: isMini ? 80 : 120,
+                    errorBuilder: (_, __, ___) =>
+                        _buildFallbackThumbnail(service, isMini: isMini),
                   )
                 else
-                  _buildFallbackThumbnail(service),
+                  _buildFallbackThumbnail(service, isMini: isMini),
 
                 // Video play indicator icon overlay
                 if (service.isVideo)
                   Center(
                     child: Container(
-                      width: 20,
-                      height: 20,
+                      width: isMini ? 16 : 20,
+                      height: isMini ? 16 : 20,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: Colors.black.withValues(alpha: 0.55),
@@ -441,11 +604,11 @@ class _PostPublishingBannerHostState extends State<PostPublishingBannerHost>
                           width: 0.8,
                         ),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Icon(
                           Icons.play_arrow_rounded,
                           color: Colors.white,
-                          size: 14,
+                          size: isMini ? 11 : 14,
                         ),
                       ),
                     ),
@@ -456,28 +619,30 @@ class _PostPublishingBannerHostState extends State<PostPublishingBannerHost>
         ),
 
         // Silver Metallic Paperclip pinned over top edge
-        const Positioned(
-          top: -8,
-          right: 3,
+        Positioned(
+          top: clipTop,
+          right: clipRight,
           child: PaperclipWidget(
-            width: 14,
-            height: 25,
+            width: clipW,
+            height: clipH,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildFallbackThumbnail(PostPublishingService service) {
+  Widget _buildFallbackThumbnail(PostPublishingService service, {bool isMini = false}) {
+    final double size = isMini ? 34.0 : 42.0;
+
     if (service.isVideo) {
       return Container(
-        width: 42,
-        height: 42,
+        width: size,
+        height: size,
         color: const Color(0xFF333642),
-        child: const Icon(
+        child: Icon(
           Icons.videocam_rounded,
           color: Colors.white54,
-          size: 20,
+          size: isMini ? 16 : 20,
         ),
       );
     }
@@ -511,10 +676,10 @@ class _PostPublishingBannerHostState extends State<PostPublishingBannerHost>
     }
 
     return Container(
-      width: 42,
-      height: 42,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(9),
+        borderRadius: BorderRadius.circular(isMini ? 7 : 9),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -528,7 +693,7 @@ class _PostPublishingBannerHostState extends State<PostPublishingBannerHost>
       child: Center(
         child: Icon(
           catIcon,
-          size: 21,
+          size: isMini ? 17 : 21,
           color: catColor,
         ),
       ),

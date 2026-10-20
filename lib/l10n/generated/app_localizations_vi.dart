@@ -2503,12 +2503,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String groupMembersCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count thành viên',
-    );
-    return '$_temp0';
+    return '$count thành viên';
   }
 
   @override
@@ -3301,4 +3296,193 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get cropFailed => 'Không thể cắt ảnh. Vui lòng thử lại!';
+
+  @override
+  String activeGroupsCount(int count) {
+    return '$count nhóm hoạt động';
+  }
+
+  @override
+  String get groupFundBalance => 'Số dư quỹ';
+
+  @override
+  String get groupFundSpent => 'Đã chi tiêu';
+
+  @override
+  String groupGoalWithAmount(String amount) {
+    return 'Mục tiêu: $amount';
+  }
+
+  @override
+  String groupFundGoalWithAmount(String amount) {
+    return 'Mục tiêu quỹ: $amount';
+  }
+
+  @override
+  String get newGroupDefaultName => 'Tên nhóm mới';
+
+  @override
+  String get noGoalSetYet => 'Chưa đặt mục tiêu';
+
+  @override
+  String get groupInfoTitle => 'Thông tin nhóm';
+
+  @override
+  String get groupOwnerYou => 'Bạn (Trưởng nhóm)';
+
+  @override
+  String groupYouAndFriends(int count) {
+    return 'Bạn + $count bạn bè';
+  }
+
+  @override
+  String get unsavedChangesLabel => 'Chưa lưu';
+
+  @override
+  String get cropAvatarTitle => 'Cắt ảnh đại diện';
+
+  @override
+  String get tapToChangePhoto => 'Chạm để đổi ảnh đại diện';
+
+  @override
+  String get changePhoto => 'Đổi ảnh';
+
+  @override
+  String get personalInfo => 'Thông tin cá nhân';
+
+  @override
+  String get displayNameLabel => 'Tên hiển thị';
+
+  @override
+  String get displayNameHint => 'Nhập tên hiển thị của bạn';
+
+  @override
+  String get displayNameHelper =>
+      'Tên này sẽ hiển thị với bạn bè và trong các nhóm chi tiêu.';
+
+  @override
+  String get usernameLabel => 'Tên người dùng';
+
+  @override
+  String get usernameReadOnlyHelper =>
+      'Tên người dùng định danh tài khoản của bạn.';
+
+  @override
+  String get emailLabel => 'Email đăng nhập';
+
+  @override
+  String get changeEmailAction => 'Đổi email';
+
+  @override
+  String get categoryPreviewTitle => 'Xem trước danh mục';
+
+  @override
+  String get categoryPreviewSubtitle =>
+      'Giao diện hiển thị thực tế trên ứng dụng';
+
+  @override
+  String totalCategoriesCount(int count) {
+    return '$count danh mục';
+  }
+
+  @override
+  String customCategoriesCount(int count) {
+    return '$count tuỳ chỉnh';
+  }
+
+  @override
+  String builtinCategoriesCount(int count) {
+    return '$count mặc định';
+  }
+
+  @override
+  String get createCategoryAction => 'Tạo danh mục';
+
+  @override
+  String get searchCategoriesHint => 'Tìm kiếm danh mục...';
+
+  @override
+  String get noMatchingCategories => 'Không tìm thấy danh mục phù hợp';
+
+  @override
+  String allCategoriesCount(int count) {
+    return '$count tổng cộng';
+  }
+
+  @override
+  String get streakFlameActiveToday => 'Đã thắp lửa hôm nay 🔥';
+
+  @override
+  String get streakFlamePendingToday => 'Chưa thắp lửa hôm nay';
+
+  @override
+  String get streakFlameKeepHint =>
+      'Ghi 1 giao dịch hoặc ảnh trước 23:59 để giữ lửa!';
+
+  @override
+  String get streakWeeklyTracker => 'Lịch chuỗi tuần này';
+
+  @override
+  String get streakLevelTitle => 'Cấp độ lửa';
+
+  @override
+  String get streakHowItWorksTitle => 'Bí kíp giữ chuỗi';
+
+  @override
+  String get streakRule1 =>
+      'Ghi nhận ít nhất 1 giao dịch hoặc khoảnh khắc ảnh mỗi ngày.';
+
+  @override
+  String get streakRule2 => 'Chuỗi tự động tăng lên sau mỗi ngày liên tiếp.';
+
+  @override
+  String get streakRule3 =>
+      'Mở khoá hàng loạt khung Avatar huyền thoại và chủ đề máy ảnh độc quyền!';
+
+  @override
+  String get equipFrameAction => 'Sử dụng khung này';
+
+  @override
+  String get equippedFrameStatus => 'Đang dùng';
+
+  @override
+  String lockedFrameStatus(int days) {
+    return 'Mở ở chuỗi $days ngày';
+  }
+
+  @override
+  String get tryOnFrameTitle => 'Thử khung Avatar';
+
+  @override
+  String streakDaysRemaining(int days) {
+    return 'Còn $days ngày nữa để mở khoá';
+  }
+
+  @override
+  String get streakConsecutiveSubtitle => 'Liên tục không ngắt quãng';
+
+  @override
+  String get dailyStreakHeader => 'CHUỖI NGÀY';
+
+  @override
+  String get completedTodayStatus => 'Đã hoàn thành hôm nay';
+
+  @override
+  String get pendingTodayStatus => 'Chưa hoàn thành hôm nay';
+
+  @override
+  String streakGoalLabel(int days) {
+    return 'Mục tiêu: $days ngày 🎯';
+  }
+
+  @override
+  String streakUnlockFrameGoal(int days) {
+    return 'Mở khung: $days ngày 🎯';
+  }
+
+  @override
+  String get todayDayLabel => 'H.Nay';
+
+  @override
+  String get streakDaysInARow => 'ngày liên tiếp 🔥';
 }

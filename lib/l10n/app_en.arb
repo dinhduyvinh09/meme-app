@@ -2032,5 +2032,150 @@
   "cropFlipVertical": "Flip V",
   "cropReset": "Reset",
   "cropDone": "Done",
-  "cropFailed": "Unable to crop image. Please try again!"
+  "cropFailed": "Unable to crop image. Please try again!",
+  "activeGroupsCount": "{count, plural, =1{1 active group} other{{count} active groups}}",
+  "@activeGroupsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "groupFundBalance": "Fund balance",
+  "groupFundSpent": "Spent",
+  "groupGoalWithAmount": "Goal: {amount}",
+  "@groupGoalWithAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "groupFundGoalWithAmount": "Fund goal: {amount}",
+  "@groupFundGoalWithAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "newGroupDefaultName": "New group name",
+  "noGoalSetYet": "No goal set",
+  "groupInfoTitle": "Group Information",
+  "groupOwnerYou": "You (Owner)",
+  "groupYouAndFriends": "You + {count} friends",
+  "@groupYouAndFriends": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "groupMembersCount": "{count, plural, =1{1 member} other{{count} members}}",
+  "@groupMembersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unsavedChangesLabel": "Unsaved",
+  "cropAvatarTitle": "Crop Avatar",
+  "tapToChangePhoto": "Tap to change avatar",
+  "changePhoto": "Change photo",
+  "personalInfo": "Personal Information",
+  "displayNameLabel": "Display Name",
+  "displayNameHint": "Enter your display name",
+  "displayNameHelper": "This name will be shown to your friends and group expenses.",
+  "usernameLabel": "Username",
+  "usernameReadOnlyHelper": "Username is your unique account handle.",
+  "emailLabel": "Login Email",
+  "changeEmailAction": "Change email",
+  "categoryPreviewTitle": "Category Preview",
+  "categoryPreviewSubtitle": "Real-time look and feel in the app",
+  "totalCategoriesCount": "{count, plural, =1{1 category} other{{count} categories}}",
+  "@totalCategoriesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "customCategoriesCount": "{count, plural, =1{1 custom} other{{count} custom}}",
+  "@customCategoriesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "builtinCategoriesCount": "{count, plural, =1{1 built-in} other{{count} built-in}}",
+  "@builtinCategoriesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "createCategoryAction": "New Category",
+  "searchCategoriesHint": "Search categories...",
+  "noMatchingCategories": "No matching categories found",
+  "allCategoriesCount": "{count, plural, =1{1 total} other{{count} total}}",
+  "@allCategoriesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "streakFlameActiveToday": "Flame ignited today! 🔥",
+  "streakFlamePendingToday": "Flame pending today",
+  "streakFlameKeepHint": "Log 1 expense or moment before 23:59 to keep the flame!",
+  "streakWeeklyTracker": "This Week's Activity",
+  "streakLevelTitle": "Flame Tier",
+  "streakHowItWorksTitle": "How Streaks Work",
+  "streakRule1": "Log at least 1 expense or photo moment every single day.",
+  "streakRule2": "Streak levels up automatically with each consecutive day.",
+  "streakRule3": "Unlock legendary Avatar frames and exclusive camera themes!",
+  "equipFrameAction": "Equip This Frame",
+  "equippedFrameStatus": "Equipped",
+  "lockedFrameStatus": "Unlocks at {days} days",
+  "@lockedFrameStatus": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "tryOnFrameTitle": "Avatar Frame Chamber",
+  "streakDaysRemaining": "{days} days left to unlock",
+  "@streakDaysRemaining": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "streakConsecutiveSubtitle": "Consecutive active days",
+  "dailyStreakHeader": "STREAK",
+  "completedTodayStatus": "Completed today",
+  "pendingTodayStatus": "Pending today",
+  "streakGoalLabel": "Goal: {days} days 🎯",
+  "@streakGoalLabel": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "streakUnlockFrameGoal": "Unlock frame: {days} days 🎯",
+  "@streakUnlockFrameGoal": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "todayDayLabel": "Today",
+  "streakDaysInARow": "days streak 🔥"
 }

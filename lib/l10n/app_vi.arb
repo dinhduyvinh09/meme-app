@@ -2032,5 +2032,150 @@
   "cropFlipVertical": "Lật dọc",
   "cropReset": "Đặt lại",
   "cropDone": "Xong",
-  "cropFailed": "Không thể cắt ảnh. Vui lòng thử lại!"
+  "cropFailed": "Không thể cắt ảnh. Vui lòng thử lại!",
+  "activeGroupsCount": "{count} nhóm hoạt động",
+  "@activeGroupsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "groupFundBalance": "Số dư quỹ",
+  "groupFundSpent": "Đã chi tiêu",
+  "groupGoalWithAmount": "Mục tiêu: {amount}",
+  "@groupGoalWithAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "groupFundGoalWithAmount": "Mục tiêu quỹ: {amount}",
+  "@groupFundGoalWithAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "newGroupDefaultName": "Tên nhóm mới",
+  "noGoalSetYet": "Chưa đặt mục tiêu",
+  "groupInfoTitle": "Thông tin nhóm",
+  "groupOwnerYou": "Bạn (Trưởng nhóm)",
+  "groupYouAndFriends": "Bạn + {count} bạn bè",
+  "@groupYouAndFriends": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "groupMembersCount": "{count} thành viên",
+  "@groupMembersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unsavedChangesLabel": "Chưa lưu",
+  "cropAvatarTitle": "Cắt ảnh đại diện",
+  "tapToChangePhoto": "Chạm để đổi ảnh đại diện",
+  "changePhoto": "Đổi ảnh",
+  "personalInfo": "Thông tin cá nhân",
+  "displayNameLabel": "Tên hiển thị",
+  "displayNameHint": "Nhập tên hiển thị của bạn",
+  "displayNameHelper": "Tên này sẽ hiển thị với bạn bè và trong các nhóm chi tiêu.",
+  "usernameLabel": "Tên người dùng",
+  "usernameReadOnlyHelper": "Tên người dùng định danh tài khoản của bạn.",
+  "emailLabel": "Email đăng nhập",
+  "changeEmailAction": "Đổi email",
+  "categoryPreviewTitle": "Xem trước danh mục",
+  "categoryPreviewSubtitle": "Giao diện hiển thị thực tế trên ứng dụng",
+  "totalCategoriesCount": "{count} danh mục",
+  "@totalCategoriesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "customCategoriesCount": "{count} tuỳ chỉnh",
+  "@customCategoriesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "builtinCategoriesCount": "{count} mặc định",
+  "@builtinCategoriesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "createCategoryAction": "Tạo danh mục",
+  "searchCategoriesHint": "Tìm kiếm danh mục...",
+  "noMatchingCategories": "Không tìm thấy danh mục phù hợp",
+  "allCategoriesCount": "{count} tổng cộng",
+  "@allCategoriesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "streakFlameActiveToday": "Đã thắp lửa hôm nay 🔥",
+  "streakFlamePendingToday": "Chưa thắp lửa hôm nay",
+  "streakFlameKeepHint": "Ghi 1 giao dịch hoặc ảnh trước 23:59 để giữ lửa!",
+  "streakWeeklyTracker": "Lịch chuỗi tuần này",
+  "streakLevelTitle": "Cấp độ lửa",
+  "streakHowItWorksTitle": "Bí kíp giữ chuỗi",
+  "streakRule1": "Ghi nhận ít nhất 1 giao dịch hoặc khoảnh khắc ảnh mỗi ngày.",
+  "streakRule2": "Chuỗi tự động tăng lên sau mỗi ngày liên tiếp.",
+  "streakRule3": "Mở khoá hàng loạt khung Avatar huyền thoại và chủ đề máy ảnh độc quyền!",
+  "equipFrameAction": "Sử dụng khung này",
+  "equippedFrameStatus": "Đang dùng",
+  "lockedFrameStatus": "Mở ở chuỗi {days} ngày",
+  "@lockedFrameStatus": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "tryOnFrameTitle": "Thử khung Avatar",
+  "streakDaysRemaining": "Còn {days} ngày nữa để mở khoá",
+  "@streakDaysRemaining": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "streakConsecutiveSubtitle": "Liên tục không ngắt quãng",
+  "dailyStreakHeader": "CHUỖI NGÀY",
+  "completedTodayStatus": "Đã hoàn thành hôm nay",
+  "pendingTodayStatus": "Chưa hoàn thành hôm nay",
+  "streakGoalLabel": "Mục tiêu: {days} ngày 🎯",
+  "@streakGoalLabel": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "streakUnlockFrameGoal": "Mở khung: {days} ngày 🎯",
+  "@streakUnlockFrameGoal": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "todayDayLabel": "H.Nay",
+  "streakDaysInARow": "ngày liên tiếp 🔥"
 }

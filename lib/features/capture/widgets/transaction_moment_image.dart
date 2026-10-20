@@ -170,6 +170,8 @@ class TransactionMomentImage extends StatelessWidget {
               height: height,
               fit: fit,
               alignment: Alignment.center,
+              cacheWidth: _cacheSize(width),
+              cacheHeight: _cacheSize(height),
               errorBuilder: (context, error, stackTrace) {
                 return _buildGeneratedMoment(radius);
               },

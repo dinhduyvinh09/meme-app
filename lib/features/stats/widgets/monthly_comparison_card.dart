@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/extensions/localization_extension.dart';
@@ -214,8 +215,7 @@ class _MonthlyComparisonCardState extends State<MonthlyComparisonCard>
 
     final double step = maxY / 3;
 
-    final String cardTitle =
-        isEn ? 'Monthly comparison' : 'So sánh theo tháng';
+    final String cardTitle = isEn ? 'Monthly comparison' : 'So sánh theo tháng';
     final String avgSubtitle = isEn
         ? 'Average expense · $avgExpenseFormatted'
         : 'Trung bình chi tiêu · $avgExpenseFormatted';
@@ -247,6 +247,7 @@ class _MonthlyComparisonCardState extends State<MonthlyComparisonCard>
           // Header Row
           InkWell(
             onTap: () {
+              HapticFeedback.lightImpact();
               setState(() {
                 _isExpanded = !_isExpanded;
                 if (_isExpanded) {
@@ -323,6 +324,7 @@ class _MonthlyComparisonCardState extends State<MonthlyComparisonCard>
                                   isEn ? '$count months' : '$count tháng';
                               return GestureDetector(
                                 onTap: () {
+                                  HapticFeedback.selectionClick();
                                   setState(() {
                                     _selectedMonths = count;
                                     _touchedGroupIndex = null;
@@ -470,9 +472,8 @@ class _MonthlyComparisonCardState extends State<MonthlyComparisonCard>
                                           isInc ? l10n.income : l10n.expense;
                                       final amount =
                                           isInc ? item.income : item.expense;
-                                      final color = isInc
-                                          ? _incomeColor
-                                          : _expenseColor;
+                                      final color =
+                                          isInc ? _incomeColor : _expenseColor;
 
                                       final headerTitle = isEn
                                           ? '${_getMonthShortLabel(item.date, true)} ${item.date.year}\n'
@@ -518,8 +519,7 @@ class _MonthlyComparisonCardState extends State<MonthlyComparisonCard>
                                     monthDataList.asMap().entries.map((entry) {
                                   final index = entry.key;
                                   final item = entry.value;
-                                  final isTouched =
-                                      _touchedGroupIndex == index;
+                                  final isTouched = _touchedGroupIndex == index;
 
                                   // Hiệu ứng sóng chạy lên từng cột từ trái sang phải
                                   final double step = groupCount > 1

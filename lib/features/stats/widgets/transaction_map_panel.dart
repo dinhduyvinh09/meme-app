@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -84,11 +86,33 @@ class _TransactionMapPanelState extends State<TransactionMapPanel> {
   }
 
   @override
+  void dispose() {
+    _mapController?.dispose();
+    _mapController = null;
+    super.dispose();
+  }
+
+  Future<void> _applyMapStyle() async {
+    final controller = _mapController;
+    if (controller == null) return;
+    try {
+      // Luôn giữ bản đồ Google Map ở chế độ sáng (Light Mode) cho dễ quan sát
+      // ignore: deprecated_member_use
+      await controller.setMapStyle(_lightMapStyle);
+    } catch (e) {
+      debugPrint('[TransactionMapPanel] Error applying map style: $e');
+    }
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final isDarkNow = AppColors.isDark(context);
     if (_isDark != isDarkNow) {
-      _isDark = isDarkNow;
+      setState(() {
+        _isDark = isDarkNow;
+      });
+      _applyMapStyle();
     }
   }
 
@@ -489,6 +513,20 @@ class _TransactionMapPanelState extends State<TransactionMapPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final profile = context.watch<ProfileController>();
+    final isDarkNow = profile.themeMode == ThemeMode.dark
+        ? true
+        : (profile.themeMode == ThemeMode.light
+            ? false
+            : AppColors.isDark(context));
+
+    if (_isDark != isDarkNow) {
+      _isDark = isDarkNow;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _applyMapStyle();
+      });
+    }
+
     final items = locatedTransactions;
 
     if (items.isEmpty) {
@@ -608,10 +646,19 @@ class _TransactionMapPanelState extends State<TransactionMapPanel> {
           ),
           onMapCreated: (controller) {
             _mapController = controller;
+            _applyMapStyle();
+            Future.delayed(const Duration(milliseconds: 200), () {
+              if (mounted) _applyMapStyle();
+            });
             _fitAllMarkers();
           },
           markers: _markers,
-          style: _isDark ? _darkMapStyle : _lightMapStyle,
+          style: _lightMapStyle,
+          gestureRecognizers: const <Factory<OneSequenceGestureRecognizer>>{
+            Factory<OneSequenceGestureRecognizer>(
+              EagerGestureRecognizer.new,
+            ),
+          },
           zoomControlsEnabled: false,
           myLocationButtonEnabled: false,
           mapToolbarEnabled: false,
@@ -897,7 +944,8 @@ class _TransactionMapPanelState extends State<TransactionMapPanel> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            context.l10n.mapSummary(items.length, groups.length),
+                            context.l10n
+                                .mapSummary(items.length, groups.length),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 15,
@@ -1059,8 +1107,8 @@ class _TransactionMapPanelState extends State<TransactionMapPanel> {
                           children: [
                             Text(
                               context.l10n.mapTransactionsHere(group.count),
-                              style: AppTextStyles.sectionTitle(context)
-                                  .copyWith(
+                              style:
+                                  AppTextStyles.sectionTitle(context).copyWith(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w900,
                               ),
@@ -1136,7 +1184,8 @@ class _TransactionMapPanelState extends State<TransactionMapPanel> {
                         () {
                           final caption = tx.caption.trim();
                           final localizedCategory =
-                              _localizedTransactionCategory(context, tx.category);
+                              _localizedTransactionCategory(
+                                  context, tx.category);
                           final normalizedCaption = caption.toLowerCase();
                           final normalizedCategory =
                               tx.category.trim().toLowerCase();
@@ -1338,6 +1387,7 @@ class _LocationTransactionTile extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 const String _darkMapStyle = '''
 [
   {

@@ -23,6 +23,32 @@ import 'square_crop_screen.dart';
 
 enum CameraCaptureMode { photo, video }
 
+/// Subtle Rule-of-Thirds composition grid overlay
+class CameraGridPainter extends CustomPainter {
+  const CameraGridPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.22)
+      ..strokeWidth = 0.9;
+
+    final w = size.width;
+    final h = size.height;
+
+    // Vertical lines (1/3 and 2/3)
+    canvas.drawLine(Offset(w / 3, 0), Offset(w / 3, h), paint);
+    canvas.drawLine(Offset(2 * w / 3, 0), Offset(2 * w / 3, h), paint);
+
+    // Horizontal lines (1/3 and 2/3)
+    canvas.drawLine(Offset(0, h / 3), Offset(w, h / 3), paint);
+    canvas.drawLine(Offset(0, 2 * h / 3), Offset(w, 2 * h / 3), paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
 class RoundedRectProgressPainter extends CustomPainter {
   final double progress; // 0.0 to 1.0
   final double strokeWidth;
@@ -273,6 +299,9 @@ class _CameraScreenState extends State<CameraScreen>
   double _maxZoom = 2.0;
   double _minZoom = 1.0;
   double _baseZoom = 1.0;
+
+  bool _showGrid = false;
+  double _cameraFlipTurns = 0.0;
 
   static const Duration _maxRecordDuration = Duration(milliseconds: 5000);
   static const Color _cameraPreviewFallback = Color(0xFF1C1C1F);
@@ -589,22 +618,17 @@ class _CameraScreenState extends State<CameraScreen>
   }
 
   Future<void> _toggleFlash() async {
-    if (_controller == null ||
-        !_controller!.value.isInitialized ||
-        _isStoppingVideo) {
-      return;
-    }
-
-    try {
+    HapticFeedback.lightImpact();
+    setState(() {
       _isFlashOn = !_isFlashOn;
+    });
 
-      await _controller!.setFlashMode(
-        _isFlashOn ? FlashMode.torch : FlashMode.off,
-      );
-
-      if (mounted) setState(() {});
-    } catch (e) {
-      debugPrint('Flash error: $e');
+    // Luôn đảm bảo đèn pin phần cứng TẮT trong lúc ngắm xem trước
+    final ctrl = _controller;
+    if (ctrl != null && ctrl.value.isInitialized) {
+      try {
+        await ctrl.setFlashMode(FlashMode.off);
+      } catch (_) {}
     }
   }
 
@@ -616,6 +640,7 @@ class _CameraScreenState extends State<CameraScreen>
     }
 
     try {
+      HapticFeedback.selectionClick();
       final current = _zoomLevel;
 
       if (current < 1.5) {
@@ -654,20 +679,22 @@ class _CameraScreenState extends State<CameraScreen>
       return;
     }
 
-    try {
-      final newZoom = (_baseZoom * details.scale).clamp(_minZoom, _maxZoom);
+    if (details.pointerCount > 1) {
+      try {
+        final newZoom = (_baseZoom * details.scale).clamp(_minZoom, _maxZoom);
 
-      if ((newZoom - _zoomLevel).abs() < 0.02) return;
+        if ((newZoom - _zoomLevel).abs() < 0.02) return;
 
-      _zoomLevel = newZoom;
+        _zoomLevel = newZoom;
 
-      await _controller!.setZoomLevel(_zoomLevel);
+        await _controller!.setZoomLevel(_zoomLevel);
 
-      if (mounted) {
-        setState(() {});
+        if (mounted) {
+          setState(() {});
+        }
+      } catch (e) {
+        debugPrint('Pinch zoom error: $e');
       }
-    } catch (e) {
-      debugPrint('Pinch zoom error: $e');
     }
   }
 
@@ -680,9 +707,11 @@ class _CameraScreenState extends State<CameraScreen>
       return;
     }
 
+    HapticFeedback.lightImpact();
     _cameraIndex = (_cameraIndex + 1) % _cameras.length;
 
     setState(() {
+      _cameraFlipTurns += 0.5;
       _isCameraReady = false;
       _isInitializingCamera = true;
       _isPermissionDenied = false;
@@ -920,8 +949,21 @@ class _CameraScreenState extends State<CameraScreen>
         _isCapturing = true;
       });
 
+      if (_isFlashOn && _controller != null) {
+        try {
+          await _controller!.setFlashMode(FlashMode.always);
+        } catch (_) {}
+      }
+
       final isFront = _isFrontCamera;
       final file = await _controller!.takePicture();
+
+      if (_controller != null) {
+        try {
+          await _controller!.setFlashMode(FlashMode.off);
+        } catch (_) {}
+      }
+
       final squareFile = await _cropImageToSquare(
         File(file.path),
         isFrontCamera: isFront,
@@ -940,6 +982,11 @@ class _CameraScreenState extends State<CameraScreen>
     } catch (e) {
       debugPrint('Capture error: $e');
     } finally {
+      if (_controller != null) {
+        try {
+          await _controller!.setFlashMode(FlashMode.off);
+        } catch (_) {}
+      }
       if (mounted) {
         setState(() {
           _isCapturing = false;
@@ -965,6 +1012,13 @@ class _CameraScreenState extends State<CameraScreen>
       try {
         await _controller!.prepareForVideoRecording();
       } catch (_) {}
+
+      if (_isFlashOn && _controller != null) {
+        try {
+          await _controller!.setFlashMode(FlashMode.torch);
+        } catch (_) {}
+      }
+
       await _controller!.startVideoRecording();
 
       // Android's MediaRecorder needs ~300–400ms after start() to emit the
@@ -1005,6 +1059,12 @@ class _CameraScreenState extends State<CameraScreen>
     } catch (e) {
       debugPrint('Start video error: $e');
 
+      if (_controller != null) {
+        try {
+          await _controller!.setFlashMode(FlashMode.off);
+        } catch (_) {}
+      }
+
       if (mounted) {
         setState(() {
           _isRecordingVideo = false;
@@ -1029,6 +1089,12 @@ class _CameraScreenState extends State<CameraScreen>
     try {
       _isStoppingVideo = true;
       _recordTimer?.cancel();
+
+      if (_controller != null) {
+        try {
+          await _controller!.setFlashMode(FlashMode.off);
+        } catch (_) {}
+      }
 
       final isFront = _isFrontCamera;
       final file = await _controller!.stopVideoRecording();
@@ -1137,6 +1203,7 @@ class _CameraScreenState extends State<CameraScreen>
   Future<void> _skipToPreview() async {
     if (_isCapturing || _isRecordingVideo || _isStoppingVideo) return;
 
+    HapticFeedback.lightImpact();
     await _navigateToPreview(
       _buildPreviewScreen(
         imageFile: null,
@@ -1162,6 +1229,7 @@ class _CameraScreenState extends State<CameraScreen>
     bool square = false,
     Color? bgColor,
     Color? borderColor,
+    bool showBorder = true,
   }) {
     return InkWell(
       onTap: onTap,
@@ -1176,10 +1244,12 @@ class _CameraScreenState extends State<CameraScreen>
           borderRadius:
               square ? BorderRadius.circular(AppSizes.radiusMedium) : null,
           color: bgColor ?? Colors.white.withValues(alpha: 0.06),
-          border: Border.all(
-            color: borderColor ?? Colors.white.withValues(alpha: 0.12),
-            width: 1.2,
-          ),
+          border: showBorder
+              ? Border.all(
+                  color: borderColor ?? Colors.white.withValues(alpha: 0.12),
+                  width: 1.2,
+                )
+              : null,
         ),
         child: Center(
           child: child,
@@ -1202,7 +1272,7 @@ class _CameraScreenState extends State<CameraScreen>
           height: previewSize,
           decoration: BoxDecoration(
             color: _cameraPreviewFallback,
-            borderRadius: BorderRadius.circular(38),
+            borderRadius: BorderRadius.circular(56),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -1321,10 +1391,6 @@ class _CameraScreenState extends State<CameraScreen>
           borderRadius: BorderRadius.circular(56),
         ),
         child: Center(
-          // Never show a spinner during background init — CaptureController's
-          // notifyListeners() (location load) triggers rebuilds while
-          // _isInitializingCamera=true, which would flash the spinner.
-          // The dark box is shown silently; camera preview appears when ready.
           child: !_isInitializingCamera
               ? IconButton(
                   onPressed: () => _setupCamera(showSpinner: true),
@@ -1348,16 +1414,14 @@ class _CameraScreenState extends State<CameraScreen>
         height: previewSize,
         decoration: BoxDecoration(
           color: _cameraPreviewFallback,
-          borderRadius: BorderRadius.circular(38),
+          borderRadius: BorderRadius.circular(56),
         ),
       );
     }
 
     final hasGradientFrame = theme.frameGradient != null;
-    const double frameBorderRadius = 48.0;
+    const double frameBorderRadius = 56.0;
 
-    // Wrap in a Stack so the progress CustomPaint renders at full previewSize
-    // dimensions (matching the outer border radius), not inside the 2.5px padding.
     return Stack(
       children: [
         Container(
@@ -1403,20 +1467,28 @@ class _CameraScreenState extends State<CameraScreen>
                         ),
                       ),
 
+                      // Grid overlay (Rule of Thirds)
+                      if (_showGrid)
+                        const Positioned.fill(
+                          child: CustomPaint(
+                            painter: CameraGridPainter(),
+                          ),
+                        ),
+
                       Positioned(
                         left: 12,
                         top: 12,
                         child: _circleGlassButton(
                           onTap: _toggleFlash,
                           size: 44,
-                          bgColor: theme.glassButtonBg,
-                          borderColor: theme.glassButtonBorder,
+                          showBorder: false,
+                          bgColor: Colors.transparent,
                           child: Icon(
-                            _isFlashOn
-                                ? Icons.flash_on_rounded
-                                : Icons.flash_off_rounded,
-                            color: Colors.white,
-                            size: 19,
+                            Icons.flash_on_rounded,
+                            color: _isFlashOn
+                                ? const Color(0xFFFFD600)
+                                : Colors.white.withValues(alpha: 0.85),
+                            size: 22,
                           ),
                         ),
                       ),
@@ -1427,8 +1499,8 @@ class _CameraScreenState extends State<CameraScreen>
                         child: _circleGlassButton(
                           onTap: _toggleZoom,
                           size: 44,
-                          bgColor: theme.glassButtonBg,
-                          borderColor: theme.glassButtonBorder,
+                          showBorder: false,
+                          bgColor: Colors.transparent,
                           child: Text(
                             _zoomText,
                             style: const TextStyle(
@@ -1458,8 +1530,8 @@ class _CameraScreenState extends State<CameraScreen>
         ),
 
         // Progress CustomPaint is OUTSIDE the padded container so it renders
-        // at the full previewSize × previewSize canvas and outerRadius=48 aligns
-        // exactly with the outer frame border — no gap at the corner arcs.
+        // at the full previewSize × previewSize canvas and outerRadius=56 aligns
+        // exactly with the outer frame border.
         if (_isRecordingVideo && _recordProgress > 0)
           Positioned.fill(
             child: CustomPaint(
@@ -1567,6 +1639,7 @@ class _CameraScreenState extends State<CameraScreen>
 
   Widget _buildShutterButton(CameraThemeData theme) {
     final isEnabled = _isCameraReady && !_isCapturing && !_isStoppingVideo;
+    final isBusy = _isCapturing || _isStoppingVideo;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -1586,19 +1659,30 @@ class _CameraScreenState extends State<CameraScreen>
           child: Stack(
             alignment: Alignment.center,
             children: [
-              Container(
-                width: 94,
-                height: 94,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: _isCameraReady
-                        ? theme.shutterAccent.withValues(alpha: 0.4)
-                        : const Color(0xFF3A4D43).withValues(alpha: 0.4),
-                    width: 5,
+              if (isBusy)
+                SizedBox(
+                  width: 94,
+                  height: 94,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 4.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(theme.shutterAccent),
+                    backgroundColor: theme.shutterAccent.withValues(alpha: 0.2),
+                  ),
+                )
+              else
+                Container(
+                  width: 94,
+                  height: 94,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: _isCameraReady
+                          ? theme.shutterAccent.withValues(alpha: 0.4)
+                          : const Color(0xFF3A4D43).withValues(alpha: 0.4),
+                      width: 5,
+                    ),
                   ),
                 ),
-              ),
 
               AnimatedContainer(
                 duration: const Duration(milliseconds: 120),
@@ -1664,8 +1748,8 @@ class _CameraScreenState extends State<CameraScreen>
     final effectiveThemeId = (currentStreak >= 3) ? cameraThemeId : 'classic_dark';
     final theme = CameraThemes.fromId(effectiveThemeId);
 
-    final sideButtonSize = isSmall ? 54.0 : 62.0;
-    final sideIconSize = isSmall ? 24.0 : 28.0;
+    final sideButtonSize = isSmall ? 64.0 : 72.0;
+    final sideIconSize = isSmall ? 32.0 : 36.0;
 
     return Scaffold(
       backgroundColor: theme.backgroundColor,
@@ -1680,6 +1764,7 @@ class _CameraScreenState extends State<CameraScreen>
               Padding(
                 padding: EdgeInsets.fromLTRB(isSmall ? 12 : 16, 8, isSmall ? 12 : 16, 0),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     InkWell(
                       onTap: _closeCaptureFlow,
@@ -1700,6 +1785,36 @@ class _CameraScreenState extends State<CameraScreen>
                         ),
                       ),
                     ),
+
+                    // Grid toggle button
+                    InkWell(
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        setState(() {
+                          _showGrid = !_showGrid;
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+                      child: Container(
+                        padding: EdgeInsets.all(isSmall ? 10 : 12),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _showGrid
+                              ? theme.shutterAccent.withValues(alpha: 0.25)
+                              : theme.surfaceColor.withValues(alpha: 0.7),
+                          border: Border.all(
+                            color: _showGrid
+                                ? theme.shutterAccent.withValues(alpha: 0.6)
+                                : theme.glassButtonBorder,
+                          ),
+                        ),
+                        child: Icon(
+                          _showGrid ? Icons.grid_on_rounded : Icons.grid_off_rounded,
+                          color: _showGrid ? theme.shutterAccent : Colors.white,
+                          size: isSmall ? 20 : 24,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1714,7 +1829,7 @@ class _CameraScreenState extends State<CameraScreen>
                       SizedBox(height: isShort ? 16 : 24),
 
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: isSmall ? 20 : 34),
+                        padding: EdgeInsets.symmetric(horizontal: isSmall ? 22 : 36),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -1722,8 +1837,8 @@ class _CameraScreenState extends State<CameraScreen>
                               onTap: _pickFromGallery,
                               square: true,
                               size: sideButtonSize,
-                              bgColor: theme.glassButtonBg,
-                              borderColor: theme.glassButtonBorder,
+                              showBorder: false,
+                              bgColor: Colors.transparent,
                               child: Icon(
                                 Icons.photo_library_outlined,
                                 color: Colors.white,
@@ -1742,12 +1857,17 @@ class _CameraScreenState extends State<CameraScreen>
                                     ? _switchCamera
                                     : () {},
                                 size: sideButtonSize,
-                                bgColor: theme.glassButtonBg,
-                                borderColor: theme.glassButtonBorder,
-                                child: Icon(
-                                  Icons.sync_rounded,
-                                  color: Colors.white,
-                                  size: sideIconSize + 2,
+                                showBorder: false,
+                                bgColor: Colors.transparent,
+                                child: AnimatedRotation(
+                                  turns: _cameraFlipTurns,
+                                  duration: const Duration(milliseconds: 350),
+                                  curve: Curves.easeInOutCubic,
+                                  child: Icon(
+                                    Icons.sync_rounded,
+                                    color: Colors.white,
+                                    size: sideIconSize + 2,
+                                  ),
                                 ),
                               ),
                             ),

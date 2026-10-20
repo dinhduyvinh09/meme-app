@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -105,24 +106,28 @@ class _DayDetailScreenState extends State<DayDetailScreen> {
       body: SafeArea(
         child: allDayTransactions.isEmpty
             ? _EmptyDayView(
-                selectedDateText: _formatHeaderDate(context, widget.selectedDate),
+                selectedDateText:
+                    _formatHeaderDate(context, widget.selectedDate),
                 onClose: () => Navigator.pop(context),
                 onCamera: () =>
                     Navigator.pushNamed(context, RouteNames.addTransaction),
               )
             : Padding(
-                padding: const EdgeInsets.fromLTRB(10, 8, 10, 12),
+                padding: const EdgeInsets.fromLTRB(
+                  AppSizes.pagePadding,
+                  8,
+                  AppSizes.pagePadding,
+                  12,
+                ),
                 child: Column(
                   children: [
                     _HeaderBar(
                       title: _formatHeaderDate(context, widget.selectedDate),
                       onClose: () => Navigator.pop(context),
-                      onCamera: () =>
-                          Navigator.pushNamed(context, RouteNames.addTransaction),
+                      onCamera: () => Navigator.pushNamed(
+                          context, RouteNames.addTransaction),
                     ),
-
                     const SizedBox(height: 12),
-
                     _DailySummaryRow(
                       totalExpenseText: AppCurrencyFormatter.formatFromVnd(
                         amountVnd: totalExpense,
@@ -139,18 +144,22 @@ class _DayDetailScreenState extends State<DayDetailScreen> {
                         });
                       },
                     ),
-
                     const SizedBox(height: 18),
-
                     Expanded(
                       child: filteredTransactions.isEmpty
                           ? Center(
                               child: Text(
                                 _currentFilter == 'expense'
-                                    ? (Localizations.localeOf(context).toString().toLowerCase().startsWith('vi')
+                                    ? (Localizations.localeOf(context)
+                                            .toString()
+                                            .toLowerCase()
+                                            .startsWith('vi')
                                         ? 'Không có giao dịch chi tiêu'
                                         : 'No expense transactions')
-                                    : (Localizations.localeOf(context).toString().toLowerCase().startsWith('vi')
+                                    : (Localizations.localeOf(context)
+                                            .toString()
+                                            .toLowerCase()
+                                            .startsWith('vi')
                                         ? 'Không có giao dịch thu nhập'
                                         : 'No income transactions'),
                                 style: AppTextStyles.bodySecondary(context),
@@ -162,8 +171,8 @@ class _DayDetailScreenState extends State<DayDetailScreen> {
                               gridDelegate:
                                   const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 3,
-                                crossAxisSpacing: 8,
-                                mainAxisSpacing: 8,
+                                crossAxisSpacing: 10,
+                                mainAxisSpacing: 10,
                                 childAspectRatio: 1,
                               ),
                               itemBuilder: (context, index) {
@@ -221,7 +230,10 @@ class _HeaderBar extends StatelessWidget {
     return Row(
       children: [
         InkWell(
-          onTap: onClose,
+          onTap: () {
+            HapticFeedback.lightImpact();
+            onClose();
+          },
           borderRadius: BorderRadius.circular(AppSizes.radiusPill),
           child: Container(
             width: 44,
@@ -254,7 +266,10 @@ class _HeaderBar extends StatelessWidget {
         const SizedBox(width: 8),
         if (onCamera != null)
           InkWell(
-            onTap: onCamera,
+            onTap: () {
+              HapticFeedback.lightImpact();
+              onCamera!();
+            },
             borderRadius: BorderRadius.circular(AppSizes.radiusPill),
             child: Container(
               width: 44,
@@ -307,6 +322,7 @@ class _DailySummaryRow extends StatelessWidget {
           isSelected: activeFilter == 'expense',
           isDimmed: activeFilter == 'income',
           onTap: () {
+            HapticFeedback.selectionClick();
             if (activeFilter == 'expense') {
               onFilterChanged(null);
             } else {
@@ -321,6 +337,7 @@ class _DailySummaryRow extends StatelessWidget {
           isSelected: activeFilter == 'income',
           isDimmed: activeFilter == 'expense',
           onTap: () {
+            HapticFeedback.selectionClick();
             if (activeFilter == 'income') {
               onFilterChanged(null);
             } else {
@@ -364,14 +381,14 @@ class _SummaryPill extends StatelessWidget {
             maxWidth: 170,
           ),
           padding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 8,
+            horizontal: 14,
+            vertical: 8.5,
           ),
           decoration: BoxDecoration(
             color: isSelected
-                ? color.withOpacity(isDark ? 0.28 : 0.20)
-                : color.withOpacity(
-                    isDimmed
+                ? color.withValues(alpha: isDark ? 0.28 : 0.20)
+                : color.withValues(
+                    alpha: isDimmed
                         ? (isDark ? 0.07 : 0.05)
                         : (isDark ? 0.16 : 0.12),
                   ),
@@ -379,7 +396,7 @@ class _SummaryPill extends StatelessWidget {
             border: Border.all(
               color: isSelected
                   ? color
-                  : color.withOpacity(isDimmed ? 0.08 : 0.20),
+                  : color.withValues(alpha: isDimmed ? 0.08 : 0.20),
               width: isSelected ? 1.6 : 1.0,
             ),
           ),
@@ -402,7 +419,8 @@ class _SummaryPill extends StatelessWidget {
                     style: TextStyle(
                       color: color,
                       fontSize: 15,
-                      fontWeight: isSelected ? FontWeight.w900 : FontWeight.w800,
+                      fontWeight:
+                          isSelected ? FontWeight.w900 : FontWeight.w800,
                     ),
                   ),
                 ),
@@ -428,11 +446,15 @@ class _EmptyDayView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppColors.isDark(context);
+    final isVi = Localizations.localeOf(context).languageCode == 'vi';
+
     return Column(
       children: [
         if (onClose != null)
           Padding(
-            padding: const EdgeInsets.fromLTRB(10, 8, 10, 0),
+            padding: const EdgeInsets.fromLTRB(
+                AppSizes.pagePadding, 8, AppSizes.pagePadding, 0),
             child: _HeaderBar(
               title: selectedDateText,
               onClose: onClose!,
@@ -450,15 +472,18 @@ class _EmptyDayView extends StatelessWidget {
                     width: 74,
                     height: 74,
                     decoration: BoxDecoration(
-                      color: AppColors.subtleOverlay(context),
+                      color: isDark
+                          ? AppColors.primaryBlue.withValues(alpha: 0.16)
+                          : AppColors.primaryBlue.withValues(alpha: 0.08),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: AppColors.glassBorder(context),
+                        color: AppColors.primaryBlue.withValues(alpha: 0.2),
+                        width: 1.2,
                       ),
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.calendar_month_outlined,
-                      color: AppColors.textSecondary(context),
+                      color: AppColors.primaryBlue,
                       size: 34,
                     ),
                   ),
@@ -481,7 +506,10 @@ class _EmptyDayView extends StatelessWidget {
                   if (onCamera != null) ...[
                     const SizedBox(height: 24),
                     InkWell(
-                      onTap: onCamera,
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        onCamera!();
+                      },
                       borderRadius: BorderRadius.circular(AppSizes.radiusPill),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
@@ -490,27 +518,29 @@ class _EmptyDayView extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.primaryBlue,
-                          borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+                          borderRadius:
+                              BorderRadius.circular(AppSizes.radiusPill),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primaryBlue.withValues(alpha: 0.35),
+                              color:
+                                  AppColors.primaryBlue.withValues(alpha: 0.35),
                               blurRadius: 14,
                               offset: const Offset(0, 4),
                             ),
                           ],
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.camera_alt_rounded,
                               color: Colors.white,
                               size: 20,
                             ),
-                            SizedBox(width: 8),
+                            const SizedBox(width: 8),
                             Text(
-                              'Chụp ảnh',
-                              style: TextStyle(
+                              isVi ? 'Chụp ảnh ngay' : 'Take a photo',
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
@@ -575,7 +605,8 @@ class _MomentGridCard extends StatelessWidget {
       default:
         if (category.trim().toLowerCase() == 'quỹ nhóm' ||
             category.trim().toLowerCase() == 'group fund' ||
-            category.trim().toLowerCase() == l10n.groupFundCategory.toLowerCase()) {
+            category.trim().toLowerCase() ==
+                l10n.groupFundCategory.toLowerCase()) {
           return l10n.groupFundCategory;
         }
         return BudgetNameLocalizer.display(context, category);
@@ -644,7 +675,7 @@ class _MomentGridCard extends StatelessWidget {
     final caption = transaction.caption.trim();
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(22),
+      borderRadius: BorderRadius.circular(20),
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -656,9 +687,8 @@ class _MomentGridCard extends StatelessWidget {
             width: double.infinity,
             height: double.infinity,
             fit: BoxFit.cover,
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(20),
           ),
-
           Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
@@ -666,16 +696,15 @@ class _MomentGridCard extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.02),
+                    Colors.black.withValues(alpha: 0.02),
                     Colors.transparent,
-                    Colors.black.withOpacity(0.10),
-                    Colors.black.withOpacity(0.38),
+                    Colors.black.withValues(alpha: 0.10),
+                    Colors.black.withValues(alpha: 0.42),
                   ],
                 ),
               ),
             ),
           ),
-
           Positioned(
             top: 7,
             left: 7,
@@ -688,14 +717,14 @@ class _MomentGridCard extends StatelessWidget {
                 ),
                 child: Container(
                   constraints: const BoxConstraints(
-                    maxWidth: 58,
+                    maxWidth: 62,
                   ),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2.5,
+                    horizontal: 6.5,
+                    vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: chipColor.withOpacity(0.25),
+                    color: chipColor.withValues(alpha: 0.28),
                     borderRadius: BorderRadius.circular(AppSizes.radiusPill),
                     border: Border.all(
                       color: chipColor,
@@ -717,14 +746,13 @@ class _MomentGridCard extends StatelessWidget {
               ),
             ),
           ),
-
           Positioned(
             right: 7,
             top: 8,
             child: Text(
               timeText,
               style: TextStyle(
-                color: Colors.white.withOpacity(0.85),
+                color: Colors.white.withValues(alpha: 0.88),
                 fontSize: 9.5,
                 fontWeight: FontWeight.w600,
                 shadows: const [
@@ -736,7 +764,6 @@ class _MomentGridCard extends StatelessWidget {
               ),
             ),
           ),
-
           Positioned(
             left: 10,
             right: 10,

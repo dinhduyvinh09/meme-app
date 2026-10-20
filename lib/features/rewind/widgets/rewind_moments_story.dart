@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/extensions/localization_extension.dart';
 import '../../../core/utils/budget_name_localizer.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../data/models/transaction_model.dart';
@@ -96,7 +95,6 @@ class _RewindMomentsStoryState extends State<RewindMomentsStory>
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
     final isEn = Localizations.localeOf(context).languageCode == 'en';
     final moments = widget.data.momentTransactions.take(10).toList();
 
@@ -108,63 +106,66 @@ class _RewindMomentsStoryState extends State<RewindMomentsStory>
         Positioned.fill(
           child: Column(
             children: [
-              // 1. TOP HEADER TITLE ("KHOẢNH KHẮC CHI TIÊU")
+              // 1. UNIFIED EDITORIAL HEADER
               const SizedBox(height: 64),
               FadeTransition(
                 opacity: CurvedAnimation(
                   parent: _sequenceController,
-                  curve: const Interval(0.0, 0.20, curve: Curves.easeOut),
+                  curve: const Interval(0.0, 0.25, curve: Curves.easeOut),
                 ),
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
-                          const Text('📸', style: TextStyle(fontSize: 13)),
-                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF38BDF8),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'PHOTO SCRAPBOOK',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
                           Text(
-                            isEn ? 'Spending Moments' : l10n.rewindMomentsTitle,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
+                            isEn ? 'HIGHLIGHT ALBUM' : 'KỶ NIỆM CHI TIÊU',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.6),
+                              fontSize: 11,
                               fontWeight: FontWeight.w700,
-                              letterSpacing: 0.2,
+                              letterSpacing: 0.8,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Text(
+                      const SizedBox(height: 14),
+                      Text(
                         isEn
-                            ? 'A scrapbook of your memorable spending moments'
-                            : l10n.rewindMomentsSubtitle,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.82),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          height: 1.35,
+                            ? 'STORIES BEHIND\nYOUR SPENDING.'
+                            : 'NHỮNG KHOẢNH KHẮC\nĐÁNG NHỚ TRONG KỲ.',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w900,
+                          height: 1.15,
+                          letterSpacing: -0.5,
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
 
               // 2. ANIMATED COLLAGE ARENA
               Expanded(

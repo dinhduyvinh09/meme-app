@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:gal/gal.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:intl/intl.dart';
@@ -148,9 +149,9 @@ class _MomentViewerScreenState extends State<MomentViewerScreen> {
   }
 
   String _formatMoney(
-      TransactionModel tx,
-      String currency,
-      ) {
+    TransactionModel tx,
+    String currency,
+  ) {
     final amountText = AppCurrencyFormatter.formatFromVnd(
       amountVnd: tx.amount.abs(),
       currency: currency,
@@ -197,7 +198,8 @@ class _MomentViewerScreenState extends State<MomentViewerScreen> {
                   width: 44,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: AppColors.textSecondary(context).withValues(alpha: 0.22),
+                    color: AppColors.textSecondary(context)
+                        .withValues(alpha: 0.22),
                     borderRadius: BorderRadius.circular(AppSizes.radiusPill),
                   ),
                 ),
@@ -223,13 +225,25 @@ class _MomentViewerScreenState extends State<MomentViewerScreen> {
                   color: AppColors.textPrimary(context),
                   onTap: () => Navigator.pop(sheetContext, 'save'),
                 ),
-                if (isMine)
+                if (isMine) ...[
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+                    child: Divider(
+                      height: 1,
+                      thickness: 1,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : Colors.black.withValues(alpha: 0.06),
+                    ),
+                  ),
                   _BottomSheetActionTile(
                     icon: Icons.delete_outline_rounded,
                     title: l10n.momentViewerDeleteTransaction,
                     color: AppColors.expense,
                     onTap: () => Navigator.pop(sheetContext, 'delete'),
                   ),
+                ],
               ],
             ),
           ),
@@ -285,17 +299,16 @@ class _MomentViewerScreenState extends State<MomentViewerScreen> {
       ..writeln(l10n.shareType(isContribution
           ? l10n.groupFundDeposit
           : (tx.type == 'expense' ? l10n.expense : l10n.income)))
-      ..writeln(l10n.shareCategory(
-          BudgetNameLocalizer.display(context, tx.category)));
+      ..writeln(l10n
+          .shareCategory(BudgetNameLocalizer.display(context, tx.category)));
 
     if (tx.amount != 0) {
       shareText.writeln(l10n.shareAmount(
           '${(isContribution ? '+' : (tx.type == 'expense' ? '-' : '+'))}$amountText'));
     }
 
-    final details = tx.caption.trim().isNotEmpty
-        ? tx.caption.trim()
-        : tx.note.trim();
+    final details =
+        tx.caption.trim().isNotEmpty ? tx.caption.trim() : tx.note.trim();
     if (details.isNotEmpty) {
       shareText.writeln(l10n.shareDetails(details));
     }
@@ -319,10 +332,12 @@ class _MomentViewerScreenState extends State<MomentViewerScreen> {
         } else {
           // Ưu tiên lấy file từ Cache máy đã có sẵn để chia sẻ tức thì
           if (tx.isVideo) {
-            shareFile = await VideoCacheService.instance.getCachedFile(trimmedUrl);
+            shareFile =
+                await VideoCacheService.instance.getCachedFile(trimmedUrl);
             shareFile ??= await DefaultCacheManager().getSingleFile(trimmedUrl);
           } else {
-            final fileInfo = await DefaultCacheManager().getFileFromCache(trimmedUrl);
+            final fileInfo =
+                await DefaultCacheManager().getFileFromCache(trimmedUrl);
             if (fileInfo != null && await fileInfo.file.exists()) {
               shareFile = fileInfo.file;
             } else {
@@ -335,9 +350,8 @@ class _MomentViewerScreenState extends State<MomentViewerScreen> {
       if (!mounted) return;
 
       final box = context.findRenderObject() as RenderBox?;
-      final origin = box != null
-          ? box.localToGlobal(Offset.zero) & box.size
-          : null;
+      final origin =
+          box != null ? box.localToGlobal(Offset.zero) & box.size : null;
 
       if (shareFile != null && await shareFile.exists()) {
         // ignore: deprecated_member_use
@@ -503,9 +517,9 @@ class _MomentViewerScreenState extends State<MomentViewerScreen> {
 
     try {
       await context.read<TransactionRepository>().deleteTransaction(
-        userId: tx.userId,
-        transactionId: tx.id,
-      );
+            userId: tx.userId,
+            transactionId: tx.id,
+          );
 
       if (!mounted) return;
 
@@ -560,10 +574,11 @@ class _MomentViewerScreenState extends State<MomentViewerScreen> {
     final glassBorder = AppColors.glassBorder(context);
 
     final timePillBg =
-    isDark ? AppColors.darkSurface : Colors.black.withOpacity(0.055);
+        isDark ? AppColors.darkSurface : Colors.black.withValues(alpha: 0.055);
 
-    final overlayCardBg =
-    isDark ? Colors.black.withOpacity(0.38) : Colors.white.withOpacity(0.22);
+    final overlayCardBg = isDark
+        ? Colors.black.withValues(alpha: 0.38)
+        : Colors.white.withValues(alpha: 0.22);
 
     return Scaffold(
       backgroundColor: AppColors.background(context),
@@ -572,7 +587,8 @@ class _MomentViewerScreenState extends State<MomentViewerScreen> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(14, 8, 14, 0),
+              padding: const EdgeInsets.fromLTRB(
+                  AppSizes.pagePadding, 8, AppSizes.pagePadding, 0),
               child: Row(
                 children: [
                   _TopGlassButton(
@@ -595,9 +611,7 @@ class _MomentViewerScreenState extends State<MomentViewerScreen> {
                 ],
               ),
             ),
-
             const SizedBox(height: 12),
-
             Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16,
@@ -631,9 +645,7 @@ class _MomentViewerScreenState extends State<MomentViewerScreen> {
                 ],
               ),
             ),
-
             const SizedBox(height: 14),
-
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
@@ -649,76 +661,32 @@ class _MomentViewerScreenState extends State<MomentViewerScreen> {
 
                   return Column(
                     children: [
-                        const SizedBox(height: 4),
-                        Expanded(
-                          child: Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 14),
-                                child: AspectRatio(
-                                  aspectRatio: 1,
-                                  child: _MomentMediaCard(
-                                    transaction: item,
-                                    currency: currency,
-                                    amountText: _formatMoney(item, currency),
-                                    chipColor: _chipColorFromTransaction(item),
-                                    primaryText: primaryText,
-                                    glassBorder: glassBorder,
-                                    overlayCardBg: overlayCardBg,
-                                    isActive: index == currentIndex,
-                                  ),
+                      const SizedBox(height: 4),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 14),
+                              child: AspectRatio(
+                                aspectRatio: 1,
+                                child: _MomentMediaCard(
+                                  transaction: item,
+                                  currency: currency,
+                                  amountText: _formatMoney(item, currency),
+                                  chipColor: _chipColorFromTransaction(item),
+                                  primaryText: primaryText,
+                                  glassBorder: glassBorder,
+                                  overlayCardBg: overlayCardBg,
+                                  isActive: index == currentIndex,
                                 ),
                               ),
-
-                              const SizedBox(height: 12),
-
-                              if (item.note.trim().isNotEmpty) ...[
-                                Container(
-                                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: glassColor,
-                                    borderRadius: BorderRadius.circular(AppSizes.radiusPill),
-                                    border: Border.all(color: glassBorder),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.edit_note_rounded,
-                                        size: 18,
-                                        color: secondaryText,
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Flexible(
-                                        child: Text(
-                                          item.note.trim(),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            color: primaryText,
-                                            fontSize: 13.5,
-                                            fontWeight: FontWeight.w600,
-                                            height: 1.15,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                              ],
-
-                              if (isSavingMedia || isSharingMedia)
-                                const Padding(
-                                  padding: EdgeInsets.only(bottom: 10),
-                                  child: CircularProgressIndicator(),
-                                ),
-
+                            ),
+                            const SizedBox(height: 12),
+                            if (item.note.trim().isNotEmpty) ...[
                               Container(
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 20),
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 16,
                                   vertical: 8,
@@ -726,38 +694,81 @@ class _MomentViewerScreenState extends State<MomentViewerScreen> {
                                 decoration: BoxDecoration(
                                   color: glassColor,
                                   borderRadius: BorderRadius.circular(
-                                    AppSizes.radiusPill,
-                                  ),
-                                  border: Border.all(
-                                    color: glassBorder,
-                                  ),
+                                      AppSizes.radiusPill),
+                                  border: Border.all(color: glassBorder),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Icon(
-                                      Icons.collections_outlined,
-                                      color: primaryText,
-                                      size: 16,
+                                      Icons.edit_note_rounded,
+                                      size: 18,
+                                      color: secondaryText,
                                     ),
-                                    const SizedBox(width: 7),
-                                    Text(
-                                      '${currentIndex + 1} / ${widget.transactions.length}',
-                                      style: TextStyle(
-                                        color: primaryText,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w700,
-                                        height: 1.15,
+                                    const SizedBox(width: 6),
+                                    Flexible(
+                                      child: Text(
+                                        item.note.trim(),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: primaryText,
+                                          fontSize: 13.5,
+                                          fontWeight: FontWeight.w600,
+                                          height: 1.15,
+                                        ),
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
+                              const SizedBox(height: 8),
                             ],
-                          ),
+                            if (isSavingMedia || isSharingMedia)
+                              const Padding(
+                                padding: EdgeInsets.only(bottom: 10),
+                                child: CircularProgressIndicator(),
+                              ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: glassColor,
+                                borderRadius: BorderRadius.circular(
+                                  AppSizes.radiusPill,
+                                ),
+                                border: Border.all(
+                                  color: glassBorder,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.collections_outlined,
+                                    color: primaryText,
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 7),
+                                  Text(
+                                    '${currentIndex + 1} / ${_transactions.length}',
+                                    style: TextStyle(
+                                      color: primaryText,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      height: 1.15,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    );
+                      ),
+                    ],
+                  );
                 },
               ),
             ),
@@ -822,7 +833,8 @@ class _MomentMediaCard extends StatelessWidget {
       default:
         if (category.trim().toLowerCase() == 'quỹ nhóm' ||
             category.trim().toLowerCase() == 'group fund' ||
-            category.trim().toLowerCase() == l10n.groupFundCategory.toLowerCase()) {
+            category.trim().toLowerCase() ==
+                l10n.groupFundCategory.toLowerCase()) {
           return l10n.groupFundCategory;
         }
         return BudgetNameLocalizer.display(context, category);
@@ -834,7 +846,7 @@ class _MomentMediaCard extends StatelessWidget {
     final isDark = AppColors.isDark(context);
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(56),
+      borderRadius: BorderRadius.circular(32),
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -858,11 +870,10 @@ class _MomentMediaCard extends StatelessWidget {
               width: double.infinity,
               height: double.infinity,
               fit: BoxFit.cover,
-              borderRadius: BorderRadius.circular(56),
+              borderRadius: BorderRadius.circular(32),
               isVideo: transaction.isVideo,
               showVideoBadge: false,
             ),
-
           Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
@@ -871,15 +882,14 @@ class _MomentMediaCard extends StatelessWidget {
                   end: Alignment.bottomCenter,
                   colors: [
                     Colors.transparent,
-                    Colors.black.withOpacity(0.06),
-                    Colors.black.withOpacity(0.22),
-                    Colors.black.withOpacity(0.38),
+                    Colors.black.withValues(alpha: 0.06),
+                    Colors.black.withValues(alpha: 0.22),
+                    Colors.black.withValues(alpha: 0.38),
                   ],
                 ),
               ),
             ),
           ),
-
           Positioned(
             top: 14,
             left: 14,
@@ -896,7 +906,7 @@ class _MomentMediaCard extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: chipColor.withOpacity(isDark ? 0.22 : 0.16),
+                    color: chipColor.withValues(alpha: isDark ? 0.22 : 0.16),
                     borderRadius: BorderRadius.circular(AppSizes.radiusPill),
                     border: Border.all(
                       color: chipColor,
@@ -915,7 +925,6 @@ class _MomentMediaCard extends StatelessWidget {
               ),
             ),
           ),
-
           Positioned(
             left: 14,
             right: 14,
@@ -933,7 +942,8 @@ class _MomentMediaCard extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.38),
-                        borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+                        borderRadius:
+                            BorderRadius.circular(AppSizes.radiusPill),
                         border: Border.all(
                           color: Colors.white.withValues(alpha: 0.16),
                           width: 1,
@@ -955,7 +965,6 @@ class _MomentMediaCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 9),
                 ],
-
                 Align(
                   alignment: Alignment.bottomCenter,
                   child: Container(
@@ -973,7 +982,7 @@ class _MomentMediaCard extends StatelessWidget {
                           Colors.black.withValues(alpha: 0.34),
                         ],
                       ),
-                      borderRadius: BorderRadius.circular(28),
+                      borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
                       border: Border.all(
                         color: chipColor.withValues(alpha: 0.45),
                         width: 1.1,
@@ -1029,7 +1038,8 @@ class _MomentMutedVideoPlayer extends StatefulWidget {
   });
 
   @override
-  State<_MomentMutedVideoPlayer> createState() => _MomentMutedVideoPlayerState();
+  State<_MomentMutedVideoPlayer> createState() =>
+      _MomentMutedVideoPlayerState();
 }
 
 class _MomentMutedVideoPlayerState extends State<_MomentMutedVideoPlayer> {
@@ -1065,7 +1075,8 @@ class _MomentMutedVideoPlayerState extends State<_MomentMutedVideoPlayer> {
     if (url.isEmpty) return;
 
     try {
-      final controller = await VideoCacheService.instance.createOptimizedController(
+      final controller =
+          await VideoCacheService.instance.createOptimizedController(
         url,
         looping: true,
         volume: 0,
@@ -1137,11 +1148,10 @@ class _MomentMutedVideoPlayerState extends State<_MomentMutedVideoPlayer> {
           width: double.infinity,
           height: double.infinity,
           fit: BoxFit.cover,
-          borderRadius: BorderRadius.circular(34),
+          borderRadius: BorderRadius.circular(32),
           isVideo: true,
           showVideoBadge: false,
         ),
-
         if (videoWidget != null)
           AnimatedOpacity(
             opacity: _isReady ? 1.0 : 0.0,
@@ -1172,7 +1182,12 @@ class _TopGlassButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onTap,
+      onTap: () {
+        if (onTap != null) {
+          HapticFeedback.lightImpact();
+          onTap!();
+        }
+      },
       borderRadius: BorderRadius.circular(AppSizes.radiusXLarge),
       child: Container(
         width: 48,
@@ -1221,7 +1236,10 @@ class _BottomSheetActionTile extends StatelessWidget {
           fontWeight: FontWeight.w700,
         ),
       ),
-      onTap: onTap,
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
     );
   }
 }

@@ -56,6 +56,7 @@ import '../../data/repositories/user_repository.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../services/notification_service.dart';
 import '../services/app_widget_service.dart';
+import '../services/post_publishing_service.dart';
 import 'route_names.dart';
 
 class AppRoutes {
@@ -430,6 +431,10 @@ class MainShellState extends State<MainShell> with WidgetsBindingObserver {
         isFabMenuOpen = false;
         isNavbarCollapsed = false;
       });
+      PostPublishingService.instance.updateNavState(
+        isCollapsed: false,
+        currentTabIndex: newIndex,
+      );
       if (newIndex == 0) {
         _showCaptureFabNow();
       } else {
@@ -458,6 +463,10 @@ class MainShellState extends State<MainShell> with WidgetsBindingObserver {
       setState(() {
         isNavbarCollapsed = false;
       });
+      PostPublishingService.instance.updateNavState(
+        isCollapsed: false,
+        currentTabIndex: index,
+      );
     }
   }
 
@@ -470,6 +479,10 @@ class MainShellState extends State<MainShell> with WidgetsBindingObserver {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      PostPublishingService.instance.updateNavState(
+        isCollapsed: isNavbarCollapsed,
+        currentTabIndex: index,
+      );
 
       if (widget.initialTargetPostId != null && widget.initialTargetPostId!.isNotEmpty) {
         context.read<FeedController>().setTargetPostId(widget.initialTargetPostId);
@@ -595,6 +608,10 @@ class MainShellState extends State<MainShell> with WidgetsBindingObserver {
         index = value;
         showCaptureFab = false;
       });
+      PostPublishingService.instance.updateNavState(
+        isCollapsed: isNavbarCollapsed,
+        currentTabIndex: value,
+      );
 
       _captureFabTimer?.cancel();
       return;
@@ -605,6 +622,10 @@ class MainShellState extends State<MainShell> with WidgetsBindingObserver {
         index = value;
         showCaptureFab = value == 0;
       });
+      PostPublishingService.instance.updateNavState(
+        isCollapsed: isNavbarCollapsed,
+        currentTabIndex: value,
+      );
       if (value == 0) {
         _showCaptureFabNow();
       } else {
@@ -674,6 +695,10 @@ class MainShellState extends State<MainShell> with WidgetsBindingObserver {
                         isNavbarCollapsed = true;
                         isFabMenuOpen = false;
                       });
+                      PostPublishingService.instance.updateNavState(
+                        isCollapsed: true,
+                        currentTabIndex: index,
+                      );
                     }
                   }
                 }
@@ -682,7 +707,7 @@ class MainShellState extends State<MainShell> with WidgetsBindingObserver {
               child: IndexedStack(
                 index: index,
                 children: [
-                  const HomeScreen(),
+                  HomeScreen(isActive: index == 0),
                   const StatsScreen(),
                   FeedScreen(isActive: index == 2),
                   const BudgetScreen(),

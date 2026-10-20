@@ -106,7 +106,8 @@ class _WidgetFramePickerSheetState extends State<WidgetFramePickerSheet> {
       }
     }
 
-    final latestTx = latestTxWithMedia ?? (uniqueTxs.isNotEmpty ? uniqueTxs.first : null);
+    final latestTx =
+        latestTxWithMedia ?? (uniqueTxs.isNotEmpty ? uniqueTxs.first : null);
     final previewImageUrl = latestTx != null
         ? (latestTx.displayImageUrl.isNotEmpty
             ? latestTx.displayImageUrl
@@ -469,9 +470,8 @@ class _WidgetFramePickerSheetState extends State<WidgetFramePickerSheet> {
             child: AspectRatio(
               aspectRatio: 1,
               child: Container(
-                padding: hasGradient
-                    ? const EdgeInsets.all(3.5)
-                    : EdgeInsets.zero,
+                padding:
+                    hasGradient ? const EdgeInsets.all(3.5) : EdgeInsets.zero,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
                   gradient: hasGradient ? item.gradient : null,

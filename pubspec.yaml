@@ -68,6 +68,7 @@ flutter:
   generate: true
   assets:
     - assets/icons/
+    - assets/icons/stickers/
     - assets/sounds/
     - assets/fcm_service_account.json
 

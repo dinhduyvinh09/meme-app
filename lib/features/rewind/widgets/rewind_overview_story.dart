@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/constants/app_colors.dart';
-import '../../../core/extensions/localization_extension.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../models/rewind_data.dart';
 
@@ -40,11 +38,11 @@ class _RewindOverviewStoryState extends State<RewindOverviewStory>
     );
 
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.15),
+      begin: const Offset(0, 0.08),
       end: Offset.zero,
     ).animate(CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.1, 0.7, curve: Curves.easeOutCubic),
+      curve: const Interval(0.0, 0.7, curve: Curves.easeOutCubic),
     ));
 
     _numberAnimation = Tween<double>(
@@ -52,7 +50,7 @@ class _RewindOverviewStoryState extends State<RewindOverviewStory>
       end: widget.data.totalExpense,
     ).animate(CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.15, 0.95, curve: Curves.easeOutExpo),
+      curve: const Interval(0.1, 0.9, curve: Curves.easeOutQuart),
     ));
 
     _controller.forward();
@@ -66,246 +64,346 @@ class _RewindOverviewStoryState extends State<RewindOverviewStory>
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
     final data = widget.data;
     final currency = widget.currency;
+    final isEn = Localizations.localeOf(context).languageCode == 'en';
+    final netSavings = data.totalIncome - data.totalExpense;
+    final daysInPeriod = (data.period.endDateTime.difference(data.period.startDateTime).inDays + 1).clamp(1, 365);
+    final dailyAvg = data.totalExpense / daysInPeriod;
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(24, 68, 24, 20),
+      padding: const EdgeInsets.fromLTRB(20, 68, 20, 24),
       child: FadeTransition(
         opacity: _fadeAnimation,
         child: SlideTransition(
           position: _slideAnimation,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Badge
+              // Editorial Magazine Badge
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFCCFF00),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      'FINANCIAL RECAP',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      data.period.getTitle(context).toUpperCase(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.6),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // Punchy Editorial Headline
+              Text(
+                isEn ? "YOUR MONEY\nAT A GLANCE." : "DÒNG TIỀN CỦA BẠN\nTRONG KỲ NÀY.",
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
+                  height: 1.15,
+                  letterSpacing: -0.5,
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Hero Stat Box - Clean Bold Poster Block
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                width: double.infinity,
+                padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.12),
+                  color: Colors.white.withValues(alpha: 0.07),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    width: 1,
+                    color: Colors.white.withValues(alpha: 0.12),
+                    width: 1.5,
                   ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('📊', style: TextStyle(fontSize: 14)),
-                    const SizedBox(width: 6),
+                    Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color(0xFFFF5252),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          (isEn ? 'TOTAL EXPENSE' : 'TỔNG CHI TIÊU').toUpperCase(),
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.0,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    AnimatedBuilder(
+                      animation: _numberAnimation,
+                      builder: (context, child) {
+                        return Text(
+                          AppCurrencyFormatter.formatFromVnd(
+                            amountVnd: _numberAnimation.value,
+                            currency: currency,
+                          ),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 34,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -1.0,
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 8),
                     Text(
-                      l10n.rewindOverviewTitle,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.2,
+                      isEn
+                          ? 'Spread across ${data.totalTransactions} transactions'
+                          : 'Phân bổ qua ${data.totalTransactions} giao dịch ghi chép',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.5),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
 
-              // Question / Subtitle
-              Text(
-                l10n.rewindOverviewSubtitle,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.8),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  height: 1.35,
-                ),
-              ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 12),
 
-              // Big Expense Counter
-              Text(
-                l10n.rewindTotalExpense.toUpperCase(),
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.6),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.5,
-                ),
-              ),
-              const SizedBox(height: 8),
-
-              AnimatedBuilder(
-                animation: _numberAnimation,
-                builder: (context, _) {
-                  return Text(
-                    AppCurrencyFormatter.formatFromVnd(
-                      amountVnd: _numberAnimation.value,
-                      currency: currency,
-                    ),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 38,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -1,
-                    ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 24),
-
-              // Gentle Comparison Pill
-              if (data.expenseChangePercent != null)
-                Container(
-                  constraints: const BoxConstraints(maxWidth: 340),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: (data.expenseChangePercent! > 0
-                            ? const Color(0xFFF59E0B)
-                            : const Color(0xFF10B981))
-                        .withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: (data.expenseChangePercent! > 0
-                              ? const Color(0xFFF59E0B)
-                              : const Color(0xFF10B981))
-                          .withValues(alpha: 0.35),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        data.expenseChangePercent! > 0
-                            ? Icons.trending_up_rounded
-                            : Icons.trending_down_rounded,
-                        color: data.expenseChangePercent! > 0
-                            ? const Color(0xFFF59E0B)
-                            : const Color(0xFF10B981),
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          data.expenseChangePercent! > 0
-                              ? l10n.rewindSpentGentleUp
-                              : l10n.rewindSpentGentleDown,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: data.expenseChangePercent! > 0
-                                ? const Color(0xFFFCD34D)
-                                : const Color(0xFF6EE7B7),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-              const SizedBox(height: 32),
-
-              // Grid of Stats: Income, Transactions, Balance
+              // Dual Information Grid (Income & Daily Average)
               Row(
                 children: [
+                  // Income Block
                   Expanded(
-                    child: _MiniStatCard(
-                      label: l10n.rewindTotalIncome,
-                      value: AppCurrencyFormatter.formatFromVnd(
-                        amountVnd: data.totalIncome,
-                        currency: currency,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.08),
+                        ),
                       ),
-                      icon: Icons.south_west_rounded,
-                      iconColor: AppColors.income,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  (isEn ? 'INCOME' : 'TỔNG THU').toUpperCase(),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Color(0xFF00E676),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.6,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(
+                                Icons.arrow_downward_rounded,
+                                color: Color(0xFF00E676),
+                                size: 14,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            AppCurrencyFormatter.formatFromVnd(
+                              amountVnd: data.totalIncome,
+                              currency: currency,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
+                  // Daily Avg Block
                   Expanded(
-                    child: _MiniStatCard(
-                      label: l10n.rewindTotalTransactions,
-                      value: '${data.totalTransactions}',
-                      icon: Icons.receipt_long_rounded,
-                      iconColor: const Color(0xFF38BDF8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.08),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  (isEn ? 'DAILY AVG' : 'TRUNG BÌNH/NGÀY').toUpperCase(),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Color(0xFFFFB300),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.6,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(
+                                Icons.speed_rounded,
+                                color: Color(0xFFFFB300),
+                                size: 14,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            AppCurrencyFormatter.formatFromVnd(
+                              amountVnd: dailyAvg,
+                              currency: currency,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
 
-class _MiniStatCard extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-  final Color iconColor;
+              const SizedBox(height: 12),
 
-  const _MiniStatCard({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.iconColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.12),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
+              // Net Cashflow / Savings Strip
               Container(
-                width: 28,
-                height: 28,
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: iconColor.withValues(alpha: 0.2),
+                  color: netSavings >= 0
+                      ? const Color(0xFF00E676).withValues(alpha: 0.1)
+                      : const Color(0xFFFF5252).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: netSavings >= 0
+                        ? const Color(0xFF00E676).withValues(alpha: 0.3)
+                        : const Color(0xFFFF5252).withValues(alpha: 0.3),
+                  ),
                 ),
-                child: Center(
-                  child: Icon(icon, color: iconColor, size: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          netSavings >= 0
+                              ? Icons.savings_outlined
+                              : Icons.account_balance_wallet_outlined,
+                          color: netSavings >= 0
+                              ? const Color(0xFF00E676)
+                              : const Color(0xFFFF5252),
+                          size: 18,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          netSavings >= 0
+                              ? (isEn ? 'Net Surplus' : 'Thặng dư ròng')
+                              : (isEn ? 'Net Deficit' : 'Thâm hụt ròng'),
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.9),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      AppCurrencyFormatter.formatFromVnd(
+                        amountVnd: netSavings.abs(),
+                        currency: currency,
+                      ),
+                      style: TextStyle(
+                        color: netSavings >= 0
+                            ? const Color(0xFF00E676)
+                            : const Color(0xFFFF5252),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const Spacer(),
+
+              const SizedBox(height: 28),
+
+              // Bottom Editorial Tagline
+              Center(
+                child: Text(
+                  isEn
+                      ? 'MEME REWIND • YOUR FINANCIAL STORY'
+                      : 'MEME REWIND • HÀNH TRÌNH TÀI CHÍNH',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.35),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 10),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.65),
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

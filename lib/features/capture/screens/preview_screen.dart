@@ -88,7 +88,6 @@ class _PreviewScreenState extends State<PreviewScreen> {
   bool _hasShownMaxDigitsWarning = false;
 
   static const Color _captureBackground = Color(0xFF15171C);
-  static const Color _darkSwitch = Color(0xFF1A1B24);
 
   String type = 'expense';
   String category = 'Ăn uống';
@@ -1276,21 +1275,29 @@ class _PreviewScreenState extends State<PreviewScreen> {
 
     if (widget.lockType) {
       return Container(
-        height: 52,
+        height: 48,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
-          color: _darkSwitch,
+          color: const Color(0xFF14161F).withValues(alpha: 0.85),
           borderRadius: BorderRadius.circular(AppSizes.radiusPill),
           border: Border.all(
             color: activeColor.withValues(alpha: 0.35),
+            width: 1.2,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: activeColor.withValues(alpha: 0.15),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 36,
-              height: 36,
+              width: 32,
+              height: 32,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: activeColor,
@@ -1302,17 +1309,17 @@ class _PreviewScreenState extends State<PreviewScreen> {
                         ? Icons.arrow_outward_rounded
                         : Icons.arrow_downward_rounded),
                 color: Colors.white,
-                size: 20,
+                size: 18,
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Text(
               isContribution
                   ? context.l10n.groupFundDeposit
                   : (isExpense ? context.l10n.expense : context.l10n.income),
               style: TextStyle(
                 color: activeColor,
-                fontSize: 14,
+                fontSize: 13.5,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -1329,6 +1336,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
 
     void switchToExpense() {
       if (type == 'expense') return;
+      HapticFeedback.selectionClick();
 
       final categories = expenseCategoriesForAction();
 
@@ -1348,6 +1356,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
 
     void switchToIncome() {
       if (type == 'income') return;
+      HapticFeedback.selectionClick();
 
       final categories = incomeCategoriesForAction();
 
@@ -1365,29 +1374,69 @@ class _PreviewScreenState extends State<PreviewScreen> {
       _onAmountChanged(amountController.text);
     }
 
+    const switchWidth = 104.0;
+    const switchHeight = 46.0;
+    const thumbSize = 38.0;
+
     return Container(
-      width: 148,
-      height: 56,
-      padding: const EdgeInsets.all(5),
+      width: switchWidth,
+      height: switchHeight,
+      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: _darkSwitch,
+        color: const Color(0xFF14161F).withValues(alpha: 0.90),
         borderRadius: BorderRadius.circular(AppSizes.radiusPill),
         border: Border.all(
-          color: Colors.white.withOpacity(0.08),
+          color: Colors.white.withValues(alpha: 0.10),
+          width: 1.0,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Stack(
         children: [
+          // Animated sliding thumb with gradient and glow
           AnimatedAlign(
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeOut,
+            duration: const Duration(milliseconds: 240),
+            curve: Curves.easeOutCubic,
             alignment: isExpense ? Alignment.centerLeft : Alignment.centerRight,
             child: Container(
-              width: 46,
-              height: 46,
+              width: thumbSize,
+              height: thumbSize,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: activeColor,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isExpense
+                      ? [
+                          const Color(0xFFFF4D4D),
+                          const Color(0xFFE52E2E),
+                        ]
+                      : [
+                          const Color(0xFF00E676),
+                          const Color(0xFF00C853),
+                        ],
+                ),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.25),
+                  width: 1.0,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: (isExpense
+                            ? const Color(0xFFFF3B30)
+                            : const Color(0xFF00E676))
+                        .withValues(alpha: 0.40),
+                    blurRadius: 10,
+                    spreadRadius: 0.5,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Center(
                 child: Icon(
@@ -1395,12 +1444,13 @@ class _PreviewScreenState extends State<PreviewScreen> {
                       ? Icons.arrow_outward_rounded
                       : Icons.arrow_downward_rounded,
                   color: Colors.white,
-                  size: 21,
+                  size: isExpense ? 19 : 20,
                 ),
               ),
             ),
           ),
 
+          // Interactive row with two click targets and inactive icon hints
           Row(
             children: [
               Expanded(
@@ -1410,11 +1460,13 @@ class _PreviewScreenState extends State<PreviewScreen> {
                   child: Container(
                     color: Colors.transparent,
                     alignment: Alignment.center,
-                    child: Icon(
-                      Icons.arrow_outward_rounded,
-                      color: isExpense ? Colors.transparent : Colors.white38,
-                      size: 19,
-                    ),
+                    child: isExpense
+                        ? const SizedBox.shrink()
+                        : Icon(
+                            Icons.arrow_outward_rounded,
+                            size: 19,
+                            color: Colors.white.withValues(alpha: 0.32),
+                          ),
                   ),
                 ),
               ),
@@ -1425,11 +1477,13 @@ class _PreviewScreenState extends State<PreviewScreen> {
                   child: Container(
                     color: Colors.transparent,
                     alignment: Alignment.center,
-                    child: Icon(
-                      Icons.arrow_downward_rounded,
-                      color: isExpense ? Colors.white38 : Colors.transparent,
-                      size: 22,
-                    ),
+                    child: !isExpense
+                        ? const SizedBox.shrink()
+                        : Icon(
+                            Icons.arrow_downward_rounded,
+                            size: 20,
+                            color: Colors.white.withValues(alpha: 0.32),
+                          ),
                   ),
                 ),
               ),
@@ -1455,9 +1509,9 @@ class _PreviewScreenState extends State<PreviewScreen> {
             height: 58,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withValues(alpha: 0.05),
               border: Border.all(
-                color: Colors.white.withOpacity(0.10),
+                color: Colors.white.withValues(alpha: 0.10),
               ),
             ),
             child: Icon(
@@ -1471,7 +1525,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
         Text(
           label,
           style: TextStyle(
-            color: Colors.white.withOpacity(0.65),
+            color: Colors.white.withValues(alpha: 0.65),
             fontSize: 13,
             fontWeight: FontWeight.w600,
           ),
@@ -1481,14 +1535,34 @@ class _PreviewScreenState extends State<PreviewScreen> {
   }
 
   Widget _buildPreviewMedia(double previewSize) {
-    final currency = context.watch<ProfileController>().currency;
+    final hasMedia = isVideo || _currentImageFile != null;
+    final borderColor = hasMedia
+        ? Colors.white.withValues(alpha: 0.12)
+        : currentCategoryColor.withValues(alpha: 0.45);
 
     return Center(
-      child: SizedBox(
+      child: Container(
         width: previewSize,
         height: previewSize,
-        child: ClipRRect(
+        decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(56),
+          border: Border.all(
+            color: borderColor,
+            width: hasMedia ? 1.5 : 2.0,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: hasMedia
+                  ? Colors.black.withValues(alpha: 0.40)
+                  : currentCategoryColor.withValues(alpha: 0.28),
+              blurRadius: 30,
+              spreadRadius: 2,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(54),
           child: Stack(
             fit: StackFit.expand,
             children: [
@@ -1514,24 +1588,25 @@ class _PreviewScreenState extends State<PreviewScreen> {
                           ),
               ),
 
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withValues(alpha: 0.22),
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.05),
-                          Colors.black.withValues(alpha: 0.28),
-                        ],
+              if (hasMedia)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black.withValues(alpha: 0.24),
+                            Colors.transparent,
+                            Colors.black.withValues(alpha: 0.06),
+                            Colors.black.withValues(alpha: 0.32),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
 
               // 1. Input Card overlay at bottom
               Positioned(
@@ -1544,7 +1619,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
                     amountController: amountController,
                     captionController: captionController,
                     amountPrefix: isContribution ? '+' : (type == 'expense' ? '-' : '+'),
-                    currency: currency,
+                    currency: 'đ',
                     onTapAmount: _openCalculatorKeypad,
                     onTapCaption: _closeCalculatorKeypad,
                     onAmountChanged: _onAmountChanged,
@@ -2102,6 +2177,31 @@ class _CancelButton extends StatelessWidget {
   }
 }
 
+class _CategoryFallbackBackgroundPainter extends CustomPainter {
+  final Color accentColor;
+
+  const _CategoryFallbackBackgroundPainter({required this.accentColor});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height * 0.38);
+    final paintRing = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+
+    paintRing.color = accentColor.withValues(alpha: 0.08);
+    canvas.drawCircle(center, size.width * 0.28, paintRing);
+
+    paintRing.color = accentColor.withValues(alpha: 0.04);
+    canvas.drawCircle(center, size.width * 0.42, paintRing);
+  }
+
+  @override
+  bool shouldRepaint(covariant _CategoryFallbackBackgroundPainter oldDelegate) {
+    return oldDelegate.accentColor != accentColor;
+  }
+}
+
 class _CategoryFallbackPreview extends StatelessWidget {
   final Color color;
   final IconData icon;
@@ -2116,27 +2216,100 @@ class _CategoryFallbackPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: color.withValues(alpha: 0.22),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: color,
-              size: 58,
-            ),
-            const SizedBox(height: 10),
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.90),
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
+      decoration: BoxDecoration(
+        gradient: RadialGradient(
+          center: const Alignment(0.0, -0.28),
+          radius: 1.15,
+          colors: [
+            color.withValues(alpha: 0.38),
+            color.withValues(alpha: 0.16),
+            const Color(0xFF14161F),
+            const Color(0xFF0D0E15),
+          ],
+          stops: const [0.0, 0.42, 0.82, 1.0],
+        ),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Background ambient decorative concentric rings
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _CategoryFallbackBackgroundPainter(
+                accentColor: color,
               ),
             ),
-          ],
-        ),
+          ),
+
+          // Central Glassmorphism Card
+          Padding(
+            padding: const EdgeInsets.only(bottom: 60),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 92,
+                  height: 92,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        color.withValues(alpha: 0.36),
+                        color.withValues(alpha: 0.12),
+                      ],
+                    ),
+                    border: Border.all(
+                      color: color.withValues(alpha: 0.55),
+                      width: 2.0,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: color.withValues(alpha: 0.40),
+                        blurRadius: 28,
+                        spreadRadius: 4,
+                      ),
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        blurRadius: 16,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Icon(
+                      icon,
+                      color: Colors.white,
+                      size: 46,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 14),
+
+                // Category Label
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black54,
+                        blurRadius: 10,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

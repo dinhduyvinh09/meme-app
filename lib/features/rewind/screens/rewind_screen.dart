@@ -285,7 +285,8 @@ class _RewindScreenState extends State<RewindScreen>
           },
           behavior: HitTestBehavior.opaque,
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 350),
+            duration: const Duration(milliseconds: 450),
+            curve: Curves.easeInOut,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: currentStory.backgroundGradient,
@@ -296,6 +297,17 @@ class _RewindScreenState extends State<RewindScreen>
             child: SafeArea(
               child: Stack(
                 children: [
+                  // DYNAMIC AMBIENT GLOW AURA IN BACKGROUND
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: CustomPaint(
+                        painter: _StoryAtmosphericPainter(
+                          storyType: currentStory.type,
+                        ),
+                      ),
+                    ),
+                  ),
+
                   // STORY CONTENT (Scrolls naturally under floating transparent header)
                   Positioned.fill(
                     child: _buildStoryContent(
@@ -306,7 +318,7 @@ class _RewindScreenState extends State<RewindScreen>
                     ),
                   ),
 
-                  // TOP NAVIGATION BAR (Progress + Period Selector + Close) - Floating on transparent background
+                  // TOP NAVIGATION BAR (Progress + Period Selector + Close) - Floating Frosted Glass
                   Positioned(
                     top: 8,
                     left: 14,
@@ -325,83 +337,102 @@ class _RewindScreenState extends State<RewindScreen>
                             );
                           },
                         ),
-                          const SizedBox(height: 10),
+                        const SizedBox(height: 10),
 
-                          // Header Controls Row
-                          Row(
-                            children: [
-                              // Period Selector Capsule Button
-                              InkWell(
-                                onTap: _openPeriodPicker,
-                                borderRadius: BorderRadius.circular(20),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(
-                                      color: Colors.white.withValues(alpha: 0.22),
-                                    ),
+                        // Header Controls Row
+                        Row(
+                          children: [
+                            // Period Selector Capsule Button
+                            InkWell(
+                              onTap: _openPeriodPicker,
+                              borderRadius: BorderRadius.circular(20),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 6.5),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.22),
+                                    width: 1.2,
                                   ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        _currentPeriod.getTitle(context),
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      const Icon(
-                                        Icons.keyboard_arrow_down_rounded,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.25),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      _currentPeriod.getTitle(context),
+                                      style: const TextStyle(
                                         color: Colors.white,
-                                        size: 16,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.2,
                                       ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              const Spacer(),
-
-                              // Close Button 'X'
-                              InkWell(
-                                onTap: () {
-                                  HapticFeedback.selectionClick();
-                                  Navigator.pop(context);
-                                },
-                                borderRadius: BorderRadius.circular(20),
-                                child: Container(
-                                  width: 34,
-                                  height: 34,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.white.withValues(alpha: 0.15),
-                                  ),
-                                  child: const Center(
-                                    child: Icon(
-                                      Icons.close_rounded,
-                                      color: Colors.white,
-                                      size: 18,
                                     ),
+                                    const SizedBox(width: 4),
+                                    const Icon(
+                                      Icons.keyboard_arrow_down_rounded,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+
+                            // Close Button 'X'
+                            InkWell(
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                Navigator.pop(context);
+                              },
+                              borderRadius: BorderRadius.circular(20),
+                              child: Container(
+                                width: 34,
+                                height: 34,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white.withValues(alpha: 0.14),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.25),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.close_rounded,
+                                    color: Colors.white,
+                                    size: 18,
                                   ),
                                 ),
                               ),
-                            ],
-                          ),
-                        ],
-                      ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
         ),
-      );
+      ),
+    );
   }
 
   Widget _buildStoryContent({
@@ -483,3 +514,133 @@ class _RewindScreenState extends State<RewindScreen>
     }
   }
 }
+
+/// Atmospheric ambient lighting painter that paints subtle luminous glow blobs
+/// matching each story type behind the content to give Spotify Wrapped vibrancy.
+class _StoryAtmosphericPainter extends CustomPainter {
+  final RewindStoryType storyType;
+
+  const _StoryAtmosphericPainter({required this.storyType});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    Color primaryGlow;
+    Color secondaryGlow;
+    Offset primaryCenter;
+    Offset secondaryCenter;
+    double primaryRadius;
+    double secondaryRadius;
+
+    switch (storyType) {
+      case RewindStoryType.overview:
+        primaryGlow = const Color(0xFF8B5CF6).withValues(alpha: 0.22);
+        secondaryGlow = const Color(0xFFEC4899).withValues(alpha: 0.16);
+        primaryCenter = Offset(w * 0.8, h * 0.22);
+        secondaryCenter = Offset(w * 0.15, h * 0.75);
+        primaryRadius = w * 0.7;
+        secondaryRadius = w * 0.6;
+        break;
+      case RewindStoryType.categories:
+        primaryGlow = const Color(0xFF06B6D4).withValues(alpha: 0.22);
+        secondaryGlow = const Color(0xFF3B82F6).withValues(alpha: 0.16);
+        primaryCenter = Offset(w * 0.2, h * 0.25);
+        secondaryCenter = Offset(w * 0.85, h * 0.70);
+        primaryRadius = w * 0.75;
+        secondaryRadius = w * 0.55;
+        break;
+      case RewindStoryType.streak:
+        primaryGlow = const Color(0xFFFF5722).withValues(alpha: 0.26);
+        secondaryGlow = const Color(0xFFF59E0B).withValues(alpha: 0.18);
+        primaryCenter = Offset(w * 0.5, h * 0.35);
+        secondaryCenter = Offset(w * 0.5, h * 0.85);
+        primaryRadius = w * 0.8;
+        secondaryRadius = w * 0.65;
+        break;
+      case RewindStoryType.topExpenses:
+        primaryGlow = const Color(0xFFA855F7).withValues(alpha: 0.24);
+        secondaryGlow = const Color(0xFF6366F1).withValues(alpha: 0.16);
+        primaryCenter = Offset(w * 0.85, h * 0.3);
+        secondaryCenter = Offset(w * 0.1, h * 0.78);
+        primaryRadius = w * 0.72;
+        secondaryRadius = w * 0.58;
+        break;
+      case RewindStoryType.biggestDay:
+        primaryGlow = const Color(0xFF10B981).withValues(alpha: 0.24);
+        secondaryGlow = const Color(0xFF059669).withValues(alpha: 0.18);
+        primaryCenter = Offset(w * 0.3, h * 0.32);
+        secondaryCenter = Offset(w * 0.8, h * 0.75);
+        primaryRadius = w * 0.75;
+        secondaryRadius = w * 0.6;
+        break;
+      case RewindStoryType.moments:
+        primaryGlow = const Color(0xFF8B5CF6).withValues(alpha: 0.22);
+        secondaryGlow = const Color(0xFF38BDF8).withValues(alpha: 0.16);
+        primaryCenter = Offset(w * 0.7, h * 0.3);
+        secondaryCenter = Offset(w * 0.2, h * 0.75);
+        primaryRadius = w * 0.75;
+        secondaryRadius = w * 0.6;
+        break;
+      case RewindStoryType.highlight:
+        primaryGlow = const Color(0xFFD946EF).withValues(alpha: 0.25);
+        secondaryGlow = const Color(0xFFF43F5E).withValues(alpha: 0.18);
+        primaryCenter = Offset(w * 0.5, h * 0.4);
+        secondaryCenter = Offset(w * 0.2, h * 0.82);
+        primaryRadius = w * 0.8;
+        secondaryRadius = w * 0.6;
+        break;
+      case RewindStoryType.comparison:
+        primaryGlow = const Color(0xFF3B82F6).withValues(alpha: 0.24);
+        secondaryGlow = const Color(0xFF06B6D4).withValues(alpha: 0.16);
+        primaryCenter = Offset(w * 0.75, h * 0.28);
+        secondaryCenter = Offset(w * 0.25, h * 0.72);
+        primaryRadius = w * 0.7;
+        secondaryRadius = w * 0.6;
+        break;
+      case RewindStoryType.summary:
+        primaryGlow = const Color(0xFF6366F1).withValues(alpha: 0.22);
+        secondaryGlow = const Color(0xFFF59E0B).withValues(alpha: 0.14);
+        primaryCenter = Offset(w * 0.5, h * 0.2);
+        secondaryCenter = Offset(w * 0.5, h * 0.85);
+        primaryRadius = w * 0.75;
+        secondaryRadius = w * 0.6;
+        break;
+      case RewindStoryType.empty:
+        primaryGlow = const Color(0xFF8B5CF6).withValues(alpha: 0.12);
+        secondaryGlow = const Color(0xFF3B82F6).withValues(alpha: 0.08);
+        primaryCenter = Offset(w * 0.5, h * 0.5);
+        secondaryCenter = Offset(w * 0.5, h * 0.8);
+        primaryRadius = w * 0.6;
+        secondaryRadius = w * 0.5;
+        break;
+    }
+
+    // Paint Primary Glow
+    final paint1 = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          primaryGlow,
+          primaryGlow.withValues(alpha: 0.0),
+        ],
+      ).createShader(Rect.fromCircle(center: primaryCenter, radius: primaryRadius));
+    canvas.drawCircle(primaryCenter, primaryRadius, paint1);
+
+    // Paint Secondary Glow
+    final paint2 = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          secondaryGlow,
+          secondaryGlow.withValues(alpha: 0.0),
+        ],
+      ).createShader(Rect.fromCircle(center: secondaryCenter, radius: secondaryRadius));
+    canvas.drawCircle(secondaryCenter, secondaryRadius, paint2);
+  }
+
+  @override
+  bool shouldRepaint(covariant _StoryAtmosphericPainter oldDelegate) {
+    return oldDelegate.storyType != storyType;
+  }
+}
+

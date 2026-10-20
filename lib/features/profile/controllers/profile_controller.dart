@@ -65,7 +65,8 @@ class ProfileController extends ChangeNotifier {
 
   Future<void> refreshUser(String uid) async {
     if (uid.trim().isEmpty) return;
-    final fetched = await userRepository.getUserProfile(uid, forceRefresh: true);
+    final fetched =
+        await userRepository.getUserProfile(uid, forceRefresh: true);
     if (fetched != null) {
       user = fetched;
       notifyListeners();

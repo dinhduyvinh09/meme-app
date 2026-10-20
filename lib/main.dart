@@ -37,6 +37,10 @@ import 'core/theme/app_scroll_behavior.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Giới hạn bộ nhớ đệm ảnh Flutter để tránh tràn RAM khi xem nhiều ảnh
+  PaintingBinding.instance.imageCache.maximumSize = 100;
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 60 * 1024 * 1024; // 60MB
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );

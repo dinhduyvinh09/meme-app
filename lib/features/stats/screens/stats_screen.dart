@@ -122,9 +122,9 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 
   List<dynamic> _filterTransactions(
-      List<dynamic> transactions,
-      DateTime date,
-      ) {
+    List<dynamic> transactions,
+    DateTime date,
+  ) {
     return transactions.where((tx) {
       final samePeriod = selectedViewMode == _ViewMode.month
           ? _isSameMonth(tx.createdAt, date)
@@ -135,10 +135,10 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 
   List<dynamic> _filterTransactionsByType(
-      List<dynamic> transactions,
-      DateTime date,
-      _MoneyType type,
-      ) {
+    List<dynamic> transactions,
+    DateTime date,
+    _MoneyType type,
+  ) {
     return transactions.where((tx) {
       final samePeriod = selectedViewMode == _ViewMode.month
           ? _isSameMonth(tx.createdAt, date)
@@ -151,7 +151,7 @@ class _StatsScreenState extends State<StatsScreen> {
   double _getTotal(List<dynamic> transactions) {
     return transactions.fold<double>(
       0,
-          (sum, tx) => sum + tx.amount,
+      (sum, tx) => sum + tx.amount,
     );
   }
 
@@ -344,13 +344,12 @@ class _StatsScreenState extends State<StatsScreen> {
                       width: 44,
                       height: 5,
                       decoration: BoxDecoration(
-                        color: palette.textSecondary.withOpacity(0.22),
-                        borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+                        color: palette.textSecondary.withValues(alpha: 0.22),
+                        borderRadius:
+                            BorderRadius.circular(AppSizes.radiusPill),
                       ),
                     ),
-
                     const SizedBox(height: 18),
-
                     Row(
                       children: [
                         Text(
@@ -364,6 +363,7 @@ class _StatsScreenState extends State<StatsScreen> {
                         const Spacer(),
                         TextButton(
                           onPressed: () {
+                            HapticFeedback.lightImpact();
                             Navigator.pop(
                               sheetContext,
                               DateTime(now.year, now.month),
@@ -373,9 +373,7 @@ class _StatsScreenState extends State<StatsScreen> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 14),
-
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
@@ -393,13 +391,13 @@ class _StatsScreenState extends State<StatsScreen> {
                           _SmallIconButton(
                             icon: Icons.chevron_left_rounded,
                             onTap: () {
+                              HapticFeedback.lightImpact();
                               setSheetState(() {
                                 selectedYear--;
                               });
                             },
                             palette: palette,
                           ),
-
                           Expanded(
                             child: Center(
                               child: Text(
@@ -412,10 +410,10 @@ class _StatsScreenState extends State<StatsScreen> {
                               ),
                             ),
                           ),
-
                           _SmallIconButton(
                             icon: Icons.chevron_right_rounded,
                             onTap: () {
+                              HapticFeedback.lightImpact();
                               setSheetState(() {
                                 selectedYear++;
                               });
@@ -425,15 +423,13 @@ class _StatsScreenState extends State<StatsScreen> {
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 18),
-
                     GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: 12,
                       gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 3,
                         crossAxisSpacing: 10,
                         mainAxisSpacing: 10,
@@ -442,9 +438,8 @@ class _StatsScreenState extends State<StatsScreen> {
                       itemBuilder: (context, index) {
                         final month = index + 1;
 
-                        final isSelected =
-                            selectedYear == selectedDate.year &&
-                                month == selectedDate.month;
+                        final isSelected = selectedYear == selectedDate.year &&
+                            month == selectedDate.month;
 
                         final isCurrent =
                             selectedYear == now.year && month == now.month;
@@ -452,6 +447,7 @@ class _StatsScreenState extends State<StatsScreen> {
                         return InkWell(
                           borderRadius: BorderRadius.circular(18),
                           onTap: () {
+                            HapticFeedback.lightImpact();
                             Navigator.pop(
                               sheetContext,
                               DateTime(selectedYear, month),
@@ -462,15 +458,17 @@ class _StatsScreenState extends State<StatsScreen> {
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? AppColors.primaryBlue.withOpacity(0.16)
+                                  ? AppColors.primaryBlue
+                                      .withValues(alpha: 0.16)
                                   : palette.innerTileBackground,
                               borderRadius: BorderRadius.circular(18),
                               border: Border.all(
                                 color: isSelected
                                     ? AppColors.primaryBlue
                                     : isCurrent
-                                    ? AppColors.primaryBlue.withOpacity(0.45)
-                                    : palette.innerTileBorder,
+                                        ? AppColors.primaryBlue
+                                            .withValues(alpha: 0.45)
+                                        : palette.innerTileBorder,
                                 width: isSelected ? 1.6 : 1,
                               ),
                             ),
@@ -538,13 +536,12 @@ class _StatsScreenState extends State<StatsScreen> {
                       width: 44,
                       height: 5,
                       decoration: BoxDecoration(
-                        color: palette.textSecondary.withOpacity(0.22),
-                        borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+                        color: palette.textSecondary.withValues(alpha: 0.22),
+                        borderRadius:
+                            BorderRadius.circular(AppSizes.radiusPill),
                       ),
                     ),
-
                     const SizedBox(height: 18),
-
                     Row(
                       children: [
                         Text(
@@ -558,6 +555,7 @@ class _StatsScreenState extends State<StatsScreen> {
                         const Spacer(),
                         TextButton(
                           onPressed: () {
+                            HapticFeedback.lightImpact();
                             Navigator.pop(
                               sheetContext,
                               DateTime(now.year, now.month),
@@ -567,14 +565,13 @@ class _StatsScreenState extends State<StatsScreen> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 14),
-
                     Row(
                       children: [
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () {
+                              HapticFeedback.lightImpact();
                               setSheetState(() {
                                 startYear -= 12;
                               });
@@ -587,6 +584,7 @@ class _StatsScreenState extends State<StatsScreen> {
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () {
+                              HapticFeedback.lightImpact();
                               setSheetState(() {
                                 startYear += 12;
                               });
@@ -597,15 +595,13 @@ class _StatsScreenState extends State<StatsScreen> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 18),
-
                     GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: years.length,
                       gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 3,
                         crossAxisSpacing: 10,
                         mainAxisSpacing: 10,
@@ -620,6 +616,7 @@ class _StatsScreenState extends State<StatsScreen> {
                         return InkWell(
                           borderRadius: BorderRadius.circular(18),
                           onTap: () {
+                            HapticFeedback.lightImpact();
                             Navigator.pop(
                               sheetContext,
                               DateTime(year, selectedDate.month),
@@ -630,15 +627,17 @@ class _StatsScreenState extends State<StatsScreen> {
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? AppColors.primaryBlue.withOpacity(0.16)
+                                  ? AppColors.primaryBlue
+                                      .withValues(alpha: 0.16)
                                   : palette.innerTileBackground,
                               borderRadius: BorderRadius.circular(18),
                               border: Border.all(
                                 color: isSelected
                                     ? AppColors.primaryBlue
                                     : isCurrent
-                                    ? AppColors.primaryBlue.withOpacity(0.45)
-                                    : palette.innerTileBorder,
+                                        ? AppColors.primaryBlue
+                                            .withValues(alpha: 0.45)
+                                        : palette.innerTileBorder,
                                 width: isSelected ? 1.6 : 1,
                               ),
                             ),
@@ -824,244 +823,230 @@ class _StatsScreenState extends State<StatsScreen> {
       body: SafeArea(
         child: stats.isLoading
             ? Center(
-          child: CircularProgressIndicator(
-            color: palette.textPrimary,
-          ),
-        )
+                child: CircularProgressIndicator(
+                  color: palette.textPrimary,
+                ),
+              )
             : ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 190),
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 18),
-              child: Row(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 190),
                 children: [
-                  _TopCircleButton(
-                    icon: Icons.bar_chart_rounded,
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 18),
+                    child: Row(
+                      children: [
+                        _TopCircleButton(
+                          icon: Icons.bar_chart_rounded,
+                          palette: palette,
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Text(
+                            context.l10n.statsTitle,
+                            style: TextStyle(
+                              color: palette.textPrimary,
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  _MoneyTypeSelector(
+                    selectedType: selectedType,
+                    incomeAmount: moneyCompactTop(incomeTotal),
+                    expenseAmount: moneyCompactTop(expenseTotal),
+                    onChanged: (type) {
+                      setState(() {
+                        selectedType = type;
+                      });
+                    },
                     palette: palette,
                   ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Text(
-                      context.l10n.statsTitle,
+                  const SizedBox(height: 12),
+                  _RowSegment(
+                    selectedIndex: selectedViewMode == _ViewMode.month ? 0 : 1,
+                    labels: [context.l10n.month, context.l10n.year],
+                    icons: const [
+                      Icons.calendar_view_month_rounded,
+                      Icons.calendar_today_rounded,
+                    ],
+                    onChanged: (index) {
+                      setState(() {
+                        selectedViewMode =
+                            index == 0 ? _ViewMode.month : _ViewMode.year;
+
+                        selectedDate = DateTime(
+                          selectedDate.year,
+                          selectedDate.month,
+                        );
+                      });
+                    },
+                    palette: palette,
+                  ),
+                  const SizedBox(height: 10),
+                  _PeriodSelector(
+                    title: _formatPeriodTitle(),
+                    palette: palette,
+                    showCurrentButton: !_isCurrentPeriod(),
+                    currentButtonText: selectedViewMode == _ViewMode.month
+                        ? context.l10n.backToThisMonth
+                        : context.l10n.backToThisYear,
+                    onTapTitle: _showPeriodPicker,
+                    onGoCurrent: _goToCurrentPeriod,
+                    onPrevious: () {
+                      setState(() {
+                        selectedDate = _backPeriod(selectedDate);
+                      });
+                    },
+                    onNext: () {
+                      setState(() {
+                        selectedDate = _nextPeriod(selectedDate);
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 14),
+                  _AnalysisCard(
+                    title: isExpense
+                        ? context.l10n.totalExpenseLabel
+                        : context.l10n.totalIncomeLabel,
+                    period: _formatPeriodTitle(),
+                    amount: money(currentTotal),
+                    previousAmount: money(previousTotal),
+                    compareText: _formatCompareTitle(),
+                    analysisText: _getAnalysisText(changePercent),
+                    percent: changePercent,
+                    accent: mainColor,
+                    icon: isExpense
+                        ? Icons.north_east_rounded
+                        : Icons.south_west_rounded,
+                    palette: palette,
+                    isExpense: isExpense,
+                  ),
+                  const SizedBox(height: 14),
+                  MonthlyComparisonCard(
+                    transactions: stats.transactions,
+                    referenceDate: selectedDate,
+                    currency: currency,
+                    cardBackground: palette.cardBackground,
+                    cardBorder: palette.cardBorder,
+                    textPrimary: palette.textPrimary,
+                    textSecondary: palette.textSecondary,
+                    innerTileBackground: palette.innerTileBackground,
+                    innerTileBorder: palette.innerTileBorder,
+                  ),
+                  const SizedBox(height: 18),
+                  _RowSegment(
+                    selectedIndex: selectedContentTab.index,
+                    labels: [context.l10n.categories, context.l10n.map],
+                    icons: const [
+                      Icons.pie_chart_rounded,
+                      Icons.map_rounded,
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        selectedContentTab = _StatsContentTab.values[value];
+                        mapInteractionEnabled = false;
+                      });
+                    },
+                    palette: palette,
+                  ),
+                  const SizedBox(height: 18),
+                  if (selectedContentTab == _StatsContentTab.map)
+                    _SafeMapPanel(
+                      palette: palette,
+                      interactionEnabled: mapInteractionEnabled,
+                      onToggleInteraction: () {
+                        setState(() {
+                          mapInteractionEnabled = !mapInteractionEnabled;
+                        });
+                      },
+                      transactions: currentTransactions
+                          .whereType<TransactionModel>()
+                          .toList(),
+                    )
+                  else
+                    _InteractiveStatsPieChartCard(
+                      categoryEntries: categoryEntries,
+                      categoryColorMap: categoryColorMap,
+                      fallbackCategoryColor: _fallbackCategoryColor,
+                      localizedCategoryLabel: _localizedCategoryLabel,
+                      getRawPercent: (val) =>
+                          _getRawPercent(val, categoryEntries),
+                      formatPercent: _formatPercent,
+                      money: money,
+                      isExpense: isExpense,
+                      currentTotal: currentTotal,
+                      mainColor: mainColor,
+                      palette: palette,
+                      chartTitle: _getChartTitle(),
+                      periodTitle: _formatPeriodTitle(),
+                      emptyChartText: _getEmptyChartText(),
+                    ),
+                  const SizedBox(height: 18),
+                  if (selectedContentTab != _StatsContentTab.map &&
+                      categoryEntries.isNotEmpty) ...[
+                    Text(
+                      isExpense
+                          ? context.l10n.expenseDetails
+                          : context.l10n.incomeDetails,
                       style: TextStyle(
                         color: palette.textPrimary,
-                        fontSize: 28,
+                        fontSize: 15.5,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 8),
+                  ],
+                  if (selectedContentTab != _StatsContentTab.map)
+                    ...categoryEntries.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final item = entry.value;
+                      final rawPercent =
+                          _getRawPercent(item.value, categoryEntries);
+                      final percentText = _formatPercent(rawPercent);
+
+                      final categoryTransactions = currentTransactions
+                          .where((tx) => tx.category == item.key)
+                          .cast<TransactionModel>()
+                          .toList();
+
+                      final color = categoryColorMap[item.key] ??
+                          _fallbackCategoryColor(item.key, index);
+
+                      final isVi =
+                          Localizations.localeOf(context).languageCode == 'vi';
+                      final subtitle = isExpense
+                          ? (isVi
+                              ? '$percentText tổng chi tiêu'
+                              : '$percentText of total expense')
+                          : (isVi
+                              ? '$percentText tổng thu nhập'
+                              : '$percentText of total income');
+
+                      return _DetailCategoryTile(
+                        color: color,
+                        title: _localizedCategoryLabel(item.key),
+                        subtitle: subtitle,
+                        value: money(item.value),
+                        palette: palette,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => CategoryDetailScreen(
+                                category: item.key,
+                                type: selectedType.name,
+                                periodTitle: _formatPeriodTitle(),
+                                transactions: categoryTransactions,
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    }),
                 ],
               ),
-            ),
-
-            _MoneyTypeSelector(
-              selectedType: selectedType,
-              incomeAmount: moneyCompactTop(incomeTotal),
-              expenseAmount: moneyCompactTop(expenseTotal),
-              onChanged: (type) {
-                setState(() {
-                  selectedType = type;
-                });
-              },
-              palette: palette,
-            ),
-
-            const SizedBox(height: 12),
-
-            _RowSegment(
-              selectedIndex:
-              selectedViewMode == _ViewMode.month ? 0 : 1,
-              labels: [context.l10n.month, context.l10n.year],
-              icons: const [
-                Icons.calendar_view_month_rounded,
-                Icons.calendar_today_rounded,
-              ],
-              onChanged: (index) {
-                setState(() {
-                  selectedViewMode =
-                  index == 0 ? _ViewMode.month : _ViewMode.year;
-
-                  selectedDate = DateTime(
-                    selectedDate.year,
-                    selectedDate.month,
-                  );
-                });
-              },
-              palette: palette,
-            ),
-
-            const SizedBox(height: 10),
-
-            _PeriodSelector(
-              title: _formatPeriodTitle(),
-              palette: palette,
-              showCurrentButton: !_isCurrentPeriod(),
-              currentButtonText: selectedViewMode == _ViewMode.month
-                  ? context.l10n.backToThisMonth
-                  : context.l10n.backToThisYear,
-              onTapTitle: _showPeriodPicker,
-              onGoCurrent: _goToCurrentPeriod,
-              onPrevious: () {
-                setState(() {
-                  selectedDate = _backPeriod(selectedDate);
-                });
-              },
-              onNext: () {
-                setState(() {
-                  selectedDate = _nextPeriod(selectedDate);
-                });
-              },
-            ),
-
-            const SizedBox(height: 14),
-
-            _AnalysisCard(
-              title: isExpense ? context.l10n.totalExpenseLabel : context.l10n.totalIncomeLabel,
-              period: _formatPeriodTitle(),
-              amount: money(currentTotal),
-              previousAmount: money(previousTotal),
-              compareText: _formatCompareTitle(),
-              analysisText: _getAnalysisText(changePercent),
-              percent: changePercent,
-              accent: mainColor,
-              icon: isExpense
-                  ? Icons.north_east_rounded
-                  : Icons.south_west_rounded,
-              palette: palette,
-              isExpense: isExpense,
-            ),
-
-            const SizedBox(height: 14),
-
-            MonthlyComparisonCard(
-              transactions: stats.transactions,
-              referenceDate: selectedDate,
-              currency: currency,
-              cardBackground: palette.cardBackground,
-              cardBorder: palette.cardBorder,
-              textPrimary: palette.textPrimary,
-              textSecondary: palette.textSecondary,
-              innerTileBackground: palette.innerTileBackground,
-              innerTileBorder: palette.innerTileBorder,
-            ),
-
-            const SizedBox(height: 18),
-
-            _RowSegment(
-              selectedIndex: selectedContentTab.index,
-              labels: [context.l10n.categories, context.l10n.map],
-              icons: const [
-                Icons.pie_chart_rounded,
-                Icons.map_rounded,
-              ],
-              onChanged: (value) {
-                setState(() {
-                  selectedContentTab = _StatsContentTab.values[value];
-                  mapInteractionEnabled = false;
-                });
-              },
-              palette: palette,
-            ),
-
-            const SizedBox(height: 18),
-
-            if (selectedContentTab == _StatsContentTab.map)
-              _SafeMapPanel(
-                palette: palette,
-                interactionEnabled: mapInteractionEnabled,
-                onToggleInteraction: () {
-                  setState(() {
-                    mapInteractionEnabled = !mapInteractionEnabled;
-                  });
-                },
-                transactions: currentTransactions
-                    .whereType<TransactionModel>()
-                    .toList(),
-              )
-            else
-              _InteractiveStatsPieChartCard(
-                categoryEntries: categoryEntries,
-                categoryColorMap: categoryColorMap,
-                fallbackCategoryColor: _fallbackCategoryColor,
-                localizedCategoryLabel: _localizedCategoryLabel,
-                getRawPercent: (val) => _getRawPercent(val, categoryEntries),
-                formatPercent: _formatPercent,
-                money: money,
-                isExpense: isExpense,
-                currentTotal: currentTotal,
-                mainColor: mainColor,
-                palette: palette,
-                chartTitle: _getChartTitle(),
-                periodTitle: _formatPeriodTitle(),
-                emptyChartText: _getEmptyChartText(),
-              ),
-
-            const SizedBox(height: 18),
-
-            if (selectedContentTab != _StatsContentTab.map &&
-                categoryEntries.isNotEmpty) ...[
-              Text(
-                isExpense
-                    ? context.l10n.expenseDetails
-                    : context.l10n.incomeDetails,
-                style: TextStyle(
-                  color: palette.textPrimary,
-                  fontSize: 15.5,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
-
-            if (selectedContentTab != _StatsContentTab.map)
-              ...categoryEntries.asMap().entries.map((entry) {
-                final index = entry.key;
-                final item = entry.value;
-                final rawPercent =
-                    _getRawPercent(item.value, categoryEntries);
-                final percentText = _formatPercent(rawPercent);
-
-                final categoryTransactions = currentTransactions
-                    .where((tx) => tx.category == item.key)
-                    .cast<TransactionModel>()
-                    .toList();
-
-                final color = categoryColorMap[item.key] ??
-                    _fallbackCategoryColor(item.key, index);
-
-                final isVi =
-                    Localizations.localeOf(context).languageCode == 'vi';
-                final subtitle = isExpense
-                    ? (isVi
-                        ? '$percentText tổng chi tiêu'
-                        : '$percentText of total expense')
-                    : (isVi
-                        ? '$percentText tổng thu nhập'
-                        : '$percentText of total income');
-
-                return _DetailCategoryTile(
-                  color: color,
-                  title: _localizedCategoryLabel(item.key),
-                  subtitle: subtitle,
-                  value: money(item.value),
-                  palette: palette,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => CategoryDetailScreen(
-                          category: item.key,
-                          type: selectedType.name,
-                          periodTitle: _formatPeriodTitle(),
-                          transactions: categoryTransactions,
-                        ),
-                      ),
-                    );
-                  },
-                );
-              }),
-          ],
-        ),
       ),
     );
   }
@@ -1090,14 +1075,16 @@ class _SafeMapPanel extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: palette.cardBackground,
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
         border: Border.all(
           color: palette.cardBorder,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(
-              Theme.of(context).brightness == Brightness.dark ? 0.18 : 0.045,
+            color: Colors.black.withValues(
+              alpha: Theme.of(context).brightness == Brightness.dark
+                  ? 0.18
+                  : 0.045,
             ),
             blurRadius: 18,
             offset: const Offset(0, 8),
@@ -1125,7 +1112,11 @@ class _SafeMapPanel extends StatelessWidget {
                 ),
               ),
               GestureDetector(
-                onTap: onToggleInteraction,
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  onToggleInteraction();
+                },
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
@@ -1143,7 +1134,9 @@ class _SafeMapPanel extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    interactionEnabled ? context.l10n.controlling : context.l10n.mapControl,
+                    interactionEnabled
+                        ? context.l10n.controlling
+                        : context.l10n.mapControl,
                     style: TextStyle(
                       color: interactionEnabled
                           ? AppColors.primaryBlue
@@ -1156,9 +1149,7 @@ class _SafeMapPanel extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 10),
-
           ClipRRect(
             borderRadius: BorderRadius.circular(24),
             child: SizedBox(
@@ -1175,10 +1166,10 @@ class _SafeMapPanel extends StatelessWidget {
                       ),
                     ),
                   ),
-
                   if (!interactionEnabled)
                     Positioned.fill(
                       child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
                         onTap: onToggleInteraction,
                         child: Container(
                           color: Colors.transparent,
@@ -1218,7 +1209,58 @@ class _SafeMapPanel extends StatelessWidget {
                         ),
                       ),
                     ),
-
+                  if (interactionEnabled)
+                    Positioned(
+                      top: 10,
+                      left: 10,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: onToggleInteraction,
+                          borderRadius: BorderRadius.circular(999),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.65),
+                              borderRadius: BorderRadius.circular(999),
+                              border: Border.all(
+                                color: const Color(0xFF388AF6),
+                                width: 1.2,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.25),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.lock_open_rounded,
+                                  color: Color(0xFF388AF6),
+                                  size: 13,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  context.l10n.controlling,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   Positioned(
                     top: 10,
                     right: 10,
@@ -1266,9 +1308,7 @@ class _SafeMapPanel extends StatelessWidget {
               ),
             ),
           ),
-
           const SizedBox(height: 8),
-
           Text(
             interactionEnabled
                 ? context.l10n.tapControllingToDisable
@@ -1462,7 +1502,9 @@ class _InteractiveStatsPieChartCardState
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(
-              alpha: Theme.of(context).brightness == Brightness.dark ? 0.18 : 0.045,
+              alpha: Theme.of(context).brightness == Brightness.dark
+                  ? 0.18
+                  : 0.045,
             ),
             blurRadius: 18,
             offset: const Offset(0, 8),
@@ -1485,7 +1527,8 @@ class _InteractiveStatsPieChartCardState
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: mainColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(999),
@@ -1505,7 +1548,6 @@ class _InteractiveStatsPieChartCardState
             ],
           ),
           const SizedBox(height: 18),
-
           if (entries.isEmpty)
             SizedBox(
               height: 260,
@@ -1656,8 +1698,7 @@ class _InteractiveStatsPieChartCardState
                             accent: (_touchedPieIndex >= 0 &&
                                     _touchedPieIndex < entries.length)
                                 ? (colorMap[entries[_touchedPieIndex].key] ??
-                                    fallbackColor(
-                                        entries[_touchedPieIndex].key,
+                                    fallbackColor(entries[_touchedPieIndex].key,
                                         _touchedPieIndex))
                                 : mainColor,
                             palette: palette,
@@ -1671,9 +1712,7 @@ class _InteractiveStatsPieChartCardState
                 },
               ),
             ),
-
             const SizedBox(height: 8),
-
             Column(
               children: entries.asMap().entries.map((entry) {
                 final index = entry.key;
@@ -1908,10 +1947,11 @@ class _CategoryLeaderLinePainter extends CustomPainter {
         final sinVal = math.sin(midAngle);
 
         final bool isRight = cosVal >= 0;
-        final bool isSelected = selectedCategoryKey != null &&
-            entry.key == selectedCategoryKey;
+        final bool isSelected =
+            selectedCategoryKey != null && entry.key == selectedCategoryKey;
 
-        final double sliceOuterRadius = isSelected ? outerRadius + 6 : outerRadius;
+        final double sliceOuterRadius =
+            isSelected ? outerRadius + 6 : outerRadius;
         final startPoint = Offset(
           center.dx + sliceOuterRadius * cosVal,
           center.dy + sliceOuterRadius * sinVal,
@@ -1924,9 +1964,7 @@ class _CategoryLeaderLinePainter extends CustomPainter {
             TextSpan(
               text: '${localizedCategory(entry.key)}\n',
               style: TextStyle(
-                color: isSelected
-                    ? color
-                    : textPrimary.withValues(alpha: 0.90),
+                color: isSelected ? color : textPrimary.withValues(alpha: 0.90),
                 fontSize: 11.0,
                 fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700,
                 height: 1.15,
@@ -1992,8 +2030,7 @@ class _CategoryLeaderLinePainter extends CustomPainter {
 
       final bool isSelected = selectedCategoryKey != null &&
           item.label == localizedCategory(selectedCategoryKey!);
-      final bool isDimmed =
-          selectedCategoryKey != null && !isSelected;
+      final bool isDimmed = selectedCategoryKey != null && !isSelected;
 
       _drawRoutedCallout(
         canvas: canvas,
@@ -2007,7 +2044,8 @@ class _CategoryLeaderLinePainter extends CustomPainter {
     }
   }
 
-  void _resolveVerticalCollisions(List<_CalloutPoint> items, double canvasHeight) {
+  void _resolveVerticalCollisions(
+      List<_CalloutPoint> items, double canvasHeight) {
     if (items.length <= 1) return;
 
     const double minGap = 34.0; // Khoảng cách an toàn giữa 2 nhãn chữ
@@ -2221,7 +2259,7 @@ class _ChartLegendTile extends StatelessWidget {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.14),
+                  color: color.withValues(alpha: 0.14),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
@@ -2256,7 +2294,7 @@ class _ChartLegendTile extends StatelessWidget {
                       child: LinearProgressIndicator(
                         value: (rawPercent / 100).clamp(0.0, 1.0),
                         minHeight: 5,
-                        backgroundColor: color.withOpacity(0.10),
+                        backgroundColor: color.withValues(alpha: 0.10),
                         valueColor: AlwaysStoppedAnimation<Color>(color),
                       ),
                     ),
@@ -2322,7 +2360,10 @@ class _MoneyTypeSelector extends StatelessWidget {
             icon: Icons.north_east_rounded,
             accent: const Color(0xFFFF7A7A),
             selected: selectedType == _MoneyType.expense,
-            onTap: () => onChanged(_MoneyType.expense),
+            onTap: () {
+              HapticFeedback.selectionClick();
+              onChanged(_MoneyType.expense);
+            },
             palette: palette,
           ),
         ),
@@ -2334,7 +2375,10 @@ class _MoneyTypeSelector extends StatelessWidget {
             icon: Icons.south_west_rounded,
             accent: const Color(0xFF7DDC86),
             selected: selectedType == _MoneyType.income,
-            onTap: () => onChanged(_MoneyType.income),
+            onTap: () {
+              HapticFeedback.selectionClick();
+              onChanged(_MoneyType.income);
+            },
             palette: palette,
           ),
         ),
@@ -2368,16 +2412,17 @@ class _MoneyTypeCard extends StatelessWidget {
       duration: const Duration(milliseconds: 180),
       curve: Curves.easeOut,
       decoration: BoxDecoration(
-        color: selected ? accent.withOpacity(0.08) : palette.cardBackground,
+        color:
+            selected ? accent.withValues(alpha: 0.08) : palette.cardBackground,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: selected ? accent.withOpacity(0.68) : palette.cardBorder,
+          color: selected ? accent.withValues(alpha: 0.68) : palette.cardBorder,
           width: selected ? 1.4 : 1,
         ),
         boxShadow: [
           if (selected)
             BoxShadow(
-              color: accent.withOpacity(0.08),
+              color: accent.withValues(alpha: 0.08),
               blurRadius: 10,
               offset: const Offset(0, 3),
             ),
@@ -2395,7 +2440,7 @@ class _MoneyTypeCard extends StatelessWidget {
                 height: 32,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: selected ? accent : accent.withOpacity(0.14),
+                  color: selected ? accent : accent.withValues(alpha: 0.14),
                 ),
                 child: Icon(
                   icon,
@@ -2490,7 +2535,7 @@ class _AnalysisCard extends StatelessWidget {
                 height: 36,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: accent.withOpacity(0.15),
+                  color: accent.withValues(alpha: 0.15),
                 ),
                 child: Icon(
                   icon,
@@ -2529,10 +2574,10 @@ class _AnalysisCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5.5),
             decoration: BoxDecoration(
-              color: accent.withOpacity(0.10),
+              color: accent.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(999),
               border: Border.all(
-                color: accent.withOpacity(0.16),
+                color: accent.withValues(alpha: 0.16),
               ),
             ),
             child: Row(
@@ -2622,14 +2667,19 @@ class _PeriodSelector extends StatelessWidget {
             children: [
               _SmallIconButton(
                 icon: Icons.chevron_left_rounded,
-                onTap: onPrevious,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  onPrevious();
+                },
                 palette: palette,
               ),
-
               Expanded(
                 child: InkWell(
                   borderRadius: BorderRadius.circular(14),
-                  onTap: onTapTitle,
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    onTapTitle();
+                  },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 6,
@@ -2662,23 +2712,27 @@ class _PeriodSelector extends StatelessWidget {
                   ),
                 ),
               ),
-
               _SmallIconButton(
                 icon: Icons.chevron_right_rounded,
-                onTap: onNext,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  onNext();
+                },
                 palette: palette,
               ),
             ],
           ),
         ),
-
         if (showCurrentButton) ...[
           const SizedBox(height: 6),
           Align(
             alignment: Alignment.center,
             child: InkWell(
               borderRadius: BorderRadius.circular(AppSizes.radiusPill),
-              onTap: onGoCurrent,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                onGoCurrent();
+              },
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -2772,13 +2826,10 @@ class _RowSegment extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final trackBg = isDark
-        ? const Color(0xFF1B1E28)
-        : const Color(0xFFF1F5F9);
+    final trackBg = isDark ? const Color(0xFF1B1E28) : const Color(0xFFF1F5F9);
 
-    final trackBorder = isDark
-        ? Colors.white.withValues(alpha: 0.10)
-        : const Color(0xFFE2E8F0);
+    final trackBorder =
+        isDark ? Colors.white.withValues(alpha: 0.10) : const Color(0xFFE2E8F0);
 
     return Container(
       padding: const EdgeInsets.all(3.5),
@@ -2793,7 +2844,8 @@ class _RowSegment extends StatelessWidget {
       child: Row(
         children: List.generate(labels.length, (index) {
           final selected = selectedIndex == index;
-          final icon = (icons != null && index < icons!.length) ? icons![index] : null;
+          final icon =
+              (icons != null && index < icons!.length) ? icons![index] : null;
 
           return Expanded(
             child: GestureDetector(
@@ -2819,7 +2871,8 @@ class _RowSegment extends StatelessWidget {
                   boxShadow: selected
                       ? [
                           BoxShadow(
-                            color: const Color(0xFF007AFF).withValues(alpha: 0.32),
+                            color:
+                                const Color(0xFF007AFF).withValues(alpha: 0.32),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -2835,7 +2888,9 @@ class _RowSegment extends StatelessWidget {
                         size: 15,
                         color: selected
                             ? Colors.white
-                            : (isDark ? Colors.white60 : const Color(0xFF64748B)),
+                            : (isDark
+                                ? Colors.white60
+                                : const Color(0xFF64748B)),
                       ),
                       const SizedBox(width: 5),
                     ],
@@ -2845,9 +2900,12 @@ class _RowSegment extends StatelessWidget {
                       style: TextStyle(
                         color: selected
                             ? Colors.white
-                            : (isDark ? Colors.white70 : const Color(0xFF475569)),
+                            : (isDark
+                                ? Colors.white70
+                                : const Color(0xFF475569)),
                         fontSize: 12.5,
-                        fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                        fontWeight:
+                            selected ? FontWeight.w800 : FontWeight.w600,
                         letterSpacing: -0.1,
                       ),
                     ),
@@ -2892,7 +2950,10 @@ class _DetailCategoryTile extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: onTap,
+          onTap: () {
+            HapticFeedback.lightImpact();
+            onTap?.call();
+          },
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 12,
@@ -2984,8 +3045,8 @@ class _TopCircleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 52,
-      height: 52,
+      width: 44,
+      height: 44,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: palette.topButtonBg,
@@ -2994,6 +3055,7 @@ class _TopCircleButton extends StatelessWidget {
       child: Icon(
         icon,
         color: palette.textPrimary,
+        size: 22,
       ),
     );
   }

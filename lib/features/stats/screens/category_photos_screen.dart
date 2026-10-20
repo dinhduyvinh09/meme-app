@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
@@ -141,14 +142,13 @@ class CategoryPhotosScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final currency = context.watch<ProfileController>().currency;
 
-    final bgColor = isDark ? const Color(0xFF0F1015) : const Color(0xFFF4F6FA);
-    final cardColor = isDark ? const Color(0xFF171821) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF2A2D3B) : const Color(0xFFE3E7F0);
-    final primaryText = isDark ? Colors.white : const Color(0xFF14151B);
-    final secondaryText = isDark ? const Color(0xFFA3A6B2) : const Color(0xFF74788A);
+    final bgColor = AppColors.background(context);
+    final cardColor = AppColors.card(context);
+    final borderColor = AppColors.border(context);
+    final primaryText = AppColors.textPrimary(context);
+    final secondaryText = AppColors.textSecondary(context);
 
     final accent = _categoryColor(category, type);
     final icon = _categoryIcon(category, type);
@@ -164,11 +164,15 @@ class CategoryPhotosScreen extends StatelessWidget {
           children: [
             // HEADER BAR
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+              padding: const EdgeInsets.fromLTRB(
+                  AppSizes.pagePadding, 12, AppSizes.pagePadding, 12),
               child: Row(
                 children: [
                   InkWell(
-                    onTap: () => Navigator.pop(context),
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      Navigator.pop(context);
+                    },
                     borderRadius: BorderRadius.circular(AppSizes.radiusXLarge),
                     child: Container(
                       width: 44,
@@ -300,6 +304,7 @@ class CategoryPhotosScreen extends StatelessWidget {
                         return RepaintBoundary(
                           child: GestureDetector(
                             onTap: () {
+                              HapticFeedback.lightImpact();
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -311,7 +316,8 @@ class CategoryPhotosScreen extends StatelessWidget {
                               );
                             },
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(18),
+                              borderRadius:
+                                  BorderRadius.circular(AppSizes.radiusMedium),
                               child: Stack(
                                 fit: StackFit.expand,
                                 children: [
@@ -324,8 +330,7 @@ class CategoryPhotosScreen extends StatelessWidget {
                                           category: tx.category,
                                           categoryIconCodePoint:
                                               tx.categoryIconCodePoint,
-                                          categoryColorHex:
-                                              tx.categoryColorHex,
+                                          categoryColorHex: tx.categoryColorHex,
                                           caption: null,
                                           width: size,
                                           height: size,
@@ -349,7 +354,8 @@ class CategoryPhotosScreen extends StatelessWidget {
                                           colors: [
                                             Colors.transparent,
                                             Colors.transparent,
-                                            Colors.black.withValues(alpha: 0.65),
+                                            Colors.black
+                                                .withValues(alpha: 0.65),
                                           ],
                                           stops: const [0.0, 0.45, 1.0],
                                         ),
@@ -367,11 +373,13 @@ class CategoryPhotosScreen extends StatelessWidget {
                                         vertical: 3,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.black.withValues(alpha: 0.60),
-                                        borderRadius:
-                                            BorderRadius.circular(AppSizes.radiusPill),
+                                        color: Colors.black
+                                            .withValues(alpha: 0.60),
+                                        borderRadius: BorderRadius.circular(
+                                            AppSizes.radiusPill),
                                         border: Border.all(
-                                          color: Colors.white.withValues(alpha: 0.20),
+                                          color: Colors.white
+                                              .withValues(alpha: 0.20),
                                           width: 0.8,
                                         ),
                                       ),

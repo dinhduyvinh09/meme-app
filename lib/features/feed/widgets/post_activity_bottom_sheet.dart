@@ -179,7 +179,8 @@ class PostActivityBottomSheet extends StatelessWidget {
                             vertical: 12,
                           ),
                           itemCount: activityList.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 14),
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 14),
                           itemBuilder: (context, index) {
                             return _ActivityUserTile(
                               item: activityList[index],
@@ -289,9 +290,7 @@ class _ActivityUserTile extends StatelessWidget {
                         : const Color(0xFFE5E7EB),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: isDark
-                          ? Colors.white24
-                          : Colors.black12,
+                      color: isDark ? Colors.white24 : Colors.black12,
                       width: 1.2,
                     ),
                   ),
@@ -299,9 +298,7 @@ class _ActivityUserTile extends StatelessWidget {
                     child: Text(
                       _getInitials(displayName),
                       style: TextStyle(
-                        color: isDark
-                            ? Colors.white
-                            : const Color(0xFF1F2937),
+                        color: isDark ? Colors.white : const Color(0xFF1F2937),
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                       ),
@@ -352,10 +349,7 @@ class _ActivityUserTile extends StatelessWidget {
               if (item.reactions.isNotEmpty)
                 Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: item.reactions
-                      .toSet()
-                      .take(3)
-                      .map((emoji) {
+                  children: item.reactions.toSet().take(3).map((emoji) {
                     return Padding(
                       padding: const EdgeInsets.only(left: 4),
                       child: Text(

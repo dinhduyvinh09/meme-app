@@ -86,7 +86,8 @@ class PostActivityBar extends StatelessWidget {
                   height: 48,
                   padding: hasActivity
                       ? const EdgeInsets.fromLTRB(16, 6, 8, 6)
-                      : const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      : const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
                   decoration: BoxDecoration(
                     color: bgColor,
                     borderRadius: BorderRadius.circular(AppSizes.radiusPill),
@@ -96,7 +97,8 @@ class PostActivityBar extends StatelessWidget {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.28 : 0.08),
+                        color: Colors.black
+                            .withValues(alpha: isDark ? 0.28 : 0.08),
                         blurRadius: 16,
                         offset: const Offset(0, 4),
                       ),
@@ -113,13 +115,16 @@ class PostActivityBar extends StatelessWidget {
                                 Icon(
                                   Icons.auto_awesome_rounded,
                                   size: 16,
-                                  color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
+                                  color: isDark
+                                      ? const Color(0xFFFBBF24)
+                                      : const Color(0xFFD97706),
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
                                   context.l10n.postActivityTitle,
                                   style: TextStyle(
-                                    color: isDark ? Colors.white : Colors.black87,
+                                    color:
+                                        isDark ? Colors.white : Colors.black87,
                                     fontSize: 15,
                                     fontWeight: FontWeight.w800,
                                     letterSpacing: -0.2,
@@ -130,7 +135,8 @@ class PostActivityBar extends StatelessWidget {
                             const SizedBox(width: 14),
 
                             // Right: Overlapping circular avatar badges
-                            _buildOverlappingAvatars(userList.take(5).toList(), context),
+                            _buildOverlappingAvatars(
+                                userList.take(5).toList(), context),
                           ],
                         )
                       : Row(
@@ -163,7 +169,8 @@ class PostActivityBar extends StatelessWidget {
     );
   }
 
-  Widget _buildOverlappingAvatars(List<_BarUserPreview> users, BuildContext context) {
+  Widget _buildOverlappingAvatars(
+      List<_BarUserPreview> users, BuildContext context) {
     const double avatarSize = 32.0;
     const double overlap = 10.0;
     final totalWidth = avatarSize + (users.length - 1) * (avatarSize - overlap);
@@ -198,10 +205,14 @@ class PostActivityBar extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: isDark ? const Color(0xFF26262A) : const Color(0xFFE5E7EB),
+                      color: isDark
+                          ? const Color(0xFF26262A)
+                          : const Color(0xFFE5E7EB),
                       width: 2.0,
                     ),
-                    color: isDark ? const Color(0xFF3F424E) : const Color(0xFFD1D5DB),
+                    color: isDark
+                        ? const Color(0xFF3F424E)
+                        : const Color(0xFFD1D5DB),
                   ),
                   child: ClipOval(
                     child: hasAvatar

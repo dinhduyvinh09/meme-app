@@ -107,19 +107,17 @@ class _QuickVoiceExpenseSheetState extends State<QuickVoiceExpenseSheet>
     _waveController.addListener(() {
       if (!mounted) return;
       if (_voiceStatus == VoiceInputStatus.listening) {
-        // Fast attack, smooth decay EMA filter for voice sensitivity
         final decay = _targetSoundLevel > _smoothedSoundLevel ? 0.45 : 0.18;
         _smoothedSoundLevel += (_targetSoundLevel - _smoothedSoundLevel) * decay;
 
         setState(() {
           final t = _waveController.value;
-          final s = _smoothedSoundLevel; // 0.0 to 1.0 based on real mic volume
+          final s = _smoothedSoundLevel;
 
-          // 7 Waveform bars: dynamically react to real audio level + harmonic frequency
           _barHeights[0] = (5.0 + 14.0 * s + 5.0 * math.sin(t * 2 * math.pi + 0.0).abs()).clamp(5.0, 30.0);
           _barHeights[1] = (7.0 + 18.0 * s + 7.0 * math.sin(t * 2 * math.pi + 1.1).abs()).clamp(5.0, 30.0);
           _barHeights[2] = (9.0 + 22.0 * s + 9.0 * math.sin(t * 2 * math.pi + 2.2).abs()).clamp(5.0, 32.0);
-          _barHeights[3] = (11.0 + 26.0 * s + 11.0 * math.sin(t * 2 * math.pi + 3.3).abs()).clamp(6.0, 34.0); // Center peak
+          _barHeights[3] = (11.0 + 26.0 * s + 11.0 * math.sin(t * 2 * math.pi + 3.3).abs()).clamp(6.0, 34.0);
           _barHeights[4] = (9.0 + 22.0 * s + 9.0 * math.sin(t * 2 * math.pi + 4.4).abs()).clamp(5.0, 32.0);
           _barHeights[5] = (7.0 + 18.0 * s + 7.0 * math.sin(t * 2 * math.pi + 5.5).abs()).clamp(5.0, 30.0);
           _barHeights[6] = (5.0 + 14.0 * s + 5.0 * math.sin(t * 2 * math.pi + 6.6).abs()).clamp(5.0, 30.0);
@@ -137,6 +135,7 @@ class _QuickVoiceExpenseSheetState extends State<QuickVoiceExpenseSheet>
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       final appLang = context.read<ProfileController>().languageCode;
       _selectedSpeechLanguage = appLang == 'en' ? 'en' : 'vi';
       _startVoiceListening();
@@ -205,7 +204,6 @@ class _QuickVoiceExpenseSheetState extends State<QuickVoiceExpenseSheet>
       },
       onSoundLevel: (level) {
         if (!mounted) return;
-        // Normalize sound level from Android/iOS dB to 0.0 - 1.0 range
         double norm;
         if (level < 0) {
           if (level < -10) {
@@ -253,7 +251,6 @@ class _QuickVoiceExpenseSheetState extends State<QuickVoiceExpenseSheet>
         });
       }
     } else {
-      // User tapped mic: clear old voice and auto-filled data for clean new voice input
       await _startVoiceListening(clearExisting: true);
     }
   }
@@ -335,11 +332,11 @@ class _QuickVoiceExpenseSheetState extends State<QuickVoiceExpenseSheet>
       case 'Học tập':
         return const Color(0xFF8B7CFF);
       case 'Lương':
-        return const Color(0xFF10B981);
+        return AppColors.income;
       case 'Quà tặng':
         return const Color(0xFFFF4D4D);
       case 'Quỹ nhóm':
-        return const Color(0xFF10B981);
+        return AppColors.income;
       case 'Khác':
       default:
         return const Color(0xFFAAAAAA);
@@ -392,14 +389,12 @@ class _QuickVoiceExpenseSheetState extends State<QuickVoiceExpenseSheet>
       final catIcon = _iconForCategory(parsed.category);
       final catHex = '#${catColor.toARGB32().toRadixString(16).substring(2).toUpperCase()}';
 
-      // Auto convert USD to VND via exchange rate API
       final double effectiveVndAmount = parsed.currency == 'USD'
           ? AppCurrencyFormatter.toVnd(inputAmount: parsed.amount, currency: 'USD')
           : parsed.amount;
 
       capture.clearMedia();
 
-      // Resolve privacy, close friends, and group based on audience selection
       String effectivePrivacy = 'friends';
       List<String> effectiveCloseFriends = const [];
       bool sharedToFeed = true;
@@ -455,7 +450,6 @@ class _QuickVoiceExpenseSheetState extends State<QuickVoiceExpenseSheet>
           isEnUI ? 'Expense saved successfully!' : 'Đã lưu chi tiêu thành công!',
         );
 
-        // Update home widget after expense is saved
         unawaited(AppWidgetService.instance.updateWidgets(
           transactions: [savedTx, ...AppWidgetService.instance.cachedTransactions],
         ));
@@ -465,7 +459,7 @@ class _QuickVoiceExpenseSheetState extends State<QuickVoiceExpenseSheet>
 
         if (unlockedMilestone != null) {
           final navContext = AppRoutes.navigatorKey.currentContext;
-          if (navContext != null) {
+          if (navContext != null && navContext.mounted) {
             unawaited(StreakMilestoneDialog.show(
               navContext,
               milestone: unlockedMilestone,
@@ -512,6 +506,7 @@ class _QuickVoiceExpenseSheetState extends State<QuickVoiceExpenseSheet>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.55),
       builder: (_) => _VoiceExpenseEditorSheet(
         initial: initialParsed,
         speechLanguage: _selectedSpeechLanguage,
@@ -1184,7 +1179,7 @@ class _QuickVoiceExpenseSheetState extends State<QuickVoiceExpenseSheet>
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                    color: AppColors.income.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -1195,14 +1190,14 @@ class _QuickVoiceExpenseSheetState extends State<QuickVoiceExpenseSheet>
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF10B981),
+                          color: AppColors.income,
                         ),
                       ),
                       const SizedBox(width: 3),
                       const Icon(
                         Icons.check_circle_rounded,
                         size: 12,
-                        color: Color(0xFF10B981),
+                        color: AppColors.income,
                       ),
                     ],
                   ),
@@ -1265,7 +1260,7 @@ class _QuickVoiceExpenseSheetState extends State<QuickVoiceExpenseSheet>
                   style: TextStyle(
                     fontSize: 16.5,
                     fontWeight: FontWeight.w900,
-                    color: parsed.type == 'income' ? const Color(0xFF10B981) : catColor,
+                    color: parsed.type == 'income' ? AppColors.income : catColor,
                   ),
                 )
               else
@@ -1305,6 +1300,7 @@ class _QuickVoiceExpenseSheetState extends State<QuickVoiceExpenseSheet>
   }
 }
 
+/// Redesigned Modern Voice Expense Editor Sheet
 class _VoiceExpenseEditorSheet extends StatefulWidget {
   final ParsedExpenseResult initial;
   final String speechLanguage;
@@ -1431,7 +1427,6 @@ class _VoiceExpenseEditorSheetState extends State<_VoiceExpenseEditorSheet> {
     }
 
     if (newCurrency == 'USD' && _selectedCurrency == 'VND') {
-      // Convert VND -> USD
       final vndDigits = currentText.replaceAll(RegExp(r'[^\d]'), '');
       final vndAmount = double.tryParse(vndDigits) ?? 0;
       final usdAmount = AppCurrencyFormatter.fromVnd(
@@ -1449,7 +1444,6 @@ class _VoiceExpenseEditorSheetState extends State<_VoiceExpenseEditorSheet> {
         _amountController.text = formattedUsd;
       });
     } else if (newCurrency == 'VND' && _selectedCurrency == 'USD') {
-      // Convert USD -> VND
       final cleanUsd = currentText.replaceAll(RegExp(r'[^0-9.]'), '');
       final usdAmount = double.tryParse(cleanUsd) ?? 0;
       final vndAmount = AppCurrencyFormatter.toVnd(
@@ -1465,6 +1459,31 @@ class _VoiceExpenseEditorSheetState extends State<_VoiceExpenseEditorSheet> {
         _amountController.text = formattedVnd;
       });
     }
+  }
+
+  void _addQuickAmount(double delta) {
+    HapticFeedback.lightImpact();
+    final currentText = _amountController.text.trim();
+    double currentVal = 0;
+    if (_selectedCurrency == 'USD') {
+      currentVal = double.tryParse(currentText.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
+      final newVal = currentVal + delta;
+      _amountController.text = newVal.truncateToDouble() == newVal
+          ? newVal.toStringAsFixed(0)
+          : newVal.toStringAsFixed(2);
+    } else {
+      currentVal = double.tryParse(currentText.replaceAll(RegExp(r'[^\d]'), '')) ?? 0;
+      final newVal = (currentVal + delta).round();
+      _amountController.text = NumberFormat.decimalPattern('vi_VN').format(newVal);
+    }
+    setState(() {});
+  }
+
+  void _clearAmount() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _amountController.clear();
+    });
   }
 
   @override
@@ -1498,6 +1517,30 @@ class _VoiceExpenseEditorSheetState extends State<_VoiceExpenseEditorSheet> {
     }
   }
 
+  Color _colorForCategory(String category) {
+    switch (category) {
+      case 'Ăn uống':
+        return const Color(0xFF59D46F);
+      case 'Mua sắm':
+        return const Color(0xFFFF4D8D);
+      case 'Đi lại':
+        return const Color(0xFF2F9BFF);
+      case 'Giải trí':
+        return const Color(0xFFFFA52F);
+      case 'Học tập':
+        return const Color(0xFF8B7CFF);
+      case 'Lương':
+        return AppColors.income;
+      case 'Quà tặng':
+        return const Color(0xFFFF4D4D);
+      case 'Quỹ nhóm':
+        return AppColors.income;
+      case 'Khác':
+      default:
+        return const Color(0xFFAAAAAA);
+    }
+  }
+
   String _localizedCategoryName(BuildContext context, String cat) {
     final l10n = context.l10n;
     switch (cat) {
@@ -1525,6 +1568,7 @@ class _VoiceExpenseEditorSheetState extends State<_VoiceExpenseEditorSheet> {
   }
 
   void _onConfirm() {
+    HapticFeedback.selectionClick();
     final rawAmount = _selectedCurrency == 'USD'
         ? _amountController.text.replaceAll(RegExp(r'[^0-9.]'), '')
         : _amountController.text.replaceAll(RegExp(r'[^\d]'), '');
@@ -1556,422 +1600,614 @@ class _VoiceExpenseEditorSheetState extends State<_VoiceExpenseEditorSheet> {
   Widget build(BuildContext context) {
     final isDark = AppColors.isDark(context);
     final themeBg = isDark ? const Color(0xFF1E212A) : Colors.white;
+    final cardBg = isDark ? const Color(0xFF272B37) : const Color(0xFFF4F7FC);
+    final inputBg = isDark ? const Color(0xFF222634) : const Color(0xFFF1F5F9);
     final textPrimary = isDark ? Colors.white : const Color(0xFF1A2238);
-    final inputBg = isDark ? const Color(0xFF272B37) : const Color(0xFFF3F5F4);
+    final textSecondary = isDark ? Colors.white60 : const Color(0xFF6B7280);
     final isEnUI = context.watch<ProfileController>().languageCode == 'en';
     final primaryColor = AppColors.primaryBlue;
+    final isIncome = _selectedType == 'income';
+    final typeThemeColor = isIncome ? AppColors.income : AppColors.expense;
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final isKeyboardOpen = bottomInset > 0;
 
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.85,
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: themeBg,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(32),
-            ),
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: EdgeInsets.only(bottom: bottomInset),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.88,
           ),
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-          child: SafeArea(
-            top: false,
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        isEnUI ? 'Edit Expense Details' : 'Chỉnh sửa thông tin chi tiêu',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: textPrimary,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close_rounded),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-
-                  // Caption Field
-                  Text(
-                    isEnUI ? 'Description / Caption' : 'Nội dung / Caption',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white70 : const Color(0xFF4B5563),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  TextField(
-                    controller: _captionController,
-                    style: TextStyle(color: textPrimary, fontWeight: FontWeight.w600),
-                    decoration: InputDecoration(
-                      hintText: isEnUI ? 'e.g. Lunch with team' : 'Ví dụ: Ăn trưa phở bò',
-                      filled: true,
-                      fillColor: inputBg,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 14),
-
-                  // Amount & Currency Row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        isEnUI ? 'Amount' : 'Số tiền',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white70 : const Color(0xFF4B5563),
-                        ),
-                      ),
-
-                      // Currency Toggle: VND | USD
-                      Container(
+          child: Container(
+            decoration: BoxDecoration(
+              color: themeBg,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(32),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.15),
+                  blurRadius: 32,
+                  offset: const Offset(0, -6),
+                ),
+              ],
+            ),
+            padding: EdgeInsets.fromLTRB(20, 14, 20, isKeyboardOpen ? 12 : 24),
+            child: SafeArea(
+              top: false,
+              bottom: !isKeyboardOpen,
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Top Drag Handle
+                    Center(
+                      child: Container(
+                        width: 38,
+                        height: 4.5,
+                        margin: const EdgeInsets.only(bottom: 12),
                         decoration: BoxDecoration(
-                          color: inputBg,
-                          borderRadius: BorderRadius.circular(10),
+                          color: isDark ? Colors.white24 : const Color(0xFFD1D5DB),
+                          borderRadius: BorderRadius.circular(99),
                         ),
-                        padding: const EdgeInsets.all(2),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: ['VND', 'USD'].map((cur) {
-                            final isSelected = cur == _selectedCurrency;
-                            return GestureDetector(
-                              onTap: () => _onCurrencyChanged(cur),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 150),
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: isSelected ? primaryColor : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  cur,
-                                  style: TextStyle(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w800,
-                                    color: isSelected ? Colors.white : (isDark ? Colors.white60 : const Color(0xFF6B7280)),
-                                  ),
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  TextField(
-                    controller: _amountController,
-                    autofocus: widget.autoFocusAmount,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    inputFormatters: [
-                      if (_selectedCurrency == 'VND') ...[
-                        FilteringTextInputFormatter.digitsOnly,
-                        MoneyInputFormatter(maxDigits: 12),
-                      ],
-                    ],
-                    style: TextStyle(
-                      color: textPrimary,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: _selectedCurrency == 'USD' ? '15.00' : '45.000',
-                      suffixText: _selectedCurrency == 'USD' ? '\$' : '₫',
-                      suffixStyle: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: textPrimary,
-                      ),
-                      filled: true,
-                      fillColor: inputBg,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide.none,
                       ),
                     ),
-                  ),
 
-                  const SizedBox(height: 14),
-
-                  // Category & Type Selector
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        isEnUI ? 'Category' : 'Danh mục',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white70 : const Color(0xFF4B5563),
-                        ),
-                      ),
-
-                      // Chi tiêu / Thu nhập Pill Switcher
-                      Container(
-                        decoration: BoxDecoration(
-                          color: inputBg,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.all(2),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                if (_selectedType == 'expense') return;
-                                HapticFeedback.selectionClick();
-                                setState(() {
-                                  _selectedType = 'expense';
-                                  if (_selectedCategory != 'Khác' && !_expenseCategories.contains(_selectedCategory)) {
-                                    _selectedCategory = _expenseCategories.first;
-                                  }
-                                });
-                              },
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 150),
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: _selectedType == 'expense' ? const Color(0xFFFF5252) : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  isEnUI ? 'Expense' : 'Chi tiêu',
-                                  style: TextStyle(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w800,
-                                    color: _selectedType == 'expense'
-                                        ? Colors.white
-                                        : (isDark ? Colors.white60 : const Color(0xFF6B7280)),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                if (_selectedType == 'income') return;
-                                HapticFeedback.selectionClick();
-                                setState(() {
-                                  _selectedType = 'income';
-                                  if (_selectedCategory != 'Khác' && !_incomeCategories.contains(_selectedCategory)) {
-                                    _selectedCategory = _incomeCategories.first;
-                                  }
-                                });
-                              },
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 150),
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: _selectedType == 'income' ? const Color(0xFF10B981) : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  isEnUI ? 'Income' : 'Thu nhập',
-                                  style: TextStyle(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w800,
-                                    color: _selectedType == 'income'
-                                        ? Colors.white
-                                        : (isDark ? Colors.white60 : const Color(0xFF6B7280)),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: (_selectedType == 'income' ? _incomeCategories : _expenseCategories).map((cat) {
-                      final isSelected = cat == _selectedCategory;
-                      final typeHighlightColor = _selectedType == 'income' ? const Color(0xFF10B981) : primaryColor;
-                      return GestureDetector(
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          setState(() {
-                            _selectedCategory = cat;
-                          });
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 150),
-                          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? typeHighlightColor
-                                : (isDark ? const Color(0xFF2C303E) : const Color(0xFFEBF0ED)),
-                            borderRadius: BorderRadius.circular(12),
+                    // Header
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          isEnUI ? 'Edit Expense Details' : 'Chỉnh sửa thông tin chi tiêu',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: textPrimary,
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
+                        ),
+                        GestureDetector(
+                          onTap: () => Navigator.of(context).pop(),
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.08)
+                                  : const Color(0xFFEEF2F8),
+                            ),
+                            child: Icon(
+                              Icons.close_rounded,
+                              size: 18,
+                              color: textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // 1. Hero Amount Card with Type Switcher & Currency Toggle
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: cardBg,
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(
+                          color: typeThemeColor.withValues(alpha: isDark ? 0.35 : 0.25),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          // Top Switcher Row: Type [Chi tiêu / Thu nhập] + Currency [VND / USD]
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Icon(
-                                _iconForCategory(cat),
-                                size: 15,
-                                color: isSelected ? Colors.white : (isDark ? Colors.white70 : const Color(0xFF2D3748)),
+                              // Type Pill Switcher
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: inputBg,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: const EdgeInsets.all(2.5),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    _buildTypeItem(
+                                      label: isEnUI ? 'Expense' : 'Chi tiêu',
+                                      type: 'expense',
+                                      activeColor: AppColors.expense,
+                                      isDark: isDark,
+                                    ),
+                                    _buildTypeItem(
+                                      label: isEnUI ? 'Income' : 'Thu nhập',
+                                      type: 'income',
+                                      activeColor: AppColors.income,
+                                      isDark: isDark,
+                                    ),
+                                  ],
+                                ),
                               ),
-                              const SizedBox(width: 5),
-                              Text(
-                                _localizedCategoryName(context, cat),
-                                style: TextStyle(
-                                  fontSize: 12.5,
-                                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                                  color: isSelected ? Colors.white : (isDark ? Colors.white70 : const Color(0xFF2D3748)),
+
+                              // Currency Pill Switcher
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: inputBg,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: const EdgeInsets.all(2.5),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: ['VND', 'USD'].map((cur) {
+                                    final isSelected = cur == _selectedCurrency;
+                                    return GestureDetector(
+                                      onTap: () => _onCurrencyChanged(cur),
+                                      child: AnimatedContainer(
+                                        duration: const Duration(milliseconds: 150),
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                        decoration: BoxDecoration(
+                                          color: isSelected ? primaryColor : Colors.transparent,
+                                          borderRadius: BorderRadius.circular(9),
+                                        ),
+                                        child: Text(
+                                          cur,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w800,
+                                            color: isSelected
+                                                ? Colors.white
+                                                : textSecondary,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
                                 ),
                               ),
                             ],
                           ),
+
+                          const SizedBox(height: 14),
+
+                          // Amount Field
+                          TextField(
+                            controller: _amountController,
+                            autofocus: widget.autoFocusAmount,
+                            textAlign: TextAlign.center,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            inputFormatters: [
+                              if (_selectedCurrency == 'VND') ...[
+                                FilteringTextInputFormatter.digitsOnly,
+                                MoneyInputFormatter(maxDigits: 12),
+                              ],
+                            ],
+                            style: TextStyle(
+                              color: typeThemeColor,
+                              fontSize: 32,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.5,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: _selectedCurrency == 'USD' ? '0.00' : '0',
+                              hintStyle: TextStyle(
+                                color: textSecondary.withValues(alpha: 0.35),
+                                fontSize: 32,
+                                fontWeight: FontWeight.w900,
+                              ),
+                              suffixText: _selectedCurrency == 'USD' ? r'$' : '₫',
+                              suffixStyle: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800,
+                                color: typeThemeColor,
+                              ),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+
+                          const SizedBox(height: 10),
+
+                          // Quick Amount Add Preset Chips
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            alignment: WrapAlignment.center,
+                            children: _selectedCurrency == 'USD'
+                                ? [
+                                    _buildQuickChip(r'+$5', () => _addQuickAmount(5), isDark),
+                                    _buildQuickChip(r'+$10', () => _addQuickAmount(10), isDark),
+                                    _buildQuickChip(r'+$20', () => _addQuickAmount(20), isDark),
+                                    _buildQuickChip(r'+$50', () => _addQuickAmount(50), isDark),
+                                    _buildQuickChip(isEnUI ? 'Clear' : 'Xoá', _clearAmount, isDark, isClear: true),
+                                  ]
+                                : [
+                                    _buildQuickChip('+10k', () => _addQuickAmount(10000), isDark),
+                                    _buildQuickChip('+20k', () => _addQuickAmount(20000), isDark),
+                                    _buildQuickChip('+50k', () => _addQuickAmount(50000), isDark),
+                                    _buildQuickChip('+100k', () => _addQuickAmount(100000), isDark),
+                                    _buildQuickChip('+500k', () => _addQuickAmount(500000), isDark),
+                                    _buildQuickChip(isEnUI ? 'Clear' : 'Xoá', _clearAmount, isDark, isClear: true),
+                                  ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // 2. Caption / Note Input Field (Clean focus state without detached outline)
+                    Text(
+                      isEnUI ? 'Caption / Note' : 'Nội dung / Ghi chú',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white70 : const Color(0xFF4B5563),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: _captionController,
+                      style: TextStyle(
+                        color: textPrimary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14.5,
+                      ),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        hintText: isEnUI ? 'e.g. Lunch with team' : 'Ví dụ: Ăn trưa phở bò',
+                        hintStyle: TextStyle(
+                          color: textSecondary.withValues(alpha: 0.6),
+                          fontWeight: FontWeight.w400,
+                          fontSize: 14,
                         ),
-                      );
-                    }).toList(),
-                  ),
-
-                  const SizedBox(height: 18),
-
-                  // Audience / Privacy Selector in Edit Sheet
-                  Text(
-                    isEnUI ? 'Audience / Privacy' : 'Đối tượng xem',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white70 : const Color(0xFF4B5563),
+                        prefixIcon: Icon(
+                          Icons.edit_note_rounded,
+                          size: 22,
+                          color: textSecondary,
+                        ),
+                        prefixIconConstraints: const BoxConstraints(
+                          minWidth: 38,
+                          minHeight: 38,
+                        ),
+                        suffixIcon: _captionController.text.isNotEmpty
+                            ? GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _captionController.clear();
+                                  });
+                                },
+                                child: Icon(
+                                  Icons.cancel_rounded,
+                                  size: 18,
+                                  color: textSecondary,
+                                ),
+                              )
+                            : null,
+                        suffixIconConstraints: const BoxConstraints(
+                          minWidth: 36,
+                          minHeight: 36,
+                        ),
+                        filled: true,
+                        fillColor: inputBg,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: primaryColor,
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  _AudienceSelectorRow(
-                    selectedAudience: _selectedAudience,
-                    selectedFriendUids: _selectedFriendUids,
-                    selectedGroupId: _selectedGroupId,
-                    friends: widget.friends,
-                    closeFriendUids: widget.closeFriendUids,
-                    userGroups: widget.userGroups,
-                    onPrivateSelected: () {
-                      setState(() {
-                        _selectedAudience = 'private';
-                        _selectedFriendUids.clear();
-                        _selectedGroupId = null;
-                        _selectedGroupName = null;
-                        _selectedGroupMemberIds = [];
-                        if (_selectedCategory == 'Quỹ nhóm') {
-                          _selectedCategory = 'Ăn uống';
-                        }
-                      });
-                    },
-                    onAllFriendsSelected: () {
-                      setState(() {
-                        _selectedAudience = 'friends';
-                        _selectedFriendUids.clear();
-                        _selectedGroupId = null;
-                        _selectedGroupName = null;
-                        _selectedGroupMemberIds = [];
-                        if (_selectedCategory == 'Quỹ nhóm') {
-                          _selectedCategory = 'Ăn uống';
-                        }
-                      });
-                    },
-                    onCloseFriendsSelected: () {
-                      setState(() {
-                        _selectedAudience = 'close_friends';
-                        _selectedGroupId = null;
-                        _selectedGroupName = null;
-                        _selectedGroupMemberIds = [];
-                        _selectedFriendUids.clear();
-                        _selectedFriendUids.addAll(widget.closeFriendUids);
-                        if (_selectedCategory == 'Quỹ nhóm') {
-                          _selectedCategory = 'Ăn uống';
-                        }
-                      });
-                    },
-                    onGroupSelected: (group) {
-                      final gId = (group['id'] ?? group['groupId'] ?? '').toString();
-                      final gName = (group['name'] ?? 'Nhóm').toString();
-                      final gMembers = (group['memberIds'] as List<dynamic>?)
-                              ?.map((e) => e.toString())
-                              .toList() ??
-                          <String>[];
-                      setState(() {
-                        _selectedAudience = 'group';
-                        _selectedGroupId = gId;
-                        _selectedGroupName = gName;
-                        _selectedGroupMemberIds = gMembers;
-                        _selectedFriendUids.clear();
-                        if (widget.initial.category == 'Quỹ nhóm') {
-                          _selectedCategory = 'Quỹ nhóm';
-                        }
-                      });
-                    },
-                    onFriendToggled: (friend) {
-                      final fUid = (friend['uid'] ?? '').toString();
-                      setState(() {
-                        _selectedGroupId = null;
-                        _selectedGroupName = null;
-                        _selectedGroupMemberIds = [];
 
-                        if (_selectedFriendUids.contains(fUid)) {
-                          _selectedFriendUids.remove(fUid);
-                          if (_selectedFriendUids.isEmpty) {
-                            _selectedAudience = 'friends';
+                    const SizedBox(height: 16),
+
+                    // 3. Category Grid Selector
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          isEnUI ? 'Category' : 'Danh mục',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? Colors.white70 : const Color(0xFF4B5563),
+                          ),
+                        ),
+                        Text(
+                          _localizedCategoryName(context, _selectedCategory),
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w800,
+                            color: _colorForCategory(_selectedCategory),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: (_selectedType == 'income' ? _incomeCategories : _expenseCategories).map((cat) {
+                        final isSelected = cat == _selectedCategory;
+                        final catColor = _colorForCategory(cat);
+                        final catIcon = _iconForCategory(cat);
+
+                        return GestureDetector(
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            setState(() {
+                              _selectedCategory = cat;
+                            });
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 150),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? catColor.withValues(alpha: isDark ? 0.30 : 0.18)
+                                  : (isDark ? const Color(0xFF272B37) : const Color(0xFFEEF2F8)),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: isSelected ? catColor : Colors.transparent,
+                                width: 1.5,
+                              ),
+                              boxShadow: isSelected
+                                  ? [
+                                      BoxShadow(
+                                        color: catColor.withValues(alpha: 0.2),
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  catIcon,
+                                  size: 16,
+                                  color: isSelected ? catColor : textSecondary,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  _localizedCategoryName(context, cat),
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                                    color: isSelected ? (isDark ? Colors.white : catColor) : textSecondary,
+                                  ),
+                                ),
+                                if (isSelected) ...[
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    Icons.check_circle_rounded,
+                                    size: 13,
+                                    color: catColor,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    // 4. Audience / Privacy Selector
+                    Text(
+                      isEnUI ? 'Audience / Privacy' : 'Đối tượng xem',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white70 : const Color(0xFF4B5563),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _AudienceSelectorRow(
+                      selectedAudience: _selectedAudience,
+                      selectedFriendUids: _selectedFriendUids,
+                      selectedGroupId: _selectedGroupId,
+                      friends: widget.friends,
+                      closeFriendUids: widget.closeFriendUids,
+                      userGroups: widget.userGroups,
+                      onPrivateSelected: () {
+                        setState(() {
+                          _selectedAudience = 'private';
+                          _selectedFriendUids.clear();
+                          _selectedGroupId = null;
+                          _selectedGroupName = null;
+                          _selectedGroupMemberIds = [];
+                          if (_selectedCategory == 'Quỹ nhóm') {
+                            _selectedCategory = 'Ăn uống';
                           }
-                        } else {
-                          _selectedFriendUids.add(fUid);
-                          _selectedAudience = 'friends_custom';
-                        }
+                        });
+                      },
+                      onAllFriendsSelected: () {
+                        setState(() {
+                          _selectedAudience = 'friends';
+                          _selectedFriendUids.clear();
+                          _selectedGroupId = null;
+                          _selectedGroupName = null;
+                          _selectedGroupMemberIds = [];
+                          if (_selectedCategory == 'Quỹ nhóm') {
+                            _selectedCategory = 'Ăn uống';
+                          }
+                        });
+                      },
+                      onCloseFriendsSelected: () {
+                        setState(() {
+                          _selectedAudience = 'close_friends';
+                          _selectedGroupId = null;
+                          _selectedGroupName = null;
+                          _selectedGroupMemberIds = [];
+                          _selectedFriendUids.clear();
+                          _selectedFriendUids.addAll(widget.closeFriendUids);
+                          if (_selectedCategory == 'Quỹ nhóm') {
+                            _selectedCategory = 'Ăn uống';
+                          }
+                        });
+                      },
+                      onGroupSelected: (group) {
+                        final gId = (group['id'] ?? group['groupId'] ?? '').toString();
+                        final gName = (group['name'] ?? 'Nhóm').toString();
+                        final gMembers = (group['memberIds'] as List<dynamic>?)
+                                ?.map((e) => e.toString())
+                                .toList() ??
+                            <String>[];
+                        setState(() {
+                          _selectedAudience = 'group';
+                          _selectedGroupId = gId;
+                          _selectedGroupName = gName;
+                          _selectedGroupMemberIds = gMembers;
+                          _selectedFriendUids.clear();
+                          if (widget.initial.category == 'Quỹ nhóm') {
+                            _selectedCategory = 'Quỹ nhóm';
+                          }
+                        });
+                      },
+                      onFriendToggled: (friend) {
+                        final fUid = (friend['uid'] ?? '').toString();
+                        setState(() {
+                          _selectedGroupId = null;
+                          _selectedGroupName = null;
+                          _selectedGroupMemberIds = [];
 
-                        if (_selectedCategory == 'Quỹ nhóm') {
-                          _selectedCategory = 'Ăn uống';
-                        }
-                      });
-                    },
-                    isDark: isDark,
-                    isEnUI: isEnUI,
-                  ),
+                          if (_selectedFriendUids.contains(fUid)) {
+                            _selectedFriendUids.remove(fUid);
+                            if (_selectedFriendUids.isEmpty) {
+                              _selectedAudience = 'friends';
+                            }
+                          } else {
+                            _selectedFriendUids.add(fUid);
+                            _selectedAudience = 'friends_custom';
+                          }
 
-                  const SizedBox(height: 20),
-
-                  // Save Button
-                  ElevatedButton(
-                    onPressed: _onConfirm,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 13),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      backgroundColor: primaryColor,
-                      foregroundColor: Colors.white,
+                          if (_selectedCategory == 'Quỹ nhóm') {
+                            _selectedCategory = 'Ăn uống';
+                          }
+                        });
+                      },
+                      isDark: isDark,
+                      isEnUI: isEnUI,
                     ),
-                    child: Text(
-                      isEnUI ? 'Apply Changes' : 'Xong & Áp dụng',
-                      style: const TextStyle(
-                        fontSize: 15.5,
-                        fontWeight: FontWeight.w800,
+
+                    const SizedBox(height: 20),
+
+                    // 5. Apply Button
+                    ElevatedButton(
+                      onPressed: _onConfirm,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        backgroundColor: primaryColor,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: Text(
+                        isEnUI ? 'Apply Changes' : 'Xong & Áp dụng',
+                        style: const TextStyle(
+                          fontSize: 15.5,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTypeItem({
+    required String label,
+    required String type,
+    required Color activeColor,
+    required bool isDark,
+  }) {
+    final isSelected = _selectedType == type;
+
+    return GestureDetector(
+      onTap: () {
+        if (_selectedType == type) return;
+        HapticFeedback.selectionClick();
+        setState(() {
+          _selectedType = type;
+          if (type == 'expense') {
+            if (_selectedCategory != 'Khác' && !_expenseCategories.contains(_selectedCategory)) {
+              _selectedCategory = _expenseCategories.first;
+            }
+          } else {
+            if (_selectedCategory != 'Khác' && !_incomeCategories.contains(_selectedCategory)) {
+              _selectedCategory = _incomeCategories.first;
+            }
+          }
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+        decoration: BoxDecoration(
+          color: isSelected ? activeColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(9),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            color: isSelected
+                ? Colors.white
+                : (isDark ? Colors.white60 : const Color(0xFF6B7280)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickChip(String label, VoidCallback onTap, bool isDark, {bool isClear = false}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: isClear
+              ? Colors.redAccent.withValues(alpha: 0.12)
+              : (isDark ? Colors.white.withValues(alpha: 0.08) : const Color(0xFFE2E8F0)),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isClear
+                ? Colors.redAccent.withValues(alpha: 0.3)
+                : Colors.transparent,
+            width: 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: isClear
+                ? Colors.redAccent
+                : (isDark ? Colors.white70 : const Color(0xFF475569)),
           ),
         ),
       ),
@@ -2028,7 +2264,6 @@ class _AudienceSelectorRow extends StatelessWidget {
     final isAllSelected = selectedAudience == 'friends' && selectedFriendUids.isEmpty && selectedGroupId == null;
     final isCloseFriendsSelected = selectedAudience == 'close_friends';
 
-    // Always display full friends list
     final displayedFriends = friends;
 
     return SizedBox(
@@ -2071,7 +2306,7 @@ class _AudienceSelectorRow extends StatelessWidget {
             primaryColor: primaryColor,
           ),
 
-          // 3. Bạn thân (Close Friends) - Only show if user has close friends!
+          // 3. Bạn thân (Close Friends)
           if (closeFriendUids.isNotEmpty) ...[
             const SizedBox(width: 14),
             _buildItem(
@@ -2269,7 +2504,6 @@ class _AudienceSelectorRow extends StatelessWidget {
     final displayName = name.isNotEmpty ? name : (username.isNotEmpty ? username : 'User');
     final textSecondary = isDark ? Colors.white60 : const Color(0xFF6B7280);
 
-    // Initial letter for fallback
     final initial = displayName.isNotEmpty ? displayName[0].toUpperCase() : '?';
 
     return GestureDetector(
@@ -2390,7 +2624,6 @@ class _AudienceSelectorRow extends StatelessWidget {
   }
 
   Widget _buildFallbackInitial(String initial, bool isDark) {
-    // Generate harmonious colors based on letter
     final colors = [
       const Color(0xFF00796B),
       const Color(0xFF1E88E5),

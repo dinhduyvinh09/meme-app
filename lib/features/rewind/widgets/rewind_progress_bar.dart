@@ -19,9 +19,10 @@ class RewindProgressBar extends StatelessWidget {
     return Row(
       children: List.generate(totalSegments, (index) {
         double segmentProgress = 0.0;
+        final bool isCurrent = index == currentIndex;
         if (index < currentIndex) {
           segmentProgress = 1.0;
-        } else if (index == currentIndex) {
+        } else if (isCurrent) {
           segmentProgress = currentProgress.clamp(0.0, 1.0);
         } else {
           segmentProgress = 0.0;
@@ -29,26 +30,30 @@ class RewindProgressBar extends StatelessWidget {
 
         return Expanded(
           child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 2),
+            margin: const EdgeInsets.symmetric(horizontal: 2.5),
             height: 3.5,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.25),
-              borderRadius: BorderRadius.circular(2),
+              color: Colors.white.withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(3),
             ),
-            child: FractionallySizedBox(
-              alignment: Alignment.centerLeft,
-              widthFactor: segmentProgress,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.white.withValues(alpha: 0.6),
-                      blurRadius: 4,
-                      spreadRadius: 0.5,
-                    ),
-                  ],
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(3),
+              child: FractionallySizedBox(
+                alignment: Alignment.centerLeft,
+                widthFactor: segmentProgress,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: isCurrent
+                        ? [
+                            BoxShadow(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              blurRadius: 6,
+                              spreadRadius: 1,
+                            ),
+                          ]
+                        : null,
+                  ),
                 ),
               ),
             ),
@@ -58,3 +63,4 @@ class RewindProgressBar extends StatelessWidget {
     );
   }
 }
+

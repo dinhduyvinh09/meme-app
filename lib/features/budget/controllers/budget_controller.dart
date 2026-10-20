@@ -77,7 +77,8 @@ class BudgetController extends ChangeNotifier {
     }
 
     budgets = _rawBudgets.map((b) {
-      final dynamicSpent = BudgetCycleHelper.calculateCycleSpent(b, transactions);
+      final dynamicSpent =
+          BudgetCycleHelper.calculateCycleSpent(b, transactions);
       return b.copyWith(spentAmount: dynamicSpent);
     }).toList();
   }

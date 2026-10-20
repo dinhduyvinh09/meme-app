@@ -30,8 +30,9 @@ class AvatarWithFrame extends StatelessWidget {
     final isHighTier = frame.requiredStreak >= 100;
     final isUltraTier = frame.requiredStreak >= 400;
 
-    final borderWidth = (size * (isUltraTier ? 0.075 : (isHighTier ? 0.065 : 0.055)))
-        .clamp(2.0, 5.5);
+    final borderWidth =
+        (size * (isUltraTier ? 0.075 : (isHighTier ? 0.065 : 0.055)))
+            .clamp(2.0, 5.5);
     final innerPadding = (borderWidth * 0.9).clamp(2.0, 4.0);
 
     // Multi-layered box shadows for ultra-rich glowing aura
@@ -48,7 +49,8 @@ class AvatarWithFrame extends StatelessWidget {
       if (frame.secondaryGlowColor != null) {
         list.add(
           BoxShadow(
-            color: frame.secondaryGlowColor!.withValues(alpha: isUltraTier ? 0.45 : 0.30),
+            color: frame.secondaryGlowColor!
+                .withValues(alpha: isUltraTier ? 0.45 : 0.30),
             blurRadius: size * (isUltraTier ? 0.45 : 0.35),
             spreadRadius: isUltraTier ? 3.5 : 2.0,
           ),

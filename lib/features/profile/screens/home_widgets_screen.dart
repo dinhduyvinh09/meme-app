@@ -176,8 +176,10 @@ class _HomeWidgetsScreenState extends State<HomeWidgetsScreen> {
                       ),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: const Color(0xFF10B981),
-                        side: const BorderSide(color: Color(0xFF10B981), width: 1.2),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        side: const BorderSide(
+                            color: Color(0xFF10B981), width: 1.2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 8),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -643,9 +645,15 @@ class _HomeWidgetsScreenState extends State<HomeWidgetsScreen> {
                 height: 32,
                 decoration: BoxDecoration(
                   color: isPhoto
-                      ? const Color(0xFF4A90E2)
-                      : const Color(0xFF28282E),
+                      ? const Color(0xFF4A2514)
+                      : const Color(0xFF242632),
                   borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: isPhoto
+                        ? const Color(0xFFFF6A3D)
+                        : const Color(0xFF35394A),
+                    width: isPhoto ? 1.2 : 0.8,
+                  ),
                 ),
                 child: Center(
                   child: Text(
@@ -654,7 +662,9 @@ class _HomeWidgetsScreenState extends State<HomeWidgetsScreen> {
                       fontFamily: 'ProximaSoft',
                       fontSize: 9.5,
                       fontWeight: FontWeight.bold,
-                      color: isPhoto ? Colors.white : const Color(0xFF8E8E93),
+                      color: isPhoto
+                          ? const Color(0xFFFFD4C4)
+                          : const Color(0xFF9095A8),
                     ),
                   ),
                 ),
@@ -693,36 +703,62 @@ class _HomeWidgetsScreenState extends State<HomeWidgetsScreen> {
           ),
           child: Stack(
             children: [
-          // Background subtle camera icon
-          Center(
-            child: Icon(
-              Icons.camera_alt_rounded,
-              size: 38,
-              color: Colors.white.withValues(alpha: 0.12),
-            ),
-          ),
-          // Top Badges
-          Positioned(
-            top: 10,
-            left: 10,
-            right: 10,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Streak badge
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.white24, width: 0.8),
-                  ),
-                  child: const Row(
-                    children: [
-                      Text('🔥', style: TextStyle(fontSize: 10)),
-                      SizedBox(width: 2),
-                      Text(
-                        '5',
+              // Background subtle camera icon
+              Center(
+                child: Icon(
+                  Icons.camera_alt_rounded,
+                  size: 38,
+                  color: Colors.white.withValues(alpha: 0.12),
+                ),
+              ),
+              // Top Badges
+              Positioned(
+                top: 10,
+                left: 10,
+                right: 10,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Streak badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.white24, width: 0.8),
+                      ),
+                      child: const Row(
+                        children: [
+                          Text('🔥', style: TextStyle(fontSize: 10)),
+                          SizedBox(width: 2),
+                          Text(
+                            '5',
+                            style: TextStyle(
+                              fontFamily: 'ProximaSoft',
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Expense Badge (Translucent Frosted Red)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFF3B30).withValues(alpha: 0.40),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color:
+                              const Color(0xFFFF6961).withValues(alpha: 0.65),
+                          width: 0.8,
+                        ),
+                      ),
+                      child: const Text(
+                        '-45Kđ',
                         style: TextStyle(
                           fontFamily: 'ProximaSoft',
                           fontSize: 10,
@@ -730,83 +766,61 @@ class _HomeWidgetsScreenState extends State<HomeWidgetsScreen> {
                           color: Colors.white,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                // Expense Badge (Translucent Frosted Red)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFF3B30).withValues(alpha: 0.40),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: const Color(0xFFFF6961).withValues(alpha: 0.65),
-                      width: 0.8,
                     ),
-                  ),
-                  child: const Text(
-                    '-45Kđ',
-                    style: TextStyle(
-                      fontFamily: 'ProximaSoft',
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                    ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          // Bottom Caption & Group Info
-          Positioned(
-            left: 10,
-            right: 10,
-            bottom: 10,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
+              ),
+              // Bottom Caption & Group Info
+              Positioned(
+                left: 10,
+                right: 10,
+                bottom: 10,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.group_rounded, size: 10, color: Color(0xFFFFD166)),
-                    const SizedBox(width: 3),
-                    Expanded(
-                      child: Text(
-                        context.l10n.previewMomentGroupSample,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontFamily: 'ProximaSoft',
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFFFFD166),
+                    Row(
+                      children: [
+                        const Icon(Icons.group_rounded,
+                            size: 10, color: Color(0xFFFFD166)),
+                        const SizedBox(width: 3),
+                        Expanded(
+                          child: Text(
+                            context.l10n.previewMomentGroupSample,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontFamily: 'ProximaSoft',
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFFFFD166),
+                            ),
+                          ),
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      context.l10n.previewMomentCaptionSample,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontFamily: 'ProximaSoft',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        height: 1.2,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  context.l10n.previewMomentCaptionSample,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontFamily: 'ProximaSoft',
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    height: 1.2,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
-    ),
-  ),
-);
-}
+    );
+  }
 
   Widget _buildGuideStep({
     required BuildContext context,

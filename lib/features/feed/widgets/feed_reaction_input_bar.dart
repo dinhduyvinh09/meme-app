@@ -34,7 +34,8 @@ class FeedReactionInputBar extends StatefulWidget {
   State<FeedReactionInputBar> createState() => FeedReactionInputBarState();
 }
 
-class FeedReactionInputBarState extends State<FeedReactionInputBar> with WidgetsBindingObserver {
+class FeedReactionInputBarState extends State<FeedReactionInputBar>
+    with WidgetsBindingObserver {
   final TextEditingController _textController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   List<String> _displayedEmojis = [];
@@ -58,7 +59,8 @@ class FeedReactionInputBarState extends State<FeedReactionInputBar> with Widgets
   @override
   void didChangeMetrics() {
     super.didChangeMetrics();
-    final bottomInset = WidgetsBinding.instance.platformDispatcher.views.first.viewInsets.bottom;
+    final bottomInset = WidgetsBinding
+        .instance.platformDispatcher.views.first.viewInsets.bottom;
     if (_isReplying) {
       if (bottomInset > 0) {
         _keyboardWasOpen = true;
@@ -310,7 +312,8 @@ class FeedReactionInputBarState extends State<FeedReactionInputBar> with Widgets
         : Colors.black.withValues(alpha: 0.08);
     const hintTextColor = Color(0xFF8E8E93);
 
-    final emojis = _displayedEmojis.isNotEmpty ? _displayedEmojis : _getEmojis(context);
+    final emojis =
+        _displayedEmojis.isNotEmpty ? _displayedEmojis : _getEmojis(context);
     final quickEmojis = emojis.take(3).toList();
 
     if (_isReplying) {
@@ -425,8 +428,12 @@ class FeedReactionInputBarState extends State<FeedReactionInputBar> with Widgets
                           hoverColor: Colors.transparent,
                           focusColor: Colors.transparent,
                           hintText: widget.authorName.isNotEmpty
-                              ? (isVi ? 'Trả lời ${widget.authorName}...' : 'Reply to ${widget.authorName}...')
-                              : (isVi ? 'Nhập tin nhắn...' : 'Type a message...'),
+                              ? (isVi
+                                  ? 'Trả lời ${widget.authorName}...'
+                                  : 'Reply to ${widget.authorName}...')
+                              : (isVi
+                                  ? 'Nhập tin nhắn...'
+                                  : 'Type a message...'),
                           hintStyle: const TextStyle(
                             color: hintTextColor,
                             fontSize: 15,
@@ -456,7 +463,9 @@ class FeedReactionInputBarState extends State<FeedReactionInputBar> with Widgets
                       decoration: BoxDecoration(
                         color: _hasText
                             ? (isDark ? Colors.white : Colors.black)
-                            : (isDark ? const Color(0xFF2C2C2E) : const Color(0xFFD1D5DB)),
+                            : (isDark
+                                ? const Color(0xFF2C2C2E)
+                                : const Color(0xFFD1D5DB)),
                         shape: BoxShape.circle,
                       ),
                       child: Center(
@@ -517,7 +526,8 @@ class FeedReactionInputBarState extends State<FeedReactionInputBar> with Widgets
               behavior: HitTestBehavior.opaque,
               onTap: openReply,
               child: Padding(
-                padding: const EdgeInsets.only(left: 18, right: 8, top: 14, bottom: 14),
+                padding: const EdgeInsets.only(
+                    left: 18, right: 8, top: 14, bottom: 14),
                 child: Text(
                   isVi ? 'Tin nhắn...' : 'Message...',
                   maxLines: 1,

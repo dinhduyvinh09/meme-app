@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
@@ -173,7 +174,7 @@ class _BudgetHistoryScreenState extends State<BudgetHistoryScreen> {
 
     final total = periods.fold<double>(
       0,
-          (sum, item) => sum + item.total,
+      (sum, item) => sum + item.total,
     );
 
     return total / periods.length;
@@ -269,9 +270,7 @@ class _BudgetHistoryScreenState extends State<BudgetHistoryScreen> {
               title: l10n.budgetHistory,
               onBack: () => Navigator.pop(context),
             ),
-
             const SizedBox(height: 14),
-
             _BudgetSummaryCard(
               budgetName: BudgetNameLocalizer.display(
                 context,
@@ -289,9 +288,7 @@ class _BudgetHistoryScreenState extends State<BudgetHistoryScreen> {
               bestText: money(best),
               worstText: money(worst),
             ),
-
             const SizedBox(height: 12),
-
             _PeriodCountSelector(
               selected: selectedPeriodCount,
               onChanged: (value) {
@@ -300,9 +297,7 @@ class _BudgetHistoryScreenState extends State<BudgetHistoryScreen> {
                 });
               },
             ),
-
             const SizedBox(height: 12),
-
             _BudgetChartCard(
               periods: periods,
               limitAmount: widget.limitAmount,
@@ -310,15 +305,14 @@ class _BudgetHistoryScreenState extends State<BudgetHistoryScreen> {
               compactMoney: _compactMoney,
               monthLabel: _shortMonthLabel,
             ),
-
             const SizedBox(height: 12),
-
             _PeriodDetailCard(
               periods: periods.reversed.toList(),
               limitAmount: widget.limitAmount,
               money: money,
               monthLabel: _monthLabel,
               onPeriodTap: (item) {
+                HapticFeedback.lightImpact();
                 final b = widget.budget ??
                     BudgetModel(
                       id: '',
@@ -390,7 +384,10 @@ class _HistoryHeader extends StatelessWidget {
         Align(
           alignment: Alignment.centerLeft,
           child: InkWell(
-            onTap: onBack,
+            onTap: () {
+              HapticFeedback.lightImpact();
+              onBack();
+            },
             borderRadius: BorderRadius.circular(AppSizes.radiusXLarge),
             child: Container(
               width: 38,
@@ -473,9 +470,7 @@ class _BudgetSummaryCard extends StatelessWidget {
                   size: 24,
                 ),
               ),
-
               const SizedBox(width: 12),
-
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -504,15 +499,11 @@ class _BudgetSummaryCard extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 14),
-
           Divider(
             color: AppColors.border(context),
           ),
-
           const SizedBox(height: 14),
-
           Row(
             children: [
               Expanded(
@@ -533,9 +524,7 @@ class _BudgetSummaryCard extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 14),
-
           Row(
             children: [
               Expanded(
@@ -650,7 +639,10 @@ class _PeriodCountSelector extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 6),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(999),
-                  onTap: () => onChanged(value),
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    onChanged(value);
+                  },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 160),
                     width: 44,
@@ -670,9 +662,7 @@ class _PeriodCountSelector extends StatelessWidget {
                     child: Text(
                       '$value',
                       style: TextStyle(
-                        color: active
-                            ? Colors.white
-                            : AppColors.primaryBlue,
+                        color: active ? Colors.white : AppColors.primaryBlue,
                         fontSize: 13,
                         fontWeight: FontWeight.w900,
                       ),
@@ -744,14 +734,14 @@ class _BudgetChartCardState extends State<_BudgetChartCard>
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final periods = widget.periods;
-    final maxSpent = periods.isEmpty
-        ? 0.0
-        : periods.map((e) => e.total).reduce(math.max);
+    final maxSpent =
+        periods.isEmpty ? 0.0 : periods.map((e) => e.total).reduce(math.max);
 
     final maxY = math.max(
-      widget.limitAmount <= 0 ? 1 : widget.limitAmount,
-      maxSpent <= 0 ? 1 : maxSpent,
-    ) * 1.22;
+          widget.limitAmount <= 0 ? 1 : widget.limitAmount,
+          maxSpent <= 0 ? 1 : maxSpent,
+        ) *
+        1.22;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 16),
@@ -772,9 +762,7 @@ class _BudgetChartCardState extends State<_BudgetChartCard>
               fontWeight: FontWeight.w900,
             ),
           ),
-
           const SizedBox(height: 12),
-
           Wrap(
             spacing: 12,
             runSpacing: 6,
@@ -794,9 +782,7 @@ class _BudgetChartCardState extends State<_BudgetChartCard>
               ),
             ],
           ),
-
           const SizedBox(height: 16),
-
           SizedBox(
             height: 230,
             child: AnimatedBuilder(
@@ -843,7 +829,8 @@ class _BudgetChartCardState extends State<_BudgetChartCard>
                             }
 
                             final item = periods[index];
-                            final label = item.shortLabel ?? widget.monthLabel(item.date);
+                            final label =
+                                item.shortLabel ?? widget.monthLabel(item.date);
                             return Padding(
                               padding: const EdgeInsets.only(top: 6),
                               child: Text(
@@ -1103,7 +1090,6 @@ class _PeriodDetailItem extends StatelessWidget {
                     ),
                   ),
                 ),
-
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
@@ -1134,7 +1120,6 @@ class _PeriodDetailItem extends StatelessWidget {
                               ),
                               const SizedBox(width: 6),
                             ],
-
                             Text(
                               item.label ?? monthLabel(item.date),
                               maxLines: 1,
@@ -1145,9 +1130,7 @@ class _PeriodDetailItem extends StatelessWidget {
                                 height: 1,
                               ),
                             ),
-
                             const SizedBox(width: 8),
-
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -1172,7 +1155,8 @@ class _PeriodDetailItem extends StatelessWidget {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     textAlign: TextAlign.right,
-                                    style: AppTextStyles.caption(context).copyWith(
+                                    style:
+                                        AppTextStyles.caption(context).copyWith(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w700,
                                       height: 1,
@@ -1181,9 +1165,7 @@ class _PeriodDetailItem extends StatelessWidget {
                                 ],
                               ),
                             ),
-
                             const SizedBox(width: 2),
-
                             Icon(
                               Icons.chevron_right_rounded,
                               color: AppColors.textSecondary(context),
@@ -1191,9 +1173,7 @@ class _PeriodDetailItem extends StatelessWidget {
                             ),
                           ],
                         ),
-
                         const SizedBox(height: 10),
-
                         ClipRRect(
                           borderRadius: BorderRadius.circular(999),
                           child: LinearProgressIndicator(
@@ -1203,9 +1183,7 @@ class _PeriodDetailItem extends StatelessWidget {
                             valueColor: AlwaysStoppedAnimation<Color>(color),
                           ),
                         ),
-
                         const SizedBox(height: 8),
-
                         Row(
                           children: [
                             Expanded(
@@ -1233,11 +1211,13 @@ class _PeriodDetailItem extends StatelessWidget {
                                   ] else ...[
                                     Expanded(
                                       child: Text(
-                                        l10n.remainingLabel(money(remaining < 0 ? 0 : remaining)),
+                                        l10n.remainingLabel(money(
+                                            remaining < 0 ? 0 : remaining)),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
-                                        style: AppTextStyles.bodySecondary(context)
-                                            .copyWith(
+                                        style:
+                                            AppTextStyles.bodySecondary(context)
+                                                .copyWith(
                                           fontSize: 11.5,
                                           fontWeight: FontWeight.w700,
                                         ),
@@ -1247,16 +1227,15 @@ class _PeriodDetailItem extends StatelessWidget {
                                 ],
                               ),
                             ),
-
                             const SizedBox(width: 8),
-
                             Flexible(
                               child: Text(
                                 l10n.budgetLimitLabel(money(limitAmount)),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 textAlign: TextAlign.right,
-                                style: AppTextStyles.bodySecondary(context).copyWith(
+                                style: AppTextStyles.bodySecondary(context)
+                                    .copyWith(
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w700,
                                 ),

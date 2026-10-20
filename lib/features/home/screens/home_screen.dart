@@ -34,7 +34,12 @@ enum RecentTxSortFilter {
 }
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final bool isActive;
+
+  const HomeScreen({
+    super.key,
+    this.isActive = true,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -284,7 +289,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           boxShadow: isSelected
                               ? [
                                   BoxShadow(
-                                    color: AppColors.primaryBlue.withValues(alpha: 0.35),
+                                    color: AppColors.primaryBlue
+                                        .withValues(alpha: 0.35),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),
@@ -295,7 +301,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           '$pageNum',
                           style: TextStyle(
                             fontSize: 12.5,
-                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                            fontWeight:
+                                isSelected ? FontWeight.w800 : FontWeight.w600,
                             color: isSelected
                                 ? Colors.white
                                 : AppColors.textPrimary(context),
@@ -389,7 +396,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               borderRadius: BorderRadius.circular(AppSizes.radiusPill),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
-                padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? item.color.withValues(alpha: isDark ? 0.22 : 0.12)
@@ -417,14 +425,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     Icon(
                       item.icon,
                       size: 13.5,
-                      color: isSelected ? item.color : AppColors.textSecondary(context),
+                      color: isSelected
+                          ? item.color
+                          : AppColors.textSecondary(context),
                     ),
                     const SizedBox(width: 4.5),
                     Text(
                       label,
                       style: TextStyle(
                         fontSize: 12,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                        fontWeight:
+                            isSelected ? FontWeight.w700 : FontWeight.w500,
                         color: isSelected
                             ? item.color
                             : AppColors.textSecondary(context),
@@ -462,7 +473,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     final avatarUrl = home.profile?.avatarUrl ?? '';
     final now = DateTime.now();
-    final sevenDaysAgo = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 6));
+    final sevenDaysAgo = DateTime(now.year, now.month, now.day)
+        .subtract(const Duration(days: 6));
     final recentTransactions = home.transactions
         .where((tx) => !tx.createdAt.isBefore(sevenDaysAgo))
         .toList();
@@ -505,10 +517,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _currentPage = totalPages;
     }
     final startIndex = (_currentPage - 1) * _pageSize;
-    final displayedTransactions = filteredRecent
-        .skip(startIndex)
-        .take(_pageSize)
-        .toList();
+    final displayedTransactions =
+        filteredRecent.skip(startIndex).take(_pageSize).toList();
 
     return Scaffold(
       backgroundColor: AppColors.background(context),
@@ -578,13 +588,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               _TopActionButton(
                                 icon: Icons.calendar_month_outlined,
                                 onTap: () {
-                                  Navigator.pushNamed(context, RouteNames.calendar);
+                                  Navigator.pushNamed(
+                                      context, RouteNames.calendar);
                                 },
                               ),
                             ],
                           ),
                           const SizedBox(height: AppSizes.sectionGap),
-
                           _WelcomeCard(
                             avatarUrl: avatarUrl,
                             avatarFrame: home.profile?.avatarFrame ?? 'plain',
@@ -596,37 +606,30 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               currency: currency,
                             ),
                           ),
-
-                          const SizedBox(height: 16),
-
+                          const SizedBox(height: AppSizes.sectionGap),
                           BalanceCard(
                             transactions: home.transactions,
                           ),
-
-                          const SizedBox(height: 16),
-
+                          const SizedBox(height: AppSizes.sectionGap),
                           StreakCard(
                             streak: home.profile?.currentStreak ?? 0,
+                            lastActiveDate: home.profile?.lastActiveDate,
                             onStartTap: () {
-                              Navigator.pushNamed(context, RouteNames.addTransaction);
+                              Navigator.pushNamed(
+                                  context, RouteNames.addTransaction);
                             },
                           ),
-
-                          const SizedBox(height: 16),
-
+                          const SizedBox(height: AppSizes.sectionGap),
                           _SectionContainer(
                             clipBehavior: Clip.antiAlias,
                             child: const CalendarSection(),
                           ),
-
-                          const SizedBox(height: 18),
-
+                          const SizedBox(height: AppSizes.sectionGap),
                           ShakePhotoMemoryTray(
                             transactions: home.transactions,
+                            isActive: widget.isActive,
                           ),
-
-                          const SizedBox(height: 22),
-
+                          const SizedBox(height: AppSizes.sectionGap),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
@@ -636,14 +639,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   children: [
                                     Text(
                                       context.l10n.recentTransactions,
-                                      style: AppTextStyles.sectionTitle(context),
+                                      style:
+                                          AppTextStyles.sectionTitle(context),
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
                                       languageCode == 'vi'
                                           ? 'Hiển thị các giao dịch trong 7 ngày gần đây'
                                           : 'Showing transactions from the last 7 days',
-                                      style: AppTextStyles.caption(context).copyWith(
+                                      style: AppTextStyles.caption(context)
+                                          .copyWith(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w500,
                                         color: AppColors.textSecondary(context),
@@ -660,11 +665,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   ),
                                   decoration: BoxDecoration(
                                     color: isDark
-                                        ? AppColors.primaryBlue.withValues(alpha: 0.18)
-                                        : AppColors.primaryBlue.withValues(alpha: 0.08),
-                                    borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+                                        ? AppColors.primaryBlue
+                                            .withValues(alpha: 0.18)
+                                        : AppColors.primaryBlue
+                                            .withValues(alpha: 0.08),
+                                    borderRadius: BorderRadius.circular(
+                                        AppSizes.radiusPill),
                                     border: Border.all(
-                                      color: AppColors.primaryBlue.withValues(alpha: 0.3),
+                                      color: AppColors.primaryBlue
+                                          .withValues(alpha: 0.3),
                                       width: 0.8,
                                     ),
                                   ),
@@ -681,18 +690,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 ),
                             ],
                           ),
-
-                          const SizedBox(height: 10),
-
+                          const SizedBox(height: AppSizes.gapMedium),
                           _buildFilterChips(languageCode),
-
-                          const SizedBox(height: 12),
-
+                          const SizedBox(height: AppSizes.gapMedium),
                           if (displayedTransactions.isEmpty)
                             const _EmptyTransactionCard()
                           else ...[
-                            ...displayedTransactions
-                                .map((e) => RecentTransactionCard(transaction: e)),
+                            ...displayedTransactions.map(
+                                (e) => RecentTransactionCard(transaction: e)),
                             if (totalPages > 1)
                               _buildPaginationControls(
                                 currentPage: _currentPage,
@@ -732,12 +737,11 @@ class _WelcomeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textLength = greetingText.length;
-    final double dynamicFontSize = textLength > 36
-        ? 12.0
-        : (textLength > 24 ? 13.0 : 14.0);
+    final double dynamicFontSize =
+        textLength > 36 ? 12.0 : (textLength > 24 ? 13.0 : 14.0);
 
     return _SectionContainer(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSizes.cardPadding),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -826,17 +830,17 @@ class _SectionContainer extends StatelessWidget {
       clipBehavior: clipBehavior,
       decoration: BoxDecoration(
         color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
         border: Border.all(
           color: AppColors.border(context),
         ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(
-              alpha: AppColors.isDark(context) ? 0.18 : 0.05,
+              alpha: AppColors.isDark(context) ? 0.16 : 0.04,
             ),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -857,11 +861,14 @@ class _TopActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onTap,
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
       borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
       child: Container(
-        width: 52,
-        height: 52,
+        width: 48,
+        height: 48,
         decoration: BoxDecoration(
           color: AppColors.card(context),
           borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
@@ -871,7 +878,7 @@ class _TopActionButton extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(
-                alpha: AppColors.isDark(context) ? 0.20 : 0.05,
+                alpha: AppColors.isDark(context) ? 0.16 : 0.04,
               ),
               blurRadius: 10,
               offset: const Offset(0, 3),
@@ -880,6 +887,7 @@ class _TopActionButton extends StatelessWidget {
         ),
         child: Icon(
           icon,
+          size: 22,
           color: AppColors.textPrimary(context),
         ),
       ),
@@ -892,35 +900,90 @@ class _EmptyTransactionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppColors.isDark(context);
+    final isVi = Localizations.localeOf(context).languageCode == 'vi';
+
     return _SectionContainer(
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 26),
       child: Column(
         children: [
           Container(
-            width: 74,
-            height: 74,
+            width: 68,
+            height: 68,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.surface(context),
+              color: isDark
+                  ? AppColors.primaryBlue.withValues(alpha: 0.16)
+                  : AppColors.primaryBlue.withValues(alpha: 0.08),
+              border: Border.all(
+                color: AppColors.primaryBlue.withValues(alpha: 0.2),
+                width: 1.2,
+              ),
             ),
-            child: Icon(
-              Icons.receipt_long_outlined,
-              color: AppColors.textSecondary(context),
-              size: 34,
+            child: const Icon(
+              Icons.receipt_long_rounded,
+              color: AppColors.primaryBlue,
+              size: 32,
             ),
           ),
           const SizedBox(height: 14),
           Text(
             context.l10n.noTransactions,
+            textAlign: TextAlign.center,
             style: AppTextStyles.sectionTitle(context).copyWith(
-              fontSize: 18,
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 6),
           Text(
             context.l10n.addFirstTransaction,
             textAlign: TextAlign.center,
-            style: AppTextStyles.bodySecondary(context),
+            style: AppTextStyles.bodySecondary(context).copyWith(
+              fontSize: 13,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 16),
+          InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              Navigator.pushNamed(context, RouteNames.addTransaction);
+            },
+            borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.primaryBlue,
+                borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryBlue.withValues(alpha: 0.35),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.add_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    isVi ? 'Thêm giao dịch ngay' : 'Add transaction now',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -942,13 +1005,14 @@ class _SummaryChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(8, 4, 9, 4),
+      padding: const EdgeInsets.fromLTRB(9, 4.5, 10, 4.5),
       decoration: BoxDecoration(
-        color: accentColor.withValues(alpha: AppColors.isDark(context) ? 0.16 : 0.12),
+        color: accentColor.withValues(
+            alpha: AppColors.isDark(context) ? 0.16 : 0.12),
         borderRadius: BorderRadius.circular(AppSizes.radiusPill),
         border: Border.all(
-          color: accentColor.withValues(alpha: 0.12),
-          width: 0.7,
+          color: accentColor.withValues(alpha: 0.16),
+          width: 0.8,
         ),
       ),
       child: Row(
@@ -959,7 +1023,7 @@ class _SummaryChip extends StatelessWidget {
             size: 13,
             color: accentColor,
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 4.5),
           Flexible(
             child: Text(
               text,
@@ -997,11 +1061,11 @@ class _PaginationArrowButton extends StatelessWidget {
 
     return InkWell(
       onTap: enabled ? onTap : null,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        width: 34,
-        height: 34,
+        width: 36,
+        height: 36,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: enabled
@@ -1011,7 +1075,7 @@ class _PaginationArrowButton extends StatelessWidget {
               : (isDark
                   ? Colors.white.withValues(alpha: 0.02)
                   : Colors.black.withValues(alpha: 0.02)),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
           border: Border.all(
             color: enabled
                 ? AppColors.border(context)

@@ -62,12 +62,12 @@ exports.onChatMessageCreated = functions.firestore
                   groupId: actualGroupId,
                   groupName: groupName,
                   isMention: "true",
-                  channelId: "chat_messages_channel_v3",
+                  channelId: "chat_messages_channel_v4",
                 },
                 android: {
                   priority: "high",
                   notification: {
-                    channelId: "chat_messages_channel_v3",
+                    channelId: "chat_messages_channel_v4",
                     sound: "meme_sound",
                     defaultSound: false,
                     defaultVibrateTimings: true,
@@ -112,12 +112,12 @@ exports.onChatMessageCreated = functions.firestore
                   type: "group_chat",
                   groupId: actualGroupId,
                   groupName: groupName,
-                  channelId: "chat_messages_channel_v3",
+                  channelId: "chat_messages_channel_v4",
                 },
                 android: {
                   priority: "high",
                   notification: {
-                    channelId: "chat_messages_channel_v3",
+                    channelId: "chat_messages_channel_v4",
                     sound: "meme_sound",
                     defaultSound: false,
                     defaultVibrateTimings: true,
@@ -184,12 +184,12 @@ exports.onChatMessageCreated = functions.firestore
           senderUid: senderId,
           senderName: senderName,
           senderAvatar: senderData.avatarUrl || "",
-          channelId: "chat_messages_channel_v3",
+          channelId: "chat_messages_channel_v4",
         },
         android: {
           priority: "high",
           notification: {
-            channelId: "chat_messages_channel_v3",
+            channelId: "chat_messages_channel_v4",
             sound: "meme_sound",
             defaultSound: false,
             defaultVibrateTimings: true,
@@ -268,12 +268,12 @@ exports.onGroupChatMessageCreated = functions.firestore
               groupId: groupId,
               groupName: groupName,
               isMention: "true",
-              channelId: "chat_messages_channel_v3",
+              channelId: "chat_messages_channel_v4",
             },
             android: {
               priority: "high",
               notification: {
-                channelId: "chat_messages_channel_v3",
+                channelId: "chat_messages_channel_v4",
                 sound: "meme_sound",
                 defaultSound: false,
                 defaultVibrateTimings: true,
@@ -318,12 +318,12 @@ exports.onGroupChatMessageCreated = functions.firestore
               type: "group_chat",
               groupId: groupId,
               groupName: groupName,
-              channelId: "chat_messages_channel_v3",
+              channelId: "chat_messages_channel_v4",
             },
             android: {
               priority: "high",
               notification: {
-                channelId: "chat_messages_channel_v3",
+                channelId: "chat_messages_channel_v4",
                 sound: "meme_sound",
                 defaultSound: false,
                 defaultVibrateTimings: true,
@@ -383,12 +383,12 @@ exports.onFriendRequestCreated = functions.firestore
         data: {
           type: "friend_request",
           senderUid: senderId,
-          channelId: "friend_requests_channel_v3",
+          channelId: "friend_requests_channel_v4",
         },
         android: {
           priority: "high",
           notification: {
-            channelId: "friend_requests_channel_v3",
+            channelId: "friend_requests_channel_v4",
             sound: "meme_sound",
             defaultSound: false,
             defaultVibrateTimings: true,
@@ -450,12 +450,12 @@ exports.onFriendAccepted = functions.firestore
         data: {
           type: "friend_accepted",
           senderUid: userId,
-          channelId: "friend_requests_channel_v3",
+          channelId: "friend_requests_channel_v4",
         },
         android: {
           priority: "high",
           notification: {
-            channelId: "friend_requests_channel_v3",
+            channelId: "friend_requests_channel_v4",
             sound: "meme_sound",
             defaultSound: false,
             defaultVibrateTimings: true,
@@ -550,12 +550,12 @@ exports.onPostReactionCreated = functions.firestore
           type: "post_reaction",
           postId: postId,
           senderUid: reactorId,
-          channelId: "chat_messages_channel_v3",
+          channelId: "chat_messages_channel_v4",
         },
         android: {
           priority: "high",
           notification: {
-            channelId: "chat_messages_channel_v3",
+            channelId: "chat_messages_channel_v4",
             sound: "meme_sound",
             defaultSound: false,
             defaultVibrateTimings: true,
@@ -629,12 +629,12 @@ exports.onNoteReactionWritten = functions.firestore
         data: {
           type: "note_reaction",
           senderUid: reactorId,
-          channelId: "chat_messages_channel_v3",
+          channelId: "chat_messages_channel_v4",
         },
         android: {
           priority: "high",
           notification: {
-            channelId: "chat_messages_channel_v3",
+            channelId: "chat_messages_channel_v4",
             sound: "meme_sound",
             defaultSound: false,
             defaultVibrateTimings: true,
@@ -704,12 +704,12 @@ exports.onUserNotificationCreated = functions.firestore
           postId: notif.postId || "",
           senderUid: notif.senderUid || "",
           groupId: notif.groupId || "",
-          channelId: "chat_messages_channel_v3",
+          channelId: "chat_messages_channel_v4",
         },
         android: {
           priority: "high",
           notification: {
-            channelId: "chat_messages_channel_v3",
+            channelId: "chat_messages_channel_v4",
             sound: "meme_sound",
             defaultSound: false,
             defaultVibrateTimings: true,
@@ -797,12 +797,12 @@ exports.onGroupTransactionCreated = functions.firestore
             groupId: groupId,
             groupName: groupName,
             transactionId: context.params.transactionId,
-            channelId: "chat_messages_channel_v3",
+            channelId: "chat_messages_channel_v4",
           },
           android: {
             priority: "high",
             notification: {
-              channelId: "chat_messages_channel_v3",
+              channelId: "chat_messages_channel_v4",
               sound: "meme_sound",
               defaultSound: false,
               defaultVibrateTimings: true,

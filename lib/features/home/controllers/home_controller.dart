@@ -61,10 +61,10 @@ class HomeController extends ChangeNotifier {
         profile: profile,
       );
 
-      // Preload ngầm các video gần nhất cho Lịch, Recent moment và Home widget
+      // Preload ngầm 2 video gần nhất cho Lịch, Recent moment và Home widget
       final videoUrls = data
           .where((tx) => tx.isVideo && tx.playableVideoUrl.isNotEmpty)
-          .take(10)
+          .take(2)
           .map((tx) => tx.playableVideoUrl)
           .toList();
       if (videoUrls.isNotEmpty) {

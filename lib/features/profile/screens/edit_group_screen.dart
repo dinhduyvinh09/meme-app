@@ -105,8 +105,8 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
     selectedColor = _parseHexColor(colorRaw);
 
     final memberIds = (widget.groupData['memberIds'] as List?)
-        ?.map((e) => e.toString())
-        .toSet() ??
+            ?.map((e) => e.toString())
+            .toSet() ??
         <String>{};
 
     selectedMemberIds = memberIds;
@@ -178,7 +178,7 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
   }
 
   String _colorToHex(Color color) {
-    return '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
+    return '#${color.toARGB32().toRadixString(16).substring(2).toUpperCase()}';
   }
 
   bool _membersChanged() {
@@ -228,11 +228,12 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
 
   Future<void> _loadCurrentMembers() async {
     final repo = context.read<UserRepository>();
+    final defaultMemberName = context.l10n.member;
 
     final ids = (widget.groupData['memberIds'] as List?)
-        ?.map((e) => e.toString().trim())
-        .where((id) => id.isNotEmpty)
-        .toList() ??
+            ?.map((e) => e.toString().trim())
+            .where((id) => id.isNotEmpty)
+            .toList() ??
         [];
 
     final results = await Future.wait(
@@ -252,7 +253,7 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
         } catch (_) {}
         return {
           'uid': uid,
-          'name': 'Thành viên',
+          'name': defaultMemberName,
           'username': '',
           'email': '',
           'avatarUrl': '',
@@ -292,6 +293,21 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
     }
 
     return AppColors.primaryBlue;
+  }
+
+  void _applyQuickPreset(double amount, String currency) {
+    HapticFeedback.selectionClick();
+    if (currency == 'USD') {
+      goalController.text = NumberFormat.currency(
+        locale: 'en_US',
+        decimalDigits: 0,
+        symbol: '',
+      ).format(amount).trim();
+    } else {
+      goalController.text = NumberFormat.decimalPattern(
+        'vi_VN',
+      ).format(amount.round());
+    }
   }
 
   List<Map<String, dynamic>> _mergeMembersAndFriends({
@@ -347,6 +363,7 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
 
   void _toggleMember(String uid) {
     if (uid == ownerUid) {
+      HapticFeedback.mediumImpact();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           duration: AppDurations.snackBar,
@@ -356,6 +373,7 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
       return;
     }
 
+    HapticFeedback.selectionClick();
     setState(() {
       if (selectedMemberIds.contains(uid)) {
         selectedMemberIds.remove(uid);
@@ -372,6 +390,7 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
     final currency = context.read<ProfileController>().currency;
 
     if (myUid == null) {
+      HapticFeedback.mediumImpact();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           duration: AppDurations.snackBar,
@@ -382,6 +401,7 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
     }
 
     if (myUid != ownerUid) {
+      HapticFeedback.mediumImpact();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           duration: AppDurations.snackBar,
@@ -392,6 +412,7 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
     }
 
     if (groupId.isEmpty) {
+      HapticFeedback.mediumImpact();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           duration: AppDurations.snackBar,
@@ -405,6 +426,7 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
     final inputAmount = _parseMoney(goalController.text, currency);
 
     if (name.isEmpty) {
+      HapticFeedback.mediumImpact();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           duration: AppDurations.snackBar,
@@ -415,6 +437,7 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
     }
 
     if (name.length > kMaxGroupNameLength) {
+      HapticFeedback.mediumImpact();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           duration: AppDurations.snackBar,
@@ -425,6 +448,7 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
     }
 
     if (inputAmount <= 0) {
+      HapticFeedback.mediumImpact();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           duration: AppDurations.snackBar,
@@ -446,16 +470,17 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
 
     try {
       await context.read<UserRepository>().updateGroup(
-        myUid: myUid,
-        groupId: groupId,
-        name: name,
-        memberIds: finalMemberIds,
-        colorHex: _colorToHex(selectedColor),
-        goalAmount: goalAmount,
-      );
+            myUid: myUid,
+            groupId: groupId,
+            name: name,
+            memberIds: finalMemberIds,
+            colorHex: _colorToHex(selectedColor),
+            goalAmount: goalAmount,
+          );
 
       if (!mounted) return;
 
+      HapticFeedback.mediumImpact();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           duration: AppDurations.snackBar,
@@ -467,6 +492,7 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
     } catch (e) {
       if (!mounted) return;
 
+      HapticFeedback.mediumImpact();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           duration: AppDurations.snackBar,
@@ -480,6 +506,7 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
   Widget build(BuildContext context) {
     final myUid = context.read<AuthController>().user?.uid;
     final currency = context.watch<ProfileController>().currency;
+    final isKeyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
     final isOwner = myUid != null && myUid == ownerUid;
     final pendingEdits = isOwner ? _hasPendingEdits(currency) : false;
 
@@ -495,7 +522,10 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
                   children: [
                     _TopCircleButton(
                       icon: Icons.arrow_back_ios_new_rounded,
-                      onTap: () => Navigator.pop(context),
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        Navigator.pop(context);
+                      },
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -507,17 +537,28 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
                   ],
                 ),
                 const Spacer(),
-                Icon(
-                  Icons.lock_outline_rounded,
-                  size: 74,
-                  color: AppColors.textSecondary(context),
+                Container(
+                  width: 96,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    color: AppColors.card(context),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.border(context),
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.lock_outline_rounded,
+                    size: 46,
+                    color: AppColors.textSecondary(context),
+                  ),
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 20),
                 Text(
                   context.l10n.noPermissionToEditGroup,
                   textAlign: TextAlign.center,
                   style: AppTextStyles.sectionTitle(context).copyWith(
-                    fontSize: 22,
+                    fontSize: 20,
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -526,6 +567,7 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
                   textAlign: TextAlign.center,
                   style: AppTextStyles.bodySecondary(context).copyWith(
                     height: 1.45,
+                    fontSize: 14,
                   ),
                 ),
                 const Spacer(),
@@ -536,317 +578,635 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
       );
     }
 
+    final enteredName = nameController.text.trim();
+    final displayName =
+        enteredName.isNotEmpty ? enteredName : context.l10n.group;
+    final parsedGoal = _parseMoney(goalController.text, currency);
+    final goalText = parsedGoal > 0
+        ? (currency == 'USD'
+            ? '\$${parsedGoal.toStringAsFixed(0)}'
+            : '${NumberFormat.decimalPattern('vi_VN').format(parsedGoal.round())} ₫')
+        : context.l10n.noGoalSetYet;
+
+    final isVnd = currency == 'VND';
+    final presets = isVnd
+        ? [500000.0, 1000000.0, 2000000.0, 5000000.0, 10000000.0]
+        : [50.0, 100.0, 200.0, 500.0, 1000.0];
+
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: AppColors.background(context),
       body: SafeArea(
         child: GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: () => FocusScope.of(context).unfocus(),
-          child: ListView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSizes.pagePadding,
-            12,
-            AppSizes.pagePadding,
-            28,
-          ),
-          children: [
-            Row(
-              children: [
-                _TopCircleButton(
-                  icon: Icons.arrow_back_ios_new_rounded,
-                  onTap: () => Navigator.pop(context),
+          child: Column(
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSizes.pagePadding,
+                  12,
+                  AppSizes.pagePadding,
+                  10,
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Text(
-                    context.l10n.editGroup,
-                    style: AppTextStyles.pageTitle(context),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 18),
-
-            _SectionCard(
-              padding: const EdgeInsets.fromLTRB(18, 22, 18, 22),
-              child: Column(
-                children: [
-                  Container(
-                    width: 96,
-                    height: 96,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(28),
-                      color: selectedColor.withOpacity(0.18),
+                child: Row(
+                  children: [
+                    _TopCircleButton(
+                      icon: Icons.arrow_back_ios_new_rounded,
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        Navigator.pop(context);
+                      },
                     ),
-                    child: Icon(
-                      Icons.groups_2_rounded,
-                      color: selectedColor,
-                      size: 48,
-                    ),
-                  ),
-
-                  const SizedBox(height: 22),
-
-                  _EditInputField(
-                    controller: nameController,
-                    label: context.l10n.groupName,
-                    hintText: context.l10n.groupNameHint,
-                    icon: Icons.groups_2_outlined,
-                    cursorColor: selectedColor,
-                    maxLength: kMaxGroupNameLength,
-                  ),
-
-                  const SizedBox(height: 14),
-
-                  _EditInputField(
-                    controller: goalController,
-                    label: context.l10n.goalAmount,
-                    hintText: AppCurrencyFormatter.formatInputHint(currency),
-                    icon: Icons.flag_rounded,
-                    suffixText: AppCurrencyFormatter.symbol(currency),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    inputFormatters:
-                    currency == 'VND' ? [MoneyInputFormatter()] : [],
-                    cursorColor: selectedColor,
-                  ),
-
-                  const SizedBox(height: 22),
-
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      context.l10n.groupColor,
-                      style: AppTextStyles.sectionTitle(context).copyWith(
-                        fontSize: 18,
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        context.l10n.editGroup,
+                        style: AppTextStyles.pageTitle(context),
                       ),
                     ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface(context),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: AppColors.innerBorder(context),
-                      ),
-                    ),
-                    child: Wrap(
-                      spacing: 14,
-                      runSpacing: 14,
-                      children: groupColors.map((color) {
-                        final selected = selectedColor.value == color.value;
-
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedColor = color;
-                            });
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 160),
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: color,
-                              border: Border.all(
-                                color:
-                                selected ? Colors.white : Colors.transparent,
-                                width: 3,
-                              ),
-                              boxShadow: selected
-                                  ? [
-                                BoxShadow(
-                                  color: color.withOpacity(0.28),
-                                  blurRadius: 12,
-                                  spreadRadius: 1,
-                                ),
-                              ]
-                                  : null,
-                            ),
-                            child: selected
-                                ? const Icon(
-                              Icons.check_rounded,
-                              color: Colors.white,
-                              size: 24,
-                            )
-                                : null,
+                    if (pendingEdits)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: selectedColor.withValues(alpha: 0.14),
+                          borderRadius:
+                              BorderRadius.circular(AppSizes.radiusPill),
+                        ),
+                        child: Text(
+                          context.l10n.unsavedChangesLabel,
+                          style: TextStyle(
+                            color: selectedColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
                           ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ],
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
 
-            const SizedBox(height: 18),
-
-            StreamBuilder<List<Map<String, dynamic>>>(
-              stream: _friendsStream ??
-                  context.read<UserRepository>().streamFriends(myUid),
-              builder: (context, snapshot) {
-                final friends = snapshot.data ?? [];
-
-                final mergedItems = _mergeMembersAndFriends(
-                  currentMembers: currentMemberProfiles,
-                  friends: friends,
-                );
-
-                final filteredItems = mergedItems.where((item) {
-                  if (searchKeyword.trim().isEmpty) return true;
-                  final name = (item['name'] ?? '').toString().toLowerCase();
-                  final username =
-                      (item['username'] ?? '').toString().toLowerCase();
-                  final keyword = searchKeyword.trim().toLowerCase();
-                  final cleanKeyword = _removeVietnameseDiacritics(keyword);
-                  final cleanName = _removeVietnameseDiacritics(name);
-                  final cleanUsername = _removeVietnameseDiacritics(username);
-
-                  return name.contains(keyword) ||
-                      username.contains(keyword) ||
-                      cleanName.contains(cleanKeyword) ||
-                      cleanUsername.contains(cleanKeyword);
-                }).toList();
-
-                if (isLoadingMembers) {
-                  return _SectionCard(
-                    padding: const EdgeInsets.all(22),
-                    child: const Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }
-
-                return _SectionCard(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              context.l10n.groupMembers,
-                              style: AppTextStyles.sectionTitle(context),
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.fromLTRB(
+                    AppSizes.pagePadding,
+                    6,
+                    AppSizes.pagePadding,
+                    isKeyboardOpen ? 24 : 100,
+                  ),
+                  children: [
+                    // LIVE HERO CARD PREVIEW
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            selectedColor.withValues(
+                              alpha: AppColors.isDark(context) ? 0.32 : 0.16,
                             ),
+                            selectedColor.withValues(
+                              alpha: AppColors.isDark(context) ? 0.14 : 0.04,
+                            ),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(26),
+                        border: Border.all(
+                          color: selectedColor.withValues(alpha: 0.36),
+                          width: 1.4,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: selectedColor.withValues(alpha: 0.12),
+                            blurRadius: 18,
+                            offset: const Offset(0, 6),
                           ),
-                          Text(
-                            context.l10n.selectedCount(selectedMemberIds.length),
-                            style: TextStyle(
-                              color: selectedColor,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  color: selectedColor,
+                                  borderRadius: BorderRadius.circular(18),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color:
+                                          selectedColor.withValues(alpha: 0.4),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.groups_2_rounded,
+                                  color: Colors.white,
+                                  size: 30,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      displayName,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style:
+                                          AppTextStyles.body(context).copyWith(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      context.l10n
+                                          .groupFundGoalWithAmount(goalText),
+                                      style: TextStyle(
+                                        color: selectedColor,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.card(context),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: AppColors.border(context),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.person_pin_rounded,
+                                      size: 16,
+                                      color: selectedColor,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      context.l10n.members,
+                                      style: AppTextStyles.caption(context)
+                                          .copyWith(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  context.l10n.groupMembersCount(
+                                    selectedMemberIds.length,
+                                  ),
+                                  style: TextStyle(
+                                    color: selectedColor,
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        context.l10n.groupMembersNote,
-                        style: AppTextStyles.bodySecondary(context).copyWith(
-                          fontSize: 13,
-                          height: 1.4,
-                        ),
-                      ),
-                      const SizedBox(height: 14),
+                    ),
+                    const SizedBox(height: 18),
 
-                      _SearchMemberBox(
-                        controller: searchController,
-                        color: selectedColor,
-                        onChanged: (val) {
-                          setState(() {
-                            searchKeyword = val;
-                          });
-                        },
-                        onClear: () {
-                          setState(() {
-                            searchController.clear();
-                            searchKeyword = '';
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 14),
+                    // SECTION 1: THÔNG TIN NHÓM
+                    _SectionCard(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.edit_note_rounded,
+                                color: selectedColor,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                context.l10n.groupInfoTitle,
+                                style: AppTextStyles.sectionTitle(context)
+                                    .copyWith(fontSize: 16),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          _EditInputField(
+                            controller: nameController,
+                            label: context.l10n.groupName,
+                            hintText: context.l10n.groupNameHint,
+                            icon: Icons.groups_2_outlined,
+                            cursorColor: selectedColor,
+                            maxLength: kMaxGroupNameLength,
+                          ),
+                          const SizedBox(height: 14),
+                          _EditInputField(
+                            controller: goalController,
+                            label: context.l10n.goalAmount,
+                            hintText:
+                                AppCurrencyFormatter.formatInputHint(currency),
+                            icon: Icons.flag_rounded,
+                            suffixText: AppCurrencyFormatter.symbol(currency),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            inputFormatters:
+                                isVnd ? [MoneyInputFormatter()] : [],
+                            cursorColor: selectedColor,
+                          ),
+                          const SizedBox(height: 12),
+                          // Quick Presets
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: presets.map((amount) {
+                              final label = isVnd
+                                  ? (amount >= 1000000
+                                      ? '${(amount / 1000000).toStringAsFixed(amount % 1000000 == 0 ? 0 : 1)}Tr'
+                                      : '${(amount / 1000).round()}k')
+                                  : '\$${amount.round()}';
 
-                      if (mergedItems.isEmpty)
-                        Text(
-                          context.l10n.noMembersOrFriends,
-                          style: AppTextStyles.bodySecondary(context),
-                        )
-                      else if (filteredItems.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 24),
-                          child: Center(
-                            child: Text(
-                              context.l10n.noUsersFound,
-                              style: AppTextStyles.bodySecondary(context).copyWith(
-                                fontSize: 15,
+                              return InkWell(
+                                onTap: () =>
+                                    _applyQuickPreset(amount, currency),
+                                borderRadius: BorderRadius.circular(12),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surface(context),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: AppColors.innerBorder(context),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    '+$label',
+                                    style: TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.textPrimary(context),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+
+                    // SECTION 2: MÀU SẮC NHẬN DIỆN
+                    _SectionCard(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.palette_outlined,
+                                color: selectedColor,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                context.l10n.groupColor,
+                                style: AppTextStyles.sectionTitle(context)
+                                    .copyWith(fontSize: 16),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface(context),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: AppColors.innerBorder(context),
                               ),
                             ),
+                            child: Wrap(
+                              spacing: 12,
+                              runSpacing: 12,
+                              alignment: WrapAlignment.center,
+                              children: groupColors.map((color) {
+                                final isSelected = selectedColor.toARGB32() ==
+                                    color.toARGB32();
+
+                                return GestureDetector(
+                                  onTap: () {
+                                    HapticFeedback.selectionClick();
+                                    setState(() {
+                                      selectedColor = color;
+                                    });
+                                  },
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 180),
+                                    width: 44,
+                                    height: 44,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: color,
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? Colors.white
+                                            : Colors.transparent,
+                                        width: 2.8,
+                                      ),
+                                      boxShadow: isSelected
+                                          ? [
+                                              BoxShadow(
+                                                color: color.withValues(
+                                                  alpha: 0.36,
+                                                ),
+                                                blurRadius: 12,
+                                                spreadRadius: 2,
+                                              ),
+                                            ]
+                                          : null,
+                                    ),
+                                    child: isSelected
+                                        ? const Icon(
+                                            Icons.check_rounded,
+                                            color: Colors.white,
+                                            size: 22,
+                                          )
+                                        : null,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
                           ),
-                        )
-                      else
-                        ...filteredItems.map((item) {
-                          final uid = (item['uid'] ?? '').toString();
-                          final name = (item['name'] ?? context.l10n.user).toString();
-                          final username = (item['username'] ?? '').toString();
-                          final avatarUrl = (item['avatarUrl'] ?? '').toString();
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
 
-                          final selected = selectedMemberIds.contains(uid);
-                          final itemIsOwner = uid == ownerUid;
+                    // SECTION 3: THÀNH VIÊN NHÓM
+                    StreamBuilder<List<Map<String, dynamic>>>(
+                      stream: _friendsStream ??
+                          context.read<UserRepository>().streamFriends(myUid),
+                      builder: (context, snapshot) {
+                        final friends = snapshot.data ?? [];
 
-                          final source = (item['source'] ?? '').toString();
-                          final isOldMember = source.contains('member');
-                          final isFriend = source.contains('friend');
+                        final mergedItems = _mergeMembersAndFriends(
+                          currentMembers: currentMemberProfiles,
+                          friends: friends,
+                        );
 
-                          return _MemberSelectTile(
-                            uid: uid,
-                            name: name,
-                            username: username,
-                            avatarUrl: avatarUrl,
-                            selected: selected,
-                            isOwner: itemIsOwner,
-                            isOldMember: isOldMember,
-                            isFriend: isFriend,
-                            color: selectedColor,
-                            onTap: () => _toggleMember(uid),
+                        final filteredItems = mergedItems.where((item) {
+                          if (searchKeyword.trim().isEmpty) return true;
+                          final name =
+                              (item['name'] ?? '').toString().toLowerCase();
+                          final username =
+                              (item['username'] ?? '').toString().toLowerCase();
+                          final keyword = searchKeyword.trim().toLowerCase();
+                          final cleanKeyword =
+                              _removeVietnameseDiacritics(keyword);
+                          final cleanName = _removeVietnameseDiacritics(name);
+                          final cleanUsername =
+                              _removeVietnameseDiacritics(username);
+
+                          return name.contains(keyword) ||
+                              username.contains(keyword) ||
+                              cleanName.contains(cleanKeyword) ||
+                              cleanUsername.contains(cleanKeyword);
+                        }).toList();
+
+                        if (isLoadingMembers) {
+                          return _SectionCard(
+                            padding: const EdgeInsets.all(22),
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
                           );
-                        }),
+                        }
+
+                        return _SectionCard(
+                          padding: const EdgeInsets.all(18),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.group_outlined,
+                                    color: selectedColor,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      context.l10n.groupMembers,
+                                      style: AppTextStyles.sectionTitle(context)
+                                          .copyWith(fontSize: 16),
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          selectedColor.withValues(alpha: 0.14),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      context.l10n.selectedCount(
+                                        selectedMemberIds.length,
+                                      ),
+                                      style: TextStyle(
+                                        color: selectedColor,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                context.l10n.groupMembersNote,
+                                style: AppTextStyles.bodySecondary(context)
+                                    .copyWith(
+                                  fontSize: 13,
+                                  height: 1.4,
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                              _SearchMemberBox(
+                                controller: searchController,
+                                color: selectedColor,
+                                onChanged: (val) {
+                                  setState(() {
+                                    searchKeyword = val;
+                                  });
+                                },
+                                onClear: () {
+                                  setState(() {
+                                    searchController.clear();
+                                    searchKeyword = '';
+                                  });
+                                },
+                              ),
+                              const SizedBox(height: 14),
+                              if (mergedItems.isEmpty)
+                                Text(
+                                  context.l10n.noMembersOrFriends,
+                                  style: AppTextStyles.bodySecondary(context),
+                                )
+                              else if (filteredItems.isEmpty)
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 24),
+                                  child: Center(
+                                    child: Text(
+                                      context.l10n.noUsersFound,
+                                      style:
+                                          AppTextStyles.bodySecondary(context)
+                                              .copyWith(
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              else
+                                ...filteredItems.map((item) {
+                                  final uid = (item['uid'] ?? '').toString();
+                                  final name =
+                                      (item['name'] ?? context.l10n.user)
+                                          .toString();
+                                  final username =
+                                      (item['username'] ?? '').toString();
+                                  final avatarUrl =
+                                      (item['avatarUrl'] ?? '').toString();
+
+                                  final selected =
+                                      selectedMemberIds.contains(uid);
+                                  final itemIsOwner = uid == ownerUid;
+
+                                  final source =
+                                      (item['source'] ?? '').toString();
+                                  final isOldMember = source.contains('member');
+                                  final isFriend = source.contains('friend');
+
+                                  return _MemberSelectTile(
+                                    uid: uid,
+                                    name: name,
+                                    username: username,
+                                    avatarUrl: avatarUrl,
+                                    selected: selected,
+                                    isOwner: itemIsOwner,
+                                    isOldMember: isOldMember,
+                                    isFriend: isFriend,
+                                    color: selectedColor,
+                                    onTap: () => _toggleMember(uid),
+                                  );
+                                }),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 18),
+                    _InfoNoteCard(
+                      selectedColor: selectedColor,
+                    ),
+
+                    if (isKeyboardOpen && pendingEdits) ...[
+                      const SizedBox(height: 20),
+                      CustomButton(
+                        height: 52,
+                        borderRadius: AppSizes.radiusPill,
+                        text: context.l10n.saveChanges,
+                        backgroundColor: selectedColor,
+                        foregroundColor:
+                            AppColors.foregroundOnAccent(selectedColor),
+                        onPressedAsync: () {
+                          HapticFeedback.mediumImpact();
+                          return _save();
+                        },
+                      ),
                     ],
-                  ),
-                );
-              },
-            ),
-
-            const SizedBox(height: 18),
-
-            _InfoNoteCard(
-              selectedColor: selectedColor,
-            ),
-
-            const SizedBox(height: 24),
-
-            CustomButton(
-              height: 58,
-              borderRadius: AppSizes.radiusPill,
-              text: context.l10n.saveChanges,
-              backgroundColor: selectedColor,
-              foregroundColor: AppColors.foregroundOnAccent(selectedColor),
-              onPressedAsync: pendingEdits ? _save : null,
-            ),
-          ],
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+      bottomNavigationBar: isKeyboardOpen
+          ? null
+          : Container(
+              padding: EdgeInsets.fromLTRB(
+                AppSizes.pagePadding,
+                10,
+                AppSizes.pagePadding,
+                MediaQuery.paddingOf(context).bottom > 0
+                    ? MediaQuery.paddingOf(context).bottom + 4
+                    : 16,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.background(context),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(
+                      alpha: AppColors.isDark(context) ? 0.35 : 0.08,
+                    ),
+                    blurRadius: 16,
+                    offset: const Offset(0, -4),
+                  ),
+                ],
+              ),
+              child: CustomButton(
+                height: 52,
+                borderRadius: AppSizes.radiusPill,
+                text: context.l10n.saveChanges,
+                backgroundColor: selectedColor,
+                foregroundColor: AppColors.foregroundOnAccent(selectedColor),
+                onPressedAsync: pendingEdits
+                    ? () {
+                        HapticFeedback.mediumImpact();
+                        return _save();
+                      }
+                    : null,
+              ),
+            ),
+    );
+  }
 }
 
 class _MemberSelectTile extends StatelessWidget {
@@ -892,36 +1252,39 @@ class _MemberSelectTile extends StatelessWidget {
 
     return Container(
       clipBehavior: Clip.antiAlias,
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: selected
-            ? color.withValues(alpha: AppColors.isDark(context) ? 0.16 : 0.10)
+            ? color.withValues(alpha: AppColors.isDark(context) ? 0.16 : 0.08)
             : AppColors.surface(context),
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: selected ? color.withValues(alpha: 0.45) : AppColors.innerBorder(context),
+          color: selected
+              ? color.withValues(alpha: 0.45)
+              : AppColors.innerBorder(context),
         ),
       ),
       child: ListTile(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(18),
         ),
         onTap: isOwner ? null : onTap,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 12,
-          vertical: 7,
+          vertical: 4,
         ),
         leading: CircleAvatar(
-          radius: 23,
+          radius: 20,
           backgroundColor: AppColors.card(context),
           backgroundImage: avatarUrl.trim().isNotEmpty
               ? CachedNetworkImageProvider(avatarUrl.trim())
               : null,
           child: avatarUrl.trim().isEmpty
               ? Icon(
-            Icons.person_rounded,
-            color: AppColors.textSecondary(context),
-          )
+                  Icons.person_rounded,
+                  color: AppColors.textSecondary(context),
+                  size: 20,
+                )
               : null,
         ),
         title: Text(
@@ -930,6 +1293,7 @@ class _MemberSelectTile extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: AppTextStyles.body(context).copyWith(
             fontWeight: FontWeight.w800,
+            fontSize: 14.5,
           ),
         ),
         subtitle: Text(
@@ -940,34 +1304,56 @@ class _MemberSelectTile extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: AppTextStyles.caption(context).copyWith(
-            fontSize: 12.5,
+            fontSize: 12,
           ),
         ),
         trailing: isOwner
-            ? Icon(
-          Icons.lock_rounded,
-          color: color,
-        )
+            ? Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.workspace_premium_rounded,
+                      color: color,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      context.l10n.groupOwner,
+                      style: TextStyle(
+                        color: color,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              )
             : AnimatedContainer(
-          duration: const Duration(milliseconds: 160),
-          width: 30,
-          height: 30,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: selected ? color : Colors.transparent,
-            border: Border.all(
-              color: selected ? color : AppColors.textSecondary(context),
-              width: 1.4,
-            ),
-          ),
-          child: selected
-              ? const Icon(
-            Icons.check_rounded,
-            color: Colors.white,
-            size: 20,
-          )
-              : null,
-        ),
+                duration: const Duration(milliseconds: 160),
+                width: 26,
+                height: 26,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: selected ? color : Colors.transparent,
+                  border: Border.all(
+                    color: selected ? color : AppColors.textSecondary(context),
+                    width: 1.4,
+                  ),
+                ),
+                child: selected
+                    ? const Icon(
+                        Icons.check_rounded,
+                        color: Colors.white,
+                        size: 16,
+                      )
+                    : null,
+              ),
       ),
     );
   }
@@ -988,7 +1374,7 @@ class _SectionCard extends StatelessWidget {
       padding: padding,
       decoration: BoxDecoration(
         color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(AppSizes.radiusXLarge),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: AppColors.border(context),
         ),
@@ -1008,10 +1394,10 @@ class _InfoNoteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(AppSizes.cardPadding),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: AppColors.border(context),
         ),
@@ -1019,15 +1405,16 @@ class _InfoNoteCard extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              color: selectedColor.withOpacity(0.16),
+              color: selectedColor.withValues(alpha: 0.14),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.info_outline_rounded,
               color: selectedColor,
+              size: 20,
             ),
           ),
           const SizedBox(width: 12),
@@ -1035,7 +1422,7 @@ class _InfoNoteCard extends StatelessWidget {
             child: Text(
               context.l10n.groupMemberManagementNote,
               style: AppTextStyles.bodySecondary(context).copyWith(
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 height: 1.35,
               ),
@@ -1103,7 +1490,7 @@ class _EditInputFieldState extends State<_EditInputField> {
       duration: const Duration(milliseconds: 180),
       decoration: BoxDecoration(
         color: AppColors.surface(context),
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: hasFocus ? widget.cursorColor : AppColors.innerBorder(context),
           width: hasFocus ? 1.4 : 1.0,
@@ -1116,28 +1503,30 @@ class _EditInputFieldState extends State<_EditInputField> {
         inputFormatters: widget.inputFormatters,
         cursorColor: widget.cursorColor,
         maxLength: counterLimit,
-        buildCounter:
-            counterLimit == null || counterLimit <= 0
-                ? null
-                : (_, {required currentLength, required isFocused, required maxLength}) {
-                    final lim = maxLength ?? counterLimit;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 10, bottom: 6),
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          '$currentLength/$lim',
-                          style: AppTextStyles.caption(context).copyWith(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary(context),
-                          ),
-                        ),
+        buildCounter: counterLimit == null || counterLimit <= 0
+            ? null
+            : (_,
+                {required currentLength,
+                required isFocused,
+                required maxLength}) {
+                final lim = maxLength ?? counterLimit;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 12, bottom: 6),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      '$currentLength/$lim',
+                      style: AppTextStyles.caption(context).copyWith(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary(context),
                       ),
-                    );
-                  },
+                    ),
+                  ),
+                );
+              },
         style: AppTextStyles.body(context).copyWith(
-          fontSize: 17,
+          fontSize: 16.5,
           fontWeight: FontWeight.w800,
         ),
         decoration: InputDecoration(
@@ -1147,20 +1536,22 @@ class _EditInputFieldState extends State<_EditInputField> {
           counterText: counterLimit != null ? '' : null,
           prefixIcon: Icon(
             widget.icon,
-            color: hasFocus ? widget.cursorColor : AppColors.textSecondary(context),
+            color: hasFocus
+                ? widget.cursorColor
+                : AppColors.textSecondary(context),
           ),
           labelStyle: AppTextStyles.caption(context).copyWith(
-            fontSize: 14,
+            fontSize: 13.5,
             fontWeight: FontWeight.w600,
             color: hasFocus ? widget.cursorColor : null,
           ),
           hintStyle: AppTextStyles.caption(context).copyWith(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
+            fontSize: 14.5,
+            fontWeight: FontWeight.w500,
             color: AppColors.textSecondary(context).withValues(alpha: 0.65),
           ),
           suffixStyle: AppTextStyles.caption(context).copyWith(
-            fontSize: 15,
+            fontSize: 14.5,
             fontWeight: FontWeight.w800,
           ),
           filled: false,
@@ -1173,7 +1564,7 @@ class _EditInputFieldState extends State<_EditInputField> {
           focusedErrorBorder: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 14,
-            vertical: 16,
+            vertical: 14,
           ),
         ),
       ),
@@ -1196,8 +1587,8 @@ class _TopCircleButton extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppSizes.radiusXLarge),
       child: Container(
-        width: 48,
-        height: 48,
+        width: 44,
+        height: 44,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: AppColors.card(context),
@@ -1208,7 +1599,7 @@ class _TopCircleButton extends StatelessWidget {
         child: Icon(
           icon,
           color: AppColors.textPrimary(context),
-          size: 20,
+          size: 18,
         ),
       ),
     );
@@ -1265,11 +1656,11 @@ class _SearchMemberBoxState extends State<_SearchMemberBox> {
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        height: 52,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
+        height: 48,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
           color: AppColors.surface(context),
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: hasFocus ? widget.color : AppColors.innerBorder(context),
             width: hasFocus ? 1.4 : 1.0,
@@ -1280,9 +1671,9 @@ class _SearchMemberBoxState extends State<_SearchMemberBox> {
             Icon(
               Icons.search_rounded,
               color: hasFocus ? widget.color : AppColors.textSecondary(context),
-              size: 22,
+              size: 20,
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Expanded(
               child: TextField(
                 controller: widget.controller,
@@ -1290,14 +1681,15 @@ class _SearchMemberBoxState extends State<_SearchMemberBox> {
                 onChanged: widget.onChanged,
                 cursorColor: widget.color,
                 style: AppTextStyles.body(context).copyWith(
-                  fontSize: 15,
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
                 decoration: InputDecoration(
                   hintText: context.l10n.friendsSearchHint,
                   hintStyle: AppTextStyles.bodySecondary(context).copyWith(
-                    color: AppColors.textSecondary(context).withValues(alpha: 0.7),
-                    fontSize: 15,
+                    color:
+                        AppColors.textSecondary(context).withValues(alpha: 0.7),
+                    fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
                   isDense: true,
@@ -1321,7 +1713,7 @@ class _SearchMemberBoxState extends State<_SearchMemberBox> {
                   child: Icon(
                     Icons.cancel_rounded,
                     color: AppColors.textSecondary(context),
-                    size: 20,
+                    size: 18,
                   ),
                 ),
               ),

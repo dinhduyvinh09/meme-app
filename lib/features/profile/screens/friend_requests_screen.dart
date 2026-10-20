@@ -50,7 +50,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
                 final sentRequests = sentSnapshot.data ?? [];
 
                 final currentList =
-                selectedTab == 0 ? receivedRequests : sentRequests;
+                    selectedTab == 0 ? receivedRequests : sentRequests;
 
                 return Column(
                   children: [
@@ -115,7 +115,8 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
                                   Expanded(
                                     child: _RequestTabButton(
                                       icon: Icons.mail_rounded,
-                                      label: context.l10n.friendRequestsReceivedTab,
+                                      label: context
+                                          .l10n.friendRequestsReceivedTab,
                                       count: receivedRequests.length,
                                       selected: selectedTab == 0,
                                       onTap: () {
@@ -149,46 +150,46 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
                     Expanded(
                       child: currentList.isEmpty
                           ? _EmptyRequestState(
-                        isReceivedTab: selectedTab == 0,
-                      )
+                              isReceivedTab: selectedTab == 0,
+                            )
                           : ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(
-                          AppSizes.pagePadding,
-                          18,
-                          AppSizes.pagePadding,
-                          24,
-                        ),
-                        itemCount: currentList.length,
-                        separatorBuilder: (_, __) =>
-                        const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final item = currentList[index];
+                              padding: const EdgeInsets.fromLTRB(
+                                AppSizes.pagePadding,
+                                18,
+                                AppSizes.pagePadding,
+                                24,
+                              ),
+                              itemCount: currentList.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 12),
+                              itemBuilder: (context, index) {
+                                final item = currentList[index];
 
-                          if (selectedTab == 0) {
-                            return _ReceivedRequestCard(
-                              item: item,
-                              onReject: () async {
-                                await repo.rejectFriendRequest(
+                                if (selectedTab == 0) {
+                                  return _ReceivedRequestCard(
+                                    item: item,
+                                    onReject: () async {
+                                      await repo.rejectFriendRequest(
+                                        myUid: uid,
+                                        fromUid: item['fromUid'],
+                                      );
+                                    },
+                                    onAccept: () async {
+                                      await repo.acceptFriendRequest(
+                                        myUid: uid,
+                                        requestData: item,
+                                      );
+                                    },
+                                  );
+                                }
+
+                                return _SentRequestTile(
+                                  item: item,
                                   myUid: uid,
-                                  fromUid: item['fromUid'],
+                                  repo: repo,
                                 );
                               },
-                              onAccept: () async {
-                                await repo.acceptFriendRequest(
-                                  myUid: uid,
-                                  requestData: item,
-                                );
-                              },
-                            );
-                          }
-
-                          return _SentRequestTile(
-                            item: item,
-                            myUid: uid,
-                            repo: repo,
-                          );
-                        },
-                      ),
+                            ),
                     ),
                   ],
                 );
@@ -244,8 +245,7 @@ class _ReceivedRequestCardState extends State<_ReceivedRequestCard> {
         final username = (liveUser?.username.trim().isNotEmpty == true)
             ? liveUser!.username.trim()
             : fallbackUsername;
-        final isOnline =
-            liveUser?.isOnlineVisibleTo(isFriend: false) ?? false;
+        final isOnline = liveUser?.isOnlineVisibleTo(isFriend: false) ?? false;
 
         return Container(
           decoration: BoxDecoration(
@@ -326,70 +326,70 @@ class _ReceivedRequestCardState extends State<_ReceivedRequestCard> {
                   ],
                 ),
                 const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 48,
-                    child: AsyncOutlinedButton(
-                      locked: _acceptRunning,
-                      onPressedAsync: widget.onReject,
-                      onBusyChanged: (v) =>
-                          setState(() => _rejectRunning = v),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.textPrimary(context),
-                        backgroundColor: AppColors.surface(context),
-                        side: BorderSide(
-                          color: AppColors.innerBorder(context),
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: Text(
-                        context.l10n.decline,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: SizedBox(
-                    height: 48,
-                    child: AsyncFilledButton(
-                      locked: _rejectRunning,
-                      onPressedAsync: widget.onAccept,
-                      onBusyChanged: (v) =>
-                          setState(() => _acceptRunning = v),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.primaryBlue,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: Text(
-                        context.l10n.accept,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 48,
+                        child: AsyncOutlinedButton(
+                          locked: _acceptRunning,
+                          onPressedAsync: widget.onReject,
+                          onBusyChanged: (v) =>
+                              setState(() => _rejectRunning = v),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.textPrimary(context),
+                            backgroundColor: AppColors.surface(context),
+                            side: BorderSide(
+                              color: AppColors.innerBorder(context),
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: Text(
+                            context.l10n.decline,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: SizedBox(
+                        height: 48,
+                        child: AsyncFilledButton(
+                          locked: _rejectRunning,
+                          onPressedAsync: widget.onAccept,
+                          onBusyChanged: (v) =>
+                              setState(() => _acceptRunning = v),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: AppColors.primaryBlue,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: Text(
+                            context.l10n.accept,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
-  },
-);
   }
 }
 
@@ -498,8 +498,7 @@ class _SentRequestTileState extends State<_SentRequestTile> {
         final username = (liveUser?.username.trim().isNotEmpty == true)
             ? liveUser!.username.trim()
             : fallbackUsername;
-        final isOnline =
-            liveUser?.isOnlineVisibleTo(isFriend: false) ?? false;
+        final isOnline = liveUser?.isOnlineVisibleTo(isFriend: false) ?? false;
 
         return Container(
           decoration: BoxDecoration(

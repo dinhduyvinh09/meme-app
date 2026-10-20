@@ -50,7 +50,8 @@ class ReactionFlyingOverlayState extends State<ReactionFlyingOverlay>
       final particle = _ActiveParticle(
         emoji: emoji,
         controller: controller,
-        origin: originOffset ?? (isFalling ? const Offset(200, 80) : const Offset(200, 500)),
+        origin: originOffset ??
+            (isFalling ? const Offset(200, 80) : const Offset(200, 500)),
         startXOffset: startXOffset,
         endXOffset: endXOffset,
         scale: targetScale,
@@ -95,7 +96,8 @@ class ReactionFlyingOverlayState extends State<ReactionFlyingOverlay>
             child: Stack(
               clipBehavior: Clip.none,
               children: _particles
-                  .map((p) => _AnimatedParticleWidget(key: ObjectKey(p), particle: p))
+                  .map((p) =>
+                      _AnimatedParticleWidget(key: ObjectKey(p), particle: p))
                   .toList(),
             ),
           ),
@@ -159,12 +161,11 @@ class _AnimatedParticleWidget extends StatelessWidget {
             sway;
 
         // Smooth fade out towards the end
-        final opacity = progress < 0.65 ? 1.0 : ((1.0 - progress) / 0.35).clamp(0.0, 1.0);
+        final opacity =
+            progress < 0.65 ? 1.0 : ((1.0 - progress) / 0.35).clamp(0.0, 1.0);
 
         // Pop in quickly with elastic spring, then stay full size
-        final scaleProgress = progress < 0.18
-            ? (progress / 0.18)
-            : 1.0;
+        final scaleProgress = progress < 0.18 ? (progress / 0.18) : 1.0;
         final currentScale = particle.scale * scaleProgress;
 
         return Positioned(

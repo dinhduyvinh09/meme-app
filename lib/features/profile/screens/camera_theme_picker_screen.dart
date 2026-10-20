@@ -16,7 +16,8 @@ class CameraThemePickerScreen extends StatefulWidget {
   const CameraThemePickerScreen({super.key});
 
   @override
-  State<CameraThemePickerScreen> createState() => _CameraThemePickerScreenState();
+  State<CameraThemePickerScreen> createState() =>
+      _CameraThemePickerScreenState();
 }
 
 class _CameraThemePickerScreenState extends State<CameraThemePickerScreen> {
@@ -97,7 +98,8 @@ class _CameraThemePickerScreenState extends State<CameraThemePickerScreen> {
     final textSecondary = AppColors.textSecondary(context);
     final l10n = context.l10n;
 
-    final currentStreak = home.profile?.currentStreak ?? profile.user?.currentStreak ?? 0;
+    final currentStreak =
+        home.profile?.currentStreak ?? profile.user?.currentStreak ?? 0;
     final isAllThemesUnlocked = currentStreak >= requiredStreak;
 
     return Scaffold(
@@ -145,7 +147,8 @@ class _CameraThemePickerScreenState extends State<CameraThemePickerScreen> {
                   ...CameraThemes.all.map((theme) {
                     final isDefaultTheme = theme.id == 'classic_dark';
                     final isLocked = !isAllThemesUnlocked && !isDefaultTheme;
-                    final isSelected = profile.cameraTheme == theme.id && !isLocked;
+                    final isSelected =
+                        profile.cameraTheme == theme.id && !isLocked;
 
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 16),
@@ -156,7 +159,8 @@ class _CameraThemePickerScreenState extends State<CameraThemePickerScreen> {
                         isDark: isDark,
                         textPrimary: textPrimary,
                         textSecondary: textSecondary,
-                        onTap: () => _selectTheme(context, profile, theme, isLocked),
+                        onTap: () =>
+                            _selectTheme(context, profile, theme, isLocked),
                       ),
                     );
                   }),
@@ -349,9 +353,12 @@ class _StreakStatusBanner extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          l10n.streakProgressFraction(currentStreak, requiredStreak),
+                          l10n.streakProgressFraction(
+                              currentStreak, requiredStreak),
                           style: TextStyle(
-                            color: isDark ? Colors.white70 : const Color(0xFF4B5563),
+                            color: isDark
+                                ? Colors.white70
+                                : const Color(0xFF4B5563),
                             fontSize: 12.5,
                             fontWeight: FontWeight.w700,
                           ),
@@ -360,9 +367,12 @@ class _StreakStatusBanner extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      l10n.cameraThemeStreakBanner(requiredStreak, currentStreak),
+                      l10n.cameraThemeStreakBanner(
+                          requiredStreak, currentStreak),
                       style: TextStyle(
-                        color: isDark ? Colors.white.withValues(alpha: 0.85) : const Color(0xFF1F2937),
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.85)
+                            : const Color(0xFF1F2937),
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),
@@ -379,7 +389,8 @@ class _StreakStatusBanner extends StatelessWidget {
               value: progress,
               minHeight: 6,
               backgroundColor: isDark ? Colors.white10 : Colors.black12,
-              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFF9800)),
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(Color(0xFFFF9800)),
             ),
           ),
         ],
@@ -595,8 +606,10 @@ class _CameraThemeCard extends StatelessWidget {
                                   vertical: 3,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: theme.shutterAccent.withValues(alpha: 0.18),
-                                  borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+                                  color: theme.shutterAccent
+                                      .withValues(alpha: 0.18),
+                                  borderRadius: BorderRadius.circular(
+                                      AppSizes.radiusPill),
                                 ),
                                 child: Text(
                                   l10n.appIconInUse,
@@ -615,10 +628,13 @@ class _CameraThemeCard extends StatelessWidget {
                                   vertical: 2.5,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFFF9800).withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+                                  color: const Color(0xFFFF9800)
+                                      .withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(
+                                      AppSizes.radiusPill),
                                   border: Border.all(
-                                    color: const Color(0xFFFF9800).withValues(alpha: 0.4),
+                                    color: const Color(0xFFFF9800)
+                                        .withValues(alpha: 0.4),
                                     width: 0.8,
                                   ),
                                 ),
@@ -730,4 +746,3 @@ class _CameraThemeCard extends StatelessWidget {
     );
   }
 }
-

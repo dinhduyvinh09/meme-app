@@ -137,15 +137,11 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
             _ChangeEmailHeader(
               onBack: () => Navigator.pop(context),
             ),
-
             const SizedBox(height: 18),
-
             _IntroCard(
               currentEmail: currentEmail,
             ),
-
             const SizedBox(height: 16),
-
             _FormCard(
               newEmailController: newEmailController,
               passwordController: passwordController,
@@ -258,7 +254,7 @@ class _IntroCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -270,7 +266,7 @@ class _IntroCard extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.primaryBlue.withOpacity(0.12),
+              color: AppColors.primaryBlue.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(18),
             ),
             child: const Icon(
@@ -340,7 +336,7 @@ class _FormCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -356,9 +352,7 @@ class _FormCard extends StatelessWidget {
               fontWeight: FontWeight.w900,
             ),
           ),
-
           const SizedBox(height: 14),
-
           _InputLabel(
             label: l10n.newEmail,
           ),
@@ -383,9 +377,7 @@ class _FormCard extends StatelessWidget {
               ),
             ),
           ),
-
           const SizedBox(height: 14),
-
           _InputLabel(
             label: l10n.password,
           ),
@@ -422,13 +414,9 @@ class _FormCard extends StatelessWidget {
               ),
             ),
           ),
-
           const SizedBox(height: 14),
-
           const _NoticeBox(),
-
           const SizedBox(height: 24),
-
           SizedBox(
             width: double.infinity,
             height: AppSizes.buttonHeight,
@@ -489,10 +477,10 @@ class _NoticeBox extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(13),
       decoration: BoxDecoration(
-        color: AppColors.primaryBlue.withOpacity(0.10),
+        color: AppColors.primaryBlue.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: AppColors.primaryBlue.withOpacity(0.18),
+          color: AppColors.primaryBlue.withValues(alpha: 0.18),
         ),
       ),
       child: Row(

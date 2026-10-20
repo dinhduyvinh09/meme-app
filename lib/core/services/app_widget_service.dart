@@ -408,7 +408,7 @@ class AppWidgetService {
     }
 
     _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 800), () async {
+    _debounceTimer = Timer(const Duration(milliseconds: 2500), () async {
       if (_isUpdating) {
         _hasPendingUpdate = true;
         return;
@@ -498,18 +498,8 @@ class AppWidgetService {
         );
       }
 
-      bool isDark = true;
-      if (currentProfile != null) {
-        if (currentProfile.themeMode == 'light') {
-          isDark = false;
-        } else if (currentProfile.themeMode == 'dark') {
-          isDark = true;
-        } else {
-          final brightness =
-              WidgetsBinding.instance.platformDispatcher.platformBrightness;
-          isDark = brightness == Brightness.dark;
-        }
-      }
+      // Luôn đặt mặc định Dark Mode cho toàn bộ Widget màn hình chính, không đồng bộ theo theme ứng dụng
+      const bool isDark = true;
 
       final statsData = StatsWidgetData(
         totalExpense: totalExpense,
@@ -522,31 +512,20 @@ class AppWidgetService {
         isEn: isEn,
       );
 
-      // 4. Calendar Thumbnails & Spending Days
-      final Map<int, Uint8List> dayThumbnails = {};
+      // 4. Calendar Days: Spending Days & Photo Moment Days (No heavy image decoding to save RAM)
       final Set<int> daysWithSpending = {};
+      final Set<int> daysWithPhoto = {};
 
-      // Map days of this month to their latest moment photo
-      final Map<int, String> dayImageUrls = {};
       for (final tx in thisMonthTxs) {
         final day = tx.createdAt.day;
         daysWithSpending.add(day);
-        final url = tx.thumbnailUrl.isNotEmpty
-            ? tx.thumbnailUrl
-            : (tx.imageUrl.isNotEmpty ? tx.imageUrl : tx.mediaUrl);
-        if (url.isNotEmpty && !dayImageUrls.containsKey(day)) {
-          dayImageUrls[day] = url;
+        final hasMedia = tx.thumbnailUrl.trim().isNotEmpty ||
+            tx.imageUrl.trim().isNotEmpty ||
+            tx.mediaUrl.trim().isNotEmpty;
+        if (hasMedia) {
+          daysWithPhoto.add(day);
         }
       }
-
-      // Pre-fetch thumbnails in parallel
-      final thumbnailFutures = dayImageUrls.entries.map((entry) async {
-        final bytes = await _loadImageBytes(entry.value);
-        if (bytes != null && bytes.isNotEmpty) {
-          dayThumbnails[entry.key] = bytes;
-        }
-      });
-      await Future.wait(thumbnailFutures);
 
       final calendarData = CalendarWidgetData(
         monthLabel: calendarMonthLabel,
@@ -556,8 +535,9 @@ class AppWidgetService {
         totalIncomeCompact: _formatCompactVnd(totalIncome),
         year: currentYear,
         month: currentMonth,
-        dayThumbnails: dayThumbnails,
+        dayThumbnails: const {},
         daysWithSpending: daysWithSpending,
+        daysWithPhoto: daysWithPhoto,
         today: now.day,
         isDark: isDark,
         expenseLabel: isEn ? 'Expense' : 'Chi tiêu',
@@ -717,16 +697,16 @@ class AppWidgetService {
 
           // 2. Fetch via Cache Manager with timeout
           final file = await DefaultCacheManager().getSingleFile(trimmed).timeout(
-            const Duration(seconds: 6),
+            const Duration(seconds: 5),
           );
           final bytes = await file.readAsBytes();
           if (bytes.isNotEmpty) return bytes;
         } catch (_) {
           // 3. Fallback direct HTTP
           final client = HttpClient();
-          client.connectionTimeout = const Duration(seconds: 6);
+          client.connectionTimeout = const Duration(seconds: 5);
           final request = await client.getUrl(Uri.parse(trimmed));
-          final response = await request.close().timeout(const Duration(seconds: 6));
+          final response = await request.close().timeout(const Duration(seconds: 5));
           if (response.statusCode == 200) {
             final bytes = await consolidateHttpClientResponseBytes(response);
             if (bytes.isNotEmpty) return bytes;

@@ -59,6 +59,36 @@ class PostPublishingService extends ChangeNotifier {
 
   Timer? _dismissTimer;
 
+  bool _isNavbarCollapsed = false;
+  bool get isNavbarCollapsed => _isNavbarCollapsed;
+
+  int _currentTabIndex = 0;
+  int get currentTabIndex => _currentTabIndex;
+
+  bool get hasRightFab => _currentTabIndex == 0;
+
+  void setNavbarCollapsed(bool collapsed) {
+    if (_isNavbarCollapsed != collapsed) {
+      _isNavbarCollapsed = collapsed;
+      notifyListeners();
+    }
+  }
+
+  void updateNavState({required bool isCollapsed, required int currentTabIndex}) {
+    bool changed = false;
+    if (_isNavbarCollapsed != isCollapsed) {
+      _isNavbarCollapsed = isCollapsed;
+      changed = true;
+    }
+    if (_currentTabIndex != currentTabIndex) {
+      _currentTabIndex = currentTabIndex;
+      changed = true;
+    }
+    if (changed) {
+      notifyListeners();
+    }
+  }
+
   bool get isVisible => _status != PostPublishStatus.idle;
   bool get isUploading => _status == PostPublishStatus.uploading;
   bool get isSuccess => _status == PostPublishStatus.success;

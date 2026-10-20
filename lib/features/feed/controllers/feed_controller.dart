@@ -48,7 +48,8 @@ class FeedController extends ChangeNotifier {
     } else if (postId != null && postId.isNotEmpty) {
       final exists = feedTransactions.any((tx) => tx.id == postId);
       if (!exists) {
-        final tx = await transactionRepository.fetchTransactionById(postId, groupId: groupId);
+        final tx = await transactionRepository.fetchTransactionById(postId,
+            groupId: groupId);
         if (tx != null) {
           final alreadyIn = feedTransactions.any((t) => t.id == tx.id);
           if (!alreadyIn) {
@@ -72,6 +73,38 @@ class FeedController extends ChangeNotifier {
   String? _currentUid;
   List<String> _currentFriendIds = [];
   List<String> _currentGroupMemberIds = [];
+  bool _isFeedActive = false;
+  bool get isFeedActive => _isFeedActive;
+
+  void setFeedActive(bool active) {
+    if (_isFeedActive == active) return;
+    _isFeedActive = active;
+    if (_isFeedActive) {
+      _startPollingTimer();
+    } else {
+      _stopPollingTimer();
+    }
+  }
+
+  void _startPollingTimer() {
+    _stopPollingTimer();
+    // Chỉ poll định kỳ khi người dùng đang thực sự xem màn Feed (chu kỳ 30s thay vì 8s dồn dập)
+    _pollingTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (_currentUid != null && !isLoading && _isFeedActive) {
+        _fetchFeed(
+          uid: _currentUid!,
+          friendIds: _currentFriendIds,
+          groupMemberIds: _currentGroupMemberIds,
+          showLoading: false,
+        );
+      }
+    });
+  }
+
+  void _stopPollingTimer() {
+    _pollingTimer?.cancel();
+    _pollingTimer = null;
+  }
 
   Future<void> load(String uid) async {
     _currentUid = uid;
@@ -82,7 +115,7 @@ class FeedController extends ChangeNotifier {
 
     await _friendSub?.cancel();
     await _groupsSub?.cancel();
-    _pollingTimer?.cancel();
+    _stopPollingTimer();
 
     _friendSub = userRepository.streamFriendIds(uid).listen(
       (friendIds) async {
@@ -125,17 +158,9 @@ class FeedController extends ChangeNotifier {
       },
     );
 
-    // Periodically fetch new feed updates in background
-    _pollingTimer = Timer.periodic(const Duration(seconds: 8), (_) {
-      if (_currentUid != null && !isLoading) {
-        _fetchFeed(
-          uid: _currentUid!,
-          friendIds: _currentFriendIds,
-          groupMemberIds: _currentGroupMemberIds,
-          showLoading: false,
-        );
-      }
-    });
+    if (_isFeedActive) {
+      _startPollingTimer();
+    }
   }
 
   Future<void> refresh() async {
@@ -183,7 +208,8 @@ class FeedController extends ChangeNotifier {
       }
       // Retain target post if it was preloaded or added into feedTransactions
       if (targetPostId != null && targetPostId!.isNotEmpty) {
-        final existingTarget = feedTransactions.where((t) => t.id == targetPostId).firstOrNull;
+        final existingTarget =
+            feedTransactions.where((t) => t.id == targetPostId).firstOrNull;
         if (existingTarget != null && !dedupMap.containsKey(targetPostId)) {
           dedupMap[targetPostId!] = existingTarget;
         }
@@ -199,10 +225,10 @@ class FeedController extends ChangeNotifier {
       errorMessage = null;
       notifyListeners();
 
-      // Preload ngầm các video gần nhất trong Feed để khi lướt tới hoặc bấm vào là phát tức thì
+      // Preload ngầm 2 video gần nhất trong Feed thay vì 10 video để tránh ngốn RAM & mạng
       final videoUrls = feedTransactions
           .where((tx) => tx.isVideo && tx.playableVideoUrl.isNotEmpty)
-          .take(10)
+          .take(2)
           .map((tx) => tx.playableVideoUrl)
           .toList();
       if (videoUrls.isNotEmpty) {
@@ -256,7 +282,8 @@ class FeedController extends ChangeNotifier {
   }
 
   void updateExistingTransaction(TransactionModel updatedTransaction) {
-    final index = feedTransactions.indexWhere((tx) => tx.id == updatedTransaction.id);
+    final index =
+        feedTransactions.indexWhere((tx) => tx.id == updatedTransaction.id);
     if (index != -1) {
       feedTransactions[index] = updatedTransaction;
       notifyListeners();
@@ -270,7 +297,7 @@ class FeedController extends ChangeNotifier {
 
   @override
   void dispose() {
-    _pollingTimer?.cancel();
+    _stopPollingTimer();
     _friendSub?.cancel();
     _groupsSub?.cancel();
     super.dispose();

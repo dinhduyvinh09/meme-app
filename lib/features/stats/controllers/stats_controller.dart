@@ -25,11 +25,11 @@ class StatsController extends ChangeNotifier {
     notifyListeners();
 
     _sub = transactionRepository.streamTransactions(uid).listen(
-          (data) {
+      (data) {
         transactions = data;
 
         transactions.sort(
-              (a, b) => b.createdAt.compareTo(a.createdAt),
+          (a, b) => b.createdAt.compareTo(a.createdAt),
         );
 
         isLoading = false;
@@ -55,30 +55,26 @@ class StatsController extends ChangeNotifier {
   double get monthlyIncome {
     final now = DateTime.now();
 
-    return transactions
-        .where((e) {
+    return transactions.where((e) {
       return _isPersonalIncome(e) &&
           e.createdAt.month == now.month &&
           e.createdAt.year == now.year;
-    })
-        .fold<double>(
+    }).fold<double>(
       0,
-          (sum, e) => sum + e.amount,
+      (sum, e) => sum + e.amount,
     );
   }
 
   double get monthlyExpense {
     final now = DateTime.now();
 
-    return transactions
-        .where((e) {
+    return transactions.where((e) {
       return _isPersonalExpense(e) &&
           e.createdAt.month == now.month &&
           e.createdAt.year == now.year;
-    })
-        .fold<double>(
+    }).fold<double>(
       0,
-          (sum, e) => sum + e.amount,
+      (sum, e) => sum + e.amount,
     );
   }
 
@@ -106,21 +102,17 @@ class StatsController extends ChangeNotifier {
   }
 
   double get totalIncome {
-    return transactions
-        .where(_isPersonalIncome)
-        .fold<double>(
-      0,
+    return transactions.where(_isPersonalIncome).fold<double>(
+          0,
           (sum, e) => sum + e.amount,
-    );
+        );
   }
 
   double get totalExpense {
-    return transactions
-        .where(_isPersonalExpense)
-        .fold<double>(
-      0,
+    return transactions.where(_isPersonalExpense).fold<double>(
+          0,
           (sum, e) => sum + e.amount,
-    );
+        );
   }
 
   @override

@@ -120,7 +120,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
-
   void _openNewChatSheet(BuildContext context, String myUid) {
     HapticFeedback.lightImpact();
     showModalBottomSheet(
@@ -182,7 +181,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
-  void _openNewNoteModal(BuildContext context, String myUid, String? currentNote) {
+  void _openNewNoteModal(
+      BuildContext context, String myUid, String? currentNote) {
     HapticFeedback.lightImpact();
     showDialog(
       context: context,
@@ -235,10 +235,14 @@ class _ChatListScreenState extends State<ChatListScreen> {
           DateTime? getSeenTime(Map<String, dynamic> f) {
             DateTime? seen = f['lastSeen'] is Timestamp
                 ? (f['lastSeen'] as Timestamp).toDate()
-                : (f['lastSeen'] is DateTime ? f['lastSeen'] as DateTime : null);
+                : (f['lastSeen'] is DateTime
+                    ? f['lastSeen'] as DateTime
+                    : null);
             seen ??= f['lastActiveDate'] is Timestamp
                 ? (f['lastActiveDate'] as Timestamp).toDate()
-                : (f['lastActiveDate'] is DateTime ? f['lastActiveDate'] as DateTime : null);
+                : (f['lastActiveDate'] is DateTime
+                    ? f['lastActiveDate'] as DateTime
+                    : null);
             return seen;
           }
 
@@ -318,7 +322,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 final myAvatar = myProfile?.avatarUrl ?? '';
                 final myFrame = myProfile?.avatarFrame ?? 'plain';
                 final hasNote = myProfile?.hasActiveNote == true;
-                final noteText = hasNote ? myProfile!.userNote! : context.l10n.shareNote;
+                final noteText =
+                    hasNote ? myProfile!.userNote! : context.l10n.shareNote;
 
                 return InkWell(
                   onTap: () {
@@ -356,10 +361,59 @@ class _ChatListScreenState extends State<ChatListScreen> {
                             children: [
                               Positioned(
                                 bottom: 0,
-                                child: AvatarWithFrame(
-                                  avatarUrl: myAvatar,
-                                  frameId: myFrame,
-                                  size: 54,
+                                child: Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    AvatarWithFrame(
+                                      avatarUrl: myAvatar,
+                                      frameId: myFrame,
+                                      size: 54,
+                                    ),
+                                    if (!hasNote)
+                                      Positioned(
+                                        bottom: 0,
+                                        right: 0,
+                                        child: Container(
+                                          width: 21,
+                                          height: 21,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            gradient: const LinearGradient(
+                                              colors: [
+                                                Color(0xFF00E5FF),
+                                                Color(0xFF0084FF),
+                                              ],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            ),
+                                            border: Border.all(
+                                              color:
+                                                  AppColors.background(context),
+                                              width: 2.2,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: const Color(0xFF0084FF)
+                                                    .withValues(
+                                                        alpha: isDark
+                                                            ? 0.55
+                                                            : 0.35),
+                                                blurRadius: 6,
+                                                spreadRadius: 0.5,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ],
+                                          ),
+                                          child: const Center(
+                                            child: Icon(
+                                              Icons.add_rounded,
+                                              size: 14,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                  ],
                                 ),
                               ),
                               Positioned(
@@ -382,7 +436,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white70 : const Color(0xFF374151),
+                            color: isDark
+                                ? Colors.white70
+                                : const Color(0xFF374151),
                           ),
                         ),
                       ],
@@ -399,7 +455,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
               final hasNote = friend['hasActiveNote'] == true;
               final noteText = friend['userNote'] as String? ?? '';
               final canShowPresence = friend['showActiveStatus'] != false &&
-                  (friend['activeStatusMode'] == 'public' || myShowActiveStatus);
+                  (friend['activeStatusMode'] == 'public' ||
+                      myShowActiveStatus);
               final isOnline = friend['isOnline'] == true && canShowPresence;
               final friendOfflineMinutes =
                   getOfflineMinutes(friend, isOnline, canShowPresence);
@@ -447,55 +504,13 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                     frameId: avatarFrame,
                                     size: 54,
                                   ),
-                                  if (isOnline)
-                                    Positioned(
-                                      bottom: 1,
-                                      right: 1,
-                                      child: Container(
-                                        width: 14,
-                                        height: 14,
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF22C55E),
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: AppColors.background(context),
-                                            width: 2.2,
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                  else if (friendOfflineMinutes != null)
-                                    Positioned(
-                                      bottom: -1,
-                                      right: -3,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 4.5,
-                                          vertical: 1,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: isDark
-                                              ? const Color(0xFF141F17)
-                                              : const Color(0xFFE8F7ED),
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          border: Border.all(
-                                            color: AppColors.background(context),
-                                            width: 2,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          '${friendOfflineMinutes}m',
-                                          style: TextStyle(
-                                            fontSize: 10.5,
-                                            fontWeight: FontWeight.w800,
-                                            color: isDark
-                                                ? const Color(0xFF22C55E)
-                                                : const Color(0xFF16A34A),
-                                            height: 1.1,
-                                          ),
-                                        ),
-                                      ),
+                                  if (!hasNote)
+                                    _PresenceIndicatorBadge(
+                                      isOnline: isOnline,
+                                      offlineMinutes: friendOfflineMinutes,
+                                      isDark: isDark,
+                                      backgroundColor:
+                                          AppColors.background(context),
                                     ),
                                 ],
                               ),
@@ -521,7 +536,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? Colors.white70 : const Color(0xFF374151),
+                          color:
+                              isDark ? Colors.white70 : const Color(0xFF374151),
                         ),
                       ),
                     ],
@@ -656,421 +672,459 @@ class _ChatListScreenState extends State<ChatListScreen> {
         child: SafeArea(
           child: Column(
             children: [
-            // TOP APP BAR
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSizes.pagePadding,
-                12,
-                AppSizes.pagePadding,
-                8,
-              ),
-              child: Row(
-                children: [
-                  InkWell(
-                    onTap: () {
-                      HapticFeedback.selectionClick();
-                      Navigator.pop(context);
-                    },
-                    borderRadius: BorderRadius.circular(AppSizes.radiusXLarge),
-                    child: Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.card(context),
-                        border: Border.all(
-                          color: AppColors.border(context),
+              // TOP APP BAR
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSizes.pagePadding,
+                  12,
+                  AppSizes.pagePadding,
+                  8,
+                ),
+                child: Row(
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        Navigator.pop(context);
+                      },
+                      borderRadius:
+                          BorderRadius.circular(AppSizes.radiusXLarge),
+                      child: Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.card(context),
+                          border: Border.all(
+                            color: AppColors.border(context),
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          color: textPrimary,
+                          size: 20,
                         ),
                       ),
-                      child: Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        color: textPrimary,
-                        size: 20,
-                      ),
                     ),
-                  ),
 
-                  // Center Title WITH ACTIVE STATUS BUTTON
-                  Expanded(
-                    child: Center(
-                      child: GestureDetector(
-                        onTap: () => _openActiveStatusSheet(context, myUid),
-                        behavior: HitTestBehavior.opaque,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Flexible(
-                              child: Text(
-                                context.l10n.conversationsTitle,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w800,
-                                  color: textPrimary,
-                                  letterSpacing: -0.3,
+                    // Center Title WITH ACTIVE STATUS BUTTON
+                    Expanded(
+                      child: Center(
+                        child: GestureDetector(
+                          onTap: () => _openActiveStatusSheet(context, myUid),
+                          behavior: HitTestBehavior.opaque,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  context.l10n.conversationsTitle,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w800,
+                                    color: textPrimary,
+                                    letterSpacing: -0.3,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 6),
-                            _ActiveStatusHeaderPill(
-                              isActive: context.watch<ProfileController>().showActiveStatus,
-                            ),
-                          ],
+                              const SizedBox(width: 6),
+                              _ActiveStatusHeaderPill(
+                                isActive: context
+                                    .watch<ProfileController>()
+                                    .showActiveStatus,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
 
-                  // Top Right Checkmark Action
-                  StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                    stream: chatRepo.streamUserChats(myUid),
-                    builder: (context, snapshot) {
-                      final docs = snapshot.data?.docs ?? [];
-                      return InkWell(
-                        onTap: () => _markAllConversationsAsRead(myUid, docs),
-                        borderRadius: BorderRadius.circular(AppSizes.radiusXLarge),
-                        child: Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.card(context),
-                            border: Border.all(
-                              color: AppColors.border(context),
+                    // Top Right Checkmark Action
+                    StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                      stream: chatRepo.streamUserChats(myUid),
+                      builder: (context, snapshot) {
+                        final docs = snapshot.data?.docs ?? [];
+                        return InkWell(
+                          onTap: () => _markAllConversationsAsRead(myUid, docs),
+                          borderRadius:
+                              BorderRadius.circular(AppSizes.radiusXLarge),
+                          child: Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.card(context),
+                              border: Border.all(
+                                color: AppColors.border(context),
+                              ),
                             ),
-                          ),
-                          child: Icon(
-                            Icons.done_all_rounded,
-                            color: textSecondary,
-                            size: 20,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-
-            // SEARCH BAR
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E212B) : const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: _searchFocusNode.hasFocus
-                        ? AppColors.primaryBlue.withValues(alpha: 0.6)
-                        : (isDark
-                            ? Colors.white.withValues(alpha: 0.08)
-                            : const Color(0xFFE2E8F0)),
-                    width: _searchFocusNode.hasFocus ? 1.2 : 1.0,
-                  ),
-                ),
-                child: TextField(
-                  controller: _searchController,
-                  focusNode: _searchFocusNode,
-                  textAlignVertical: TextAlignVertical.center,
-                  style: TextStyle(
-                    color: textPrimary,
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: context.l10n.searchConversations,
-                    hintStyle: TextStyle(
-                      color: textSecondary.withValues(alpha: 0.8),
-                      fontSize: 14,
-                    ),
-                    prefixIcon: Icon(
-                      Icons.search_rounded,
-                      color: _searchFocusNode.hasFocus
-                          ? AppColors.primaryBlue
-                          : textSecondary,
-                      size: 22,
-                    ),
-                    suffixIcon: _searchQuery.isNotEmpty
-                        ? IconButton(
-                            icon: Icon(
-                              Icons.cancel_rounded,
+                            child: Icon(
+                              Icons.done_all_rounded,
                               color: textSecondary,
-                              size: 18,
+                              size: 20,
                             ),
-                            onPressed: () {
-                              _searchController.clear();
-                            },
-                          )
-                        : null,
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    disabledBorder: InputBorder.none,
-                    errorBorder: InputBorder.none,
-                    focusedErrorBorder: InputBorder.none,
-                    filled: false,
-                    fillColor: Colors.transparent,
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 12,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+              // SEARCH BAR
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF1E212B)
+                        : const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: _searchFocusNode.hasFocus
+                          ? AppColors.primaryBlue.withValues(alpha: 0.6)
+                          : (isDark
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : const Color(0xFFE2E8F0)),
+                      width: _searchFocusNode.hasFocus ? 1.2 : 1.0,
+                    ),
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    focusNode: _searchFocusNode,
+                    textAlignVertical: TextAlignVertical.center,
+                    style: TextStyle(
+                      color: textPrimary,
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: context.l10n.searchConversations,
+                      hintStyle: TextStyle(
+                        color: textSecondary.withValues(alpha: 0.8),
+                        fontSize: 14,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search_rounded,
+                        color: _searchFocusNode.hasFocus
+                            ? AppColors.primaryBlue
+                            : textSecondary,
+                        size: 22,
+                      ),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: Icon(
+                                Icons.cancel_rounded,
+                                color: textSecondary,
+                                size: 18,
+                              ),
+                              onPressed: () {
+                                _searchController.clear();
+                              },
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      disabledBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
+                      focusedErrorBorder: InputBorder.none,
+                      filled: false,
+                      fillColor: Colors.transparent,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
 
-            // SCROLLABLE AREA (Starts directly after search bar)
-            Expanded(
-              child: StreamBuilder<List<Map<String, dynamic>>>(
-                stream: userRepo.streamFriends(myUid),
-                builder: (context, friendsSnapshot) {
-                  final friendsList = friendsSnapshot.data ?? [];
-                  final friendUids = friendsList
-                      .map((f) => (f['uid'] ?? '').toString())
-                      .where((uid) => uid.isNotEmpty)
-                      .toSet();
+              // SCROLLABLE AREA (Starts directly after search bar)
+              Expanded(
+                child: StreamBuilder<List<Map<String, dynamic>>>(
+                  stream: userRepo.streamFriends(myUid),
+                  builder: (context, friendsSnapshot) {
+                    final friendsList = friendsSnapshot.data ?? [];
+                    final friendUids = friendsList
+                        .map((f) => (f['uid'] ?? '').toString())
+                        .where((uid) => uid.isNotEmpty)
+                        .toSet();
 
-                  return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                    stream: chatRepo.streamUserChats(myUid),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting &&
-                          !snapshot.hasData) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      }
-
-                      final docs = snapshot.data?.docs ?? [];
-
-                      // Sort conversations by latest message timestamp descending
-                      final sortedDocs = List<QueryDocumentSnapshot<Map<String, dynamic>>>.from(docs)
-                        ..sort((a, b) {
-                          final aTime = (a.data()['updatedAt'] as Timestamp?)?.toDate() ??
-                              DateTime.fromMillisecondsSinceEpoch(0);
-                          final bTime = (b.data()['updatedAt'] as Timestamp?)?.toDate() ??
-                              DateTime.fromMillisecondsSinceEpoch(0);
-                          return bTime.compareTo(aTime);
-                        });
-
-                      // Filter by tab
-                      final filteredDocs = sortedDocs.where((doc) {
-                        final data = doc.data();
-                        final isGroup = data['isGroup'] == true;
-                        final unreadBy = List<String>.from(data['unreadBy'] ?? []);
-                        final lastSenderId = (data['lastSenderId'] ?? '').toString();
-                        final bool isUnread = isGroup
-                            ? unreadBy.contains(myUid)
-                            : (unreadBy.contains(myUid) ||
-                                (lastSenderId.isNotEmpty &&
-                                    lastSenderId != myUid &&
-                                    data['lastMessageIsRead'] == false));
-
-                        if (_selectedTab == 'unread') {
-                          return isUnread;
-                        } else if (_selectedTab == 'groups') {
-                          return isGroup;
+                    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                      stream: chatRepo.streamUserChats(myUid),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                                ConnectionState.waiting &&
+                            !snapshot.hasData) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
                         }
-                        return true;
-                      }).toList();
 
-                      return CustomScrollView(
-                        keyboardDismissBehavior:
-                            ScrollViewKeyboardDismissBehavior.onDrag,
-                        physics: const AlwaysScrollableScrollPhysics(
-                          parent: BouncingScrollPhysics(),
-                        ),
-                        slivers: [
-                          // 1. Stories / Active Friends Bar (Scrolls with page)
-                          if (_searchQuery.isEmpty)
+                        final docs = snapshot.data?.docs ?? [];
+
+                        // Sort conversations by latest message timestamp descending
+                        final sortedDocs = List<
+                            QueryDocumentSnapshot<
+                                Map<String, dynamic>>>.from(docs)
+                          ..sort((a, b) {
+                            final aTime = (a.data()['updatedAt'] as Timestamp?)
+                                    ?.toDate() ??
+                                DateTime.fromMillisecondsSinceEpoch(0);
+                            final bTime = (b.data()['updatedAt'] as Timestamp?)
+                                    ?.toDate() ??
+                                DateTime.fromMillisecondsSinceEpoch(0);
+                            return bTime.compareTo(aTime);
+                          });
+
+                        // Filter by tab
+                        final filteredDocs = sortedDocs.where((doc) {
+                          final data = doc.data();
+                          final isGroup = data['isGroup'] == true;
+                          final unreadBy =
+                              List<String>.from(data['unreadBy'] ?? []);
+                          final lastSenderId =
+                              (data['lastSenderId'] ?? '').toString();
+                          final bool isUnread = isGroup
+                              ? unreadBy.contains(myUid)
+                              : (unreadBy.contains(myUid) ||
+                                  (lastSenderId.isNotEmpty &&
+                                      lastSenderId != myUid &&
+                                      data['lastMessageIsRead'] == false));
+
+                          if (_selectedTab == 'unread') {
+                            return isUnread;
+                          } else if (_selectedTab == 'groups') {
+                            return isGroup;
+                          }
+                          return true;
+                        }).toList();
+
+                        return CustomScrollView(
+                          keyboardDismissBehavior:
+                              ScrollViewKeyboardDismissBehavior.onDrag,
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          slivers: [
+                            // 1. Stories / Active Friends Bar (Scrolls with page)
+                            if (_searchQuery.isEmpty)
+                              SliverToBoxAdapter(
+                                child: _buildActiveStoriesBar(
+                                  context,
+                                  myUid,
+                                  isDark,
+                                  userRepo,
+                                ),
+                              ),
+
+                            // 2. Filter Tabs Row (Scrolls with page)
                             SliverToBoxAdapter(
-                              child: _buildActiveStoriesBar(
-                                context,
-                                myUid,
-                                isDark,
-                                userRepo,
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.only(top: 2, bottom: 4),
+                                child: _buildFilterTabs(context, isDark),
                               ),
                             ),
 
-                          // 2. Filter Tabs Row (Scrolls with page)
-                          SliverToBoxAdapter(
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 2, bottom: 4),
-                              child: _buildFilterTabs(context, isDark),
-                            ),
-                          ),
+                            // 3. Conversation List or Empty State
+                            if (filteredDocs.isEmpty)
+                              SliverFillRemaining(
+                                hasScrollBody: false,
+                                child: _buildEmptyState(context, myUid),
+                              )
+                            else
+                              SliverPadding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(16, 4, 16, 90),
+                                sliver: SliverList(
+                                  delegate: SliverChildBuilderDelegate(
+                                    (context, index) {
+                                      final itemIndex = index ~/ 2;
+                                      if (index.isOdd) {
+                                        return Divider(
+                                          height: 1,
+                                          indent: 74,
+                                          color: isDark
+                                              ? Colors.white
+                                                  .withValues(alpha: 0.06)
+                                              : Colors.black
+                                                  .withValues(alpha: 0.05),
+                                        );
+                                      }
 
-                          // 3. Conversation List or Empty State
-                          if (filteredDocs.isEmpty)
-                            SliverFillRemaining(
-                              hasScrollBody: false,
-                              child: _buildEmptyState(context, myUid),
-                            )
-                          else
-                            SliverPadding(
-                              padding: const EdgeInsets.fromLTRB(16, 4, 16, 90),
-                              sliver: SliverList(
-                                delegate: SliverChildBuilderDelegate(
-                                  (context, index) {
-                                    final itemIndex = index ~/ 2;
-                                    if (index.isOdd) {
-                                      return Divider(
-                                        height: 1,
-                                        indent: 74,
-                                        color: isDark
-                                            ? Colors.white.withValues(alpha: 0.06)
-                                            : Colors.black.withValues(alpha: 0.05),
-                                      );
-                                    }
+                                      final doc = filteredDocs[itemIndex];
+                                      final data = doc.data();
+                                      final participants = List<String>.from(
+                                          data['participants'] ?? []);
 
-                                    final doc = filteredDocs[itemIndex];
-                                    final data = doc.data();
-                                    final participants =
-                                        List<String>.from(data['participants'] ?? []);
+                                      final isGroup = data['isGroup'] == true;
+                                      if (isGroup) {
+                                        final groupName =
+                                            (data['groupName'] as String?)
+                                                    ?.trim() ??
+                                                'Nhóm chi tiêu';
+                                        final groupColorHex =
+                                            (data['groupColor'] as String?) ??
+                                                '#79AFFF';
+                                        final lastMessage =
+                                            (data['lastMessage'] ?? '')
+                                                .toString();
+                                        final lastSenderId =
+                                            (data['lastSenderId'] ?? '')
+                                                .toString();
+                                        final updatedAt =
+                                            (data['updatedAt'] as Timestamp?)
+                                                ?.toDate();
+                                        final unreadBy = List<String>.from(
+                                            data['unreadBy'] ?? []);
+                                        final bool isUnread =
+                                            unreadBy.contains(myUid);
 
-                                    final isGroup = data['isGroup'] == true;
-                                    if (isGroup) {
-                                      final groupName =
-                                          (data['groupName'] as String?)?.trim() ??
-                                              'Nhóm chi tiêu';
-                                      final groupColorHex =
-                                          (data['groupColor'] as String?) ?? '#79AFFF';
-                                      final lastMessage =
-                                          (data['lastMessage'] ?? '').toString();
-                                      final lastSenderId =
-                                          (data['lastSenderId'] ?? '').toString();
-                                      final updatedAt =
-                                          (data['updatedAt'] as Timestamp?)?.toDate();
-                                      final unreadBy =
-                                          List<String>.from(data['unreadBy'] ?? []);
-                                      final bool isUnread = unreadBy.contains(myUid);
-
-                                      // Group Typing detection
-                                      final List<String> typingUids = [];
-                                      final typingData =
-                                          data['typing'] as Map<String, dynamic>?;
-                                      if (typingData != null) {
-                                        for (final entry in typingData.entries) {
-                                          if (entry.key != myUid) {
-                                            final val = entry.value;
-                                            if (val == true || val is Timestamp) {
-                                              typingUids.add(entry.key);
+                                        // Group Typing detection
+                                        final List<String> typingUids = [];
+                                        final typingData = data['typing']
+                                            as Map<String, dynamic>?;
+                                        if (typingData != null) {
+                                          for (final entry
+                                              in typingData.entries) {
+                                            if (entry.key != myUid) {
+                                              final val = entry.value;
+                                              if (val == true ||
+                                                  val is Timestamp) {
+                                                typingUids.add(entry.key);
+                                              }
                                             }
                                           }
                                         }
-                                      }
-                                      final bool isGroupTyping = typingUids.isNotEmpty;
-                                      final String typingUid =
-                                          typingUids.isNotEmpty ? typingUids.first : '';
+                                        final bool isGroupTyping =
+                                            typingUids.isNotEmpty;
+                                        final String typingUid =
+                                            typingUids.isNotEmpty
+                                                ? typingUids.first
+                                                : '';
 
-                                      final bool isGroupMuted =
+                                        final bool isGroupMuted =
+                                            chatRepo.isChatMuted(data, myUid);
+
+                                        return _GroupConversationItemTile(
+                                          key: ValueKey('group_${doc.id}'),
+                                          groupId: doc.id,
+                                          myUid: myUid,
+                                          groupName: groupName,
+                                          groupColorHex: groupColorHex,
+                                          participants: participants,
+                                          lastMessage: lastMessage,
+                                          lastSenderId: lastSenderId,
+                                          updatedAt: updatedAt,
+                                          relativeTime: _formatRelativeTime(
+                                              updatedAt, currentLocale),
+                                          isUnread: isUnread,
+                                          isGroupMuted: isGroupMuted,
+                                          isGroupTyping: isGroupTyping,
+                                          typingUid: typingUid,
+                                          typingCount: typingUids.length,
+                                          userRepo: userRepo,
+                                          chatRepo: chatRepo,
+                                          searchQuery: _searchQuery,
+                                        );
+                                      }
+
+                                      final otherUid = participants.firstWhere(
+                                        (id) => id != myUid,
+                                        orElse: () => '',
+                                      );
+
+                                      if (otherUid.isEmpty) {
+                                        return const SizedBox.shrink();
+                                      }
+
+                                      final lastMessage =
+                                          (data['lastMessage'] ?? '')
+                                              .toString();
+                                      final lastSenderId =
+                                          (data['lastSenderId'] ?? '')
+                                              .toString();
+                                      final lastType =
+                                          (data['lastType'] ?? 'text')
+                                              .toString();
+                                      final lastReactionEmoji =
+                                          (data['lastReactionEmoji'] ?? '')
+                                              .toString();
+                                      final updatedAt =
+                                          (data['updatedAt'] as Timestamp?)
+                                              ?.toDate();
+
+                                      // Typing detection
+                                      bool isOtherTyping = false;
+                                      final typingData = data['typing']
+                                          as Map<String, dynamic>?;
+                                      if (typingData != null &&
+                                          typingData.containsKey(otherUid)) {
+                                        final val = typingData[otherUid];
+                                        isOtherTyping =
+                                            val == true || val is Timestamp;
+                                      }
+
+                                      // Unread detection
+                                      final unreadBy = List<String>.from(
+                                          data['unreadBy'] ?? []);
+                                      final bool isUnread =
+                                          unreadBy.contains(myUid) ||
+                                              (lastSenderId.isNotEmpty &&
+                                                  lastSenderId != myUid &&
+                                                  data['lastMessageIsRead'] ==
+                                                      false);
+
+                                      final isFriend =
+                                          friendUids.contains(otherUid);
+                                      final bool isDirectMuted =
                                           chatRepo.isChatMuted(data, myUid);
 
-                                      return _GroupConversationItemTile(
-                                        key: ValueKey('group_${doc.id}'),
-                                        groupId: doc.id,
+                                      return _ConversationItemTile(
+                                        key: ValueKey(doc.id),
+                                        chatId: doc.id,
                                         myUid: myUid,
-                                        groupName: groupName,
-                                        groupColorHex: groupColorHex,
-                                        participants: participants,
+                                        otherUid: otherUid,
+                                        isFriend: isFriend,
+                                        isMuted: isDirectMuted,
                                         lastMessage: lastMessage,
                                         lastSenderId: lastSenderId,
+                                        lastType: lastType,
+                                        lastReactionEmoji: lastReactionEmoji,
                                         updatedAt: updatedAt,
                                         relativeTime: _formatRelativeTime(
                                             updatedAt, currentLocale),
+                                        isOtherTyping: isOtherTyping,
                                         isUnread: isUnread,
-                                        isGroupMuted: isGroupMuted,
-                                        isGroupTyping: isGroupTyping,
-                                        typingUid: typingUid,
-                                        typingCount: typingUids.length,
                                         userRepo: userRepo,
-                                        chatRepo: chatRepo,
                                         searchQuery: _searchQuery,
                                       );
-                                    }
-
-                                    final otherUid = participants.firstWhere(
-                                      (id) => id != myUid,
-                                      orElse: () => '',
-                                    );
-
-                                    if (otherUid.isEmpty) {
-                                      return const SizedBox.shrink();
-                                    }
-
-                                    final lastMessage =
-                                        (data['lastMessage'] ?? '').toString();
-                                    final lastSenderId =
-                                        (data['lastSenderId'] ?? '').toString();
-                                    final lastType =
-                                        (data['lastType'] ?? 'text').toString();
-                                    final lastReactionEmoji =
-                                        (data['lastReactionEmoji'] ?? '').toString();
-                                    final updatedAt =
-                                        (data['updatedAt'] as Timestamp?)?.toDate();
-
-                                    // Typing detection
-                                    bool isOtherTyping = false;
-                                    final typingData =
-                                        data['typing'] as Map<String, dynamic>?;
-                                    if (typingData != null &&
-                                        typingData.containsKey(otherUid)) {
-                                      final val = typingData[otherUid];
-                                      isOtherTyping =
-                                          val == true || val is Timestamp;
-                                    }
-
-                                    // Unread detection
-                                    final unreadBy =
-                                        List<String>.from(data['unreadBy'] ?? []);
-                                    final bool isUnread = unreadBy.contains(myUid) ||
-                                        (lastSenderId.isNotEmpty &&
-                                            lastSenderId != myUid &&
-                                            data['lastMessageIsRead'] == false);
-
-                                    final isFriend = friendUids.contains(otherUid);
-                                    final bool isDirectMuted =
-                                        chatRepo.isChatMuted(data, myUid);
-
-                                    return _ConversationItemTile(
-                                      key: ValueKey(doc.id),
-                                      chatId: doc.id,
-                                      myUid: myUid,
-                                      otherUid: otherUid,
-                                      isFriend: isFriend,
-                                      isMuted: isDirectMuted,
-                                      lastMessage: lastMessage,
-                                      lastSenderId: lastSenderId,
-                                      lastType: lastType,
-                                      lastReactionEmoji: lastReactionEmoji,
-                                      updatedAt: updatedAt,
-                                      relativeTime: _formatRelativeTime(
-                                          updatedAt, currentLocale),
-                                      isOtherTyping: isOtherTyping,
-                                      isUnread: isUnread,
-                                      userRepo: userRepo,
-                                      searchQuery: _searchQuery,
-                                    );
-                                  },
-                                  childCount: math.max(0, filteredDocs.length * 2 - 1),
+                                    },
+                                    childCount: math.max(
+                                        0, filteredDocs.length * 2 - 1),
+                                  ),
                                 ),
                               ),
-                            ),
-                        ],
-                      );
-                    },
-                  );
-                },
+                          ],
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildEmptyState(BuildContext context, String myUid) {
     return Center(
@@ -1121,7 +1175,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryBlue,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -1130,7 +1185,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
               icon: const Icon(Icons.send_rounded, size: 18),
               label: Text(
                 context.l10n.newMessage,
-                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5),
+                style: const TextStyle(
+                    fontWeight: FontWeight.w800, fontSize: 14.5),
               ),
               onPressed: () => _openNewChatSheet(context, myUid),
             ),
@@ -1214,7 +1270,8 @@ class _ConversationItemTile extends StatelessWidget {
         lastMessage.contains('đã nạp') ||
         lastMessage.contains('added expense') ||
         lastMessage.contains('deposited')) {
-      final localized = GroupChatConversationScreen.localizeGroupSystemText(context, lastMessage);
+      final localized = GroupChatConversationScreen.localizeGroupSystemText(
+          context, lastMessage);
       if (localized != lastMessage) {
         return localized;
       }
@@ -1244,27 +1301,10 @@ class _ConversationItemTile extends StatelessWidget {
         final username = otherUser?.username ?? '';
         final avatarUrl = otherUser?.avatarUrl ?? '';
         final avatarFrame = otherUser?.avatarFrame ?? 'plain';
-        final isDark = AppColors.isDark(context);
-        final myShowActiveStatus =
-            context.watch<LocalSettingsService>().showActiveStatus;
-        final canShowPresence = otherUser != null &&
-            otherUser.isPresenceVisibleTo(isFriend: isFriend) &&
-            (otherUser.activeStatusMode == 'public' || myShowActiveStatus);
-        final isOnline = canShowPresence && otherUser.isCurrentlyOnline;
-
-        int? offlineMinutes;
-        if (!isOnline && canShowPresence) {
-          final seen = otherUser.lastSeen ?? otherUser.lastActiveDate;
-          final now = DateTime.now();
-          final safeSeen = seen.isAfter(now) ? now : seen;
-          final diff = now.difference(safeSeen);
-          if (diff.inMinutes >= 0 && diff.inMinutes < 60) {
-            offlineMinutes = diff.inMinutes == 0 ? 1 : diff.inMinutes;
-          }
-        }
 
         final draft = context.watch<LocalSettingsService>().getDraft(otherUid);
-        final hasDraft = !isOtherTyping && draft != null && draft.trim().isNotEmpty;
+        final hasDraft =
+            !isOtherTyping && draft != null && draft.trim().isNotEmpty;
 
         // Filter search query if present
         if (searchQuery.isNotEmpty) {
@@ -1328,65 +1368,11 @@ class _ConversationItemTile extends StatelessWidget {
                 else
                   const SizedBox(width: 2),
 
-                // Avatar with Frame & Online / Offline Indicator Badge
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    AvatarWithFrame(
-                      avatarUrl: avatarUrl,
-                      frameId: avatarFrame,
-                      size: 54,
-                    ),
-                    if (isOnline)
-                      Positioned(
-                        bottom: 1,
-                        right: 1,
-                        child: Container(
-                          width: 14,
-                          height: 14,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF22C55E),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.background(context),
-                              width: 2.2,
-                            ),
-                          ),
-                        ),
-                      )
-                    else if (offlineMinutes != null)
-                      Positioned(
-                        bottom: -1,
-                        right: -3,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 5,
-                            vertical: 1.5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? const Color(0xFF141F17)
-                                : const Color(0xFFE8F7ED),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: AppColors.background(context),
-                              width: 2,
-                            ),
-                          ),
-                          child: Text(
-                            '${offlineMinutes}m',
-                            style: TextStyle(
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w800,
-                              color: isDark
-                                  ? const Color(0xFF22C55E)
-                                  : const Color(0xFF16A34A),
-                              height: 1.1,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
+                // Avatar with Frame
+                AvatarWithFrame(
+                  avatarUrl: avatarUrl,
+                  frameId: avatarFrame,
+                  size: 54,
                 ),
 
                 const SizedBox(width: 14),
@@ -1407,7 +1393,9 @@ class _ConversationItemTile extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontSize: 16.5,
-                                fontWeight: isUnread ? FontWeight.w900 : FontWeight.w700,
+                                fontWeight: isUnread
+                                    ? FontWeight.w900
+                                    : FontWeight.w700,
                                 color: textPrimary,
                                 letterSpacing: -0.2,
                               ),
@@ -1427,7 +1415,9 @@ class _ConversationItemTile extends StatelessWidget {
                               relativeTime,
                               style: TextStyle(
                                 fontSize: 13,
-                                fontWeight: isUnread ? FontWeight.w800 : FontWeight.w500,
+                                fontWeight: isUnread
+                                    ? FontWeight.w800
+                                    : FontWeight.w500,
                                 color: isUnread
                                     ? AppColors.primaryBlue
                                     : textSecondary.withValues(alpha: 0.85),
@@ -1472,10 +1462,14 @@ class _ConversationItemTile extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 14,
-                            fontStyle: isOtherTyping ? FontStyle.italic : FontStyle.normal,
+                            fontStyle: isOtherTyping
+                                ? FontStyle.italic
+                                : FontStyle.normal,
                             fontWeight: isOtherTyping
                                 ? FontWeight.w700
-                                : (isUnread ? FontWeight.w800 : FontWeight.w500),
+                                : (isUnread
+                                    ? FontWeight.w800
+                                    : FontWeight.w500),
                             color: isOtherTyping
                                 ? AppColors.primaryBlue
                                 : (isUnread ? textPrimary : textSecondary),
@@ -1555,11 +1549,13 @@ class _GroupConversationItemTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final draft = context.watch<LocalSettingsService>().getDraft('group_$groupId');
+    final draft =
+        context.watch<LocalSettingsService>().getDraft('group_$groupId');
     final hasDraft = !isGroupTyping && draft != null && draft.trim().isNotEmpty;
 
     final localizedLastMessage =
-        GroupChatConversationScreen.localizeGroupSystemText(context, lastMessage);
+        GroupChatConversationScreen.localizeGroupSystemText(
+            context, lastMessage);
 
     if (searchQuery.isNotEmpty) {
       final query = searchQuery.toLowerCase();
@@ -1582,7 +1578,8 @@ class _GroupConversationItemTile extends StatelessWidget {
         if (typingCount > 1) {
           displaySnippet = '$typingCount người đang soạn tin...';
         } else if (typingUser != null && typingUser.name.trim().isNotEmpty) {
-          displaySnippet = '${typingUser.name.trim()}: ${context.l10n.isTyping}';
+          displaySnippet =
+              '${typingUser.name.trim()}: ${context.l10n.isTyping}';
         } else {
           displaySnippet = context.l10n.isTyping;
         }
@@ -1655,7 +1652,8 @@ class _GroupConversationItemTile extends StatelessWidget {
                     }
                     final isOnline = f['isOnline'] == true;
                     final showActive = f['showActiveStatus'] != false;
-                    final mode = (f['activeStatusMode'] ?? 'friends').toString();
+                    final mode =
+                        (f['activeStatusMode'] ?? 'friends').toString();
                     return isOnline &&
                         showActive &&
                         (mode == 'public' || myShowActiveStatus);
@@ -1772,9 +1770,7 @@ class _GroupConversationItemTile extends StatelessWidget {
                         ],
                       ],
                     ),
-
                     const SizedBox(height: 3.5),
-
                     if (hasDraft)
                       Text.rich(
                         TextSpan(
@@ -1847,7 +1843,8 @@ class _GroupConversationItemTile extends StatelessWidget {
               stream: chatRepo.streamGroupUnreadCount(groupId, myUid),
               builder: (context, unreadSnapshot) {
                 final count = unreadSnapshot.data ?? 1;
-                return buildTileContent(count > 0 ? count : 1, userSnapshot.data);
+                return buildTileContent(
+                    count > 0 ? count : 1, userSnapshot.data);
               },
             );
           }
@@ -1979,10 +1976,13 @@ class _NewChatFriendsSheetState extends State<_NewChatFriendsSheet> {
 
               // Search Bar
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF262938) : const Color(0xFFF1F5F9),
+                    color: isDark
+                        ? const Color(0xFF262938)
+                        : const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: isDark
@@ -2027,138 +2027,148 @@ class _NewChatFriendsSheetState extends State<_NewChatFriendsSheet> {
                 ),
               ),
 
-            Divider(
-              height: 1,
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.08)
-                  : Colors.black.withValues(alpha: 0.06),
-            ),
+              Divider(
+                height: 1,
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : Colors.black.withValues(alpha: 0.06),
+              ),
 
-            // Friends List Stream
-            Expanded(
-              child: StreamBuilder<List<Map<String, dynamic>>>(
-                stream: repo.streamFriends(widget.myUid),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting &&
-                      !snapshot.hasData) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }
-
-                  final allFriends = snapshot.data ?? [];
-
-                  final filtered = allFriends.where((f) {
-                    final name = (f['name'] ?? '').toString().toLowerCase();
-                    final username = (f['username'] ?? '').toString().toLowerCase();
-                    if (_query.isNotEmpty) {
-                      return name.contains(_query) || username.contains(_query);
+              // Friends List Stream
+              Expanded(
+                child: StreamBuilder<List<Map<String, dynamic>>>(
+                  stream: repo.streamFriends(widget.myUid),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting &&
+                        !snapshot.hasData) {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
                     }
-                    return true;
-                  }).toList();
 
-                  if (filtered.isEmpty) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Text(
-                          _query.isNotEmpty
-                              ? 'Không tìm thấy bạn bè phù hợp'
-                              : 'Chưa có bạn bè nào',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: textSecondary,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    );
-                  }
+                    final allFriends = snapshot.data ?? [];
 
-                  return ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    itemCount: filtered.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 6),
-                    itemBuilder: (context, index) {
-                      final item = filtered[index];
-                      final friendUid = (item['uid'] ?? '').toString();
-                      final friendName = (item['name'] ?? '').toString().trim();
-                      final friendUsername = (item['username'] ?? '').toString().trim();
-                      final avatarUrl = (item['avatarUrl'] ?? '').toString();
-                      final avatarFrame = (item['avatarFrame'] ?? 'plain').toString();
+                    final filtered = allFriends.where((f) {
+                      final name = (f['name'] ?? '').toString().toLowerCase();
+                      final username =
+                          (f['username'] ?? '').toString().toLowerCase();
+                      if (_query.isNotEmpty) {
+                        return name.contains(_query) ||
+                            username.contains(_query);
+                      }
+                      return true;
+                    }).toList();
 
-                      final displayName =
-                          friendName.isNotEmpty ? friendName : (friendUsername.isNotEmpty ? friendUsername : context.l10n.user);
-
-                      return ListTile(
-                        onTap: () {
-                          Navigator.pop(context); // Close sheet
-                          Navigator.pushNamed(
-                            context,
-                            RouteNames.chatConversation,
-                            arguments: {
-                              'friend': UserModel.fromMap({
-                                'uid': friendUid,
-                                'name': displayName,
-                                'username': friendUsername,
-                                'avatarUrl': avatarUrl,
-                                'avatarFrame': avatarFrame,
-                              }),
-                            },
-                          );
-                        },
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        leading: AvatarWithFrame(
-                          avatarUrl: avatarUrl,
-                          frameId: avatarFrame,
-                          size: 46,
-                        ),
-                        title: Text(
-                          displayName,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 15.5,
-                            color: textPrimary,
-                          ),
-                        ),
-                        subtitle: friendUsername.isNotEmpty
-                            ? Text(
-                                '@$friendUsername',
-                                style: TextStyle(
-                                  fontSize: 12.5,
-                                  color: textSecondary,
-                                ),
-                              )
-                            : null,
-                        trailing: Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.primaryBlue.withValues(alpha: 0.12),
-                          ),
-                          child: const Icon(
-                            Icons.chat_bubble_outline_rounded,
-                            color: AppColors.primaryBlue,
-                            size: 18,
+                    if (filtered.isEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Text(
+                            _query.isNotEmpty
+                                ? 'Không tìm thấy bạn bè phù hợp'
+                                : 'Chưa có bạn bè nào',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: textSecondary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
                           ),
                         ),
                       );
-                    },
-                  );
-                },
+                    }
+
+                    return ListView.separated(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      itemCount: filtered.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 6),
+                      itemBuilder: (context, index) {
+                        final item = filtered[index];
+                        final friendUid = (item['uid'] ?? '').toString();
+                        final friendName =
+                            (item['name'] ?? '').toString().trim();
+                        final friendUsername =
+                            (item['username'] ?? '').toString().trim();
+                        final avatarUrl = (item['avatarUrl'] ?? '').toString();
+                        final avatarFrame =
+                            (item['avatarFrame'] ?? 'plain').toString();
+
+                        final displayName = friendName.isNotEmpty
+                            ? friendName
+                            : (friendUsername.isNotEmpty
+                                ? friendUsername
+                                : context.l10n.user);
+
+                        return ListTile(
+                          onTap: () {
+                            Navigator.pop(context); // Close sheet
+                            Navigator.pushNamed(
+                              context,
+                              RouteNames.chatConversation,
+                              arguments: {
+                                'friend': UserModel.fromMap({
+                                  'uid': friendUid,
+                                  'name': displayName,
+                                  'username': friendUsername,
+                                  'avatarUrl': avatarUrl,
+                                  'avatarFrame': avatarFrame,
+                                }),
+                              },
+                            );
+                          },
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          leading: AvatarWithFrame(
+                            avatarUrl: avatarUrl,
+                            frameId: avatarFrame,
+                            size: 46,
+                          ),
+                          title: Text(
+                            displayName,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 15.5,
+                              color: textPrimary,
+                            ),
+                          ),
+                          subtitle: friendUsername.isNotEmpty
+                              ? Text(
+                                  '@$friendUsername',
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    color: textSecondary,
+                                  ),
+                                )
+                              : null,
+                          trailing: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color:
+                                  AppColors.primaryBlue.withValues(alpha: 0.12),
+                            ),
+                            child: const Icon(
+                              Icons.chat_bubble_outline_rounded,
+                              color: AppColors.primaryBlue,
+                              size: 18,
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
 
 class _ActiveStatusHeaderPill extends StatelessWidget {
@@ -2171,19 +2181,24 @@ class _ActiveStatusHeaderPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = AppColors.isDark(context);
-    final dotColor = isActive ? const Color(0xFF10B981) : const Color(0xFF9CA3AF);
+    final dotColor =
+        isActive ? const Color(0xFF10B981) : const Color(0xFF9CA3AF);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
       decoration: BoxDecoration(
         color: isActive
             ? const Color(0xFF10B981).withValues(alpha: 0.15)
-            : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.06)),
+            : (isDark
+                ? Colors.white.withValues(alpha: 0.08)
+                : Colors.black.withValues(alpha: 0.06)),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: isActive
               ? const Color(0xFF10B981).withValues(alpha: 0.35)
-              : (isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.10)),
+              : (isDark
+                  ? Colors.white.withValues(alpha: 0.12)
+                  : Colors.black.withValues(alpha: 0.10)),
           width: 1,
         ),
       ),
@@ -2225,7 +2240,8 @@ class _ActiveStatusPrivacySheet extends StatefulWidget {
   const _ActiveStatusPrivacySheet({required this.myUid});
 
   @override
-  State<_ActiveStatusPrivacySheet> createState() => _ActiveStatusPrivacySheetState();
+  State<_ActiveStatusPrivacySheet> createState() =>
+      _ActiveStatusPrivacySheetState();
 }
 
 class _ActiveStatusPrivacySheetState extends State<_ActiveStatusPrivacySheet> {
@@ -2265,7 +2281,8 @@ class _ActiveStatusPrivacySheetState extends State<_ActiveStatusPrivacySheet> {
                         height: 4.5,
                         decoration: BoxDecoration(
                           color: textSecondary.withValues(alpha: 0.25),
-                          borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+                          borderRadius:
+                              BorderRadius.circular(AppSizes.radiusPill),
                         ),
                       ),
                     ),
@@ -2286,12 +2303,14 @@ class _ActiveStatusPrivacySheetState extends State<_ActiveStatusPrivacySheet> {
 
               // Large user avatar with active dot badge (matching screenshot)
               FutureBuilder<UserModel?>(
-                future: context.read<UserRepository>().getUserProfile(widget.myUid),
+                future:
+                    context.read<UserRepository>().getUserProfile(widget.myUid),
                 builder: (context, snapshot) {
                   final user = snapshot.data;
                   final avatarUrl = user?.avatarUrl ?? '';
                   final avatarFrame = user?.avatarFrame ?? 'plain';
-                  final name = user?.name.isNotEmpty == true ? user!.name : 'User';
+                  final name =
+                      user?.name.isNotEmpty == true ? user!.name : 'User';
                   final initial = name.isNotEmpty ? name[0].toUpperCase() : 'U';
 
                   return Stack(
@@ -2335,13 +2354,16 @@ class _ActiveStatusPrivacySheetState extends State<_ActiveStatusPrivacySheet> {
                                 ? const Color(0xFF10B981)
                                 : const Color(0xFF9CA3AF),
                             border: Border.all(
-                              color: isDark ? const Color(0xFF1E212B) : Colors.white,
+                              color: isDark
+                                  ? const Color(0xFF1E212B)
+                                  : Colors.white,
                               width: 3.5,
                             ),
                             boxShadow: isCurrentlyActive
                                 ? [
                                     BoxShadow(
-                                      color: const Color(0xFF10B981).withValues(alpha: 0.5),
+                                      color: const Color(0xFF10B981)
+                                          .withValues(alpha: 0.5),
                                       blurRadius: 6,
                                       spreadRadius: 1,
                                     ),
@@ -2378,7 +2400,9 @@ class _ActiveStatusPrivacySheetState extends State<_ActiveStatusPrivacySheet> {
               // Option list container (matching screenshot)
               Container(
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF161922) : const Color(0xFFF8FAFC),
+                  color: isDark
+                      ? const Color(0xFF161922)
+                      : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isDark
@@ -2527,6 +2551,90 @@ class _ActiveStatusPrivacySheetState extends State<_ActiveStatusPrivacySheet> {
   }
 }
 
+class _PresenceIndicatorBadge extends StatelessWidget {
+  final bool isOnline;
+  final int? offlineMinutes;
+  final bool isDark;
+  final Color backgroundColor;
+
+  const _PresenceIndicatorBadge({
+    required this.isOnline,
+    this.offlineMinutes,
+    required this.isDark,
+    required this.backgroundColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (isOnline) {
+      return Positioned(
+        bottom: 1,
+        right: 1,
+        child: Container(
+          width: 14,
+          height: 14,
+          decoration: BoxDecoration(
+            color: const Color(0xFF00E676),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: backgroundColor,
+              width: 2.2,
+            ),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0xFF00E676),
+                blurRadius: 5,
+                spreadRadius: 0.5,
+              ),
+            ],
+          ),
+        ),
+      );
+    } else if (offlineMinutes != null) {
+      return Positioned(
+        bottom: -2,
+        right: -3,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 5.5,
+            vertical: 1.5,
+          ),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF0A1F14) : const Color(0xFFE8FAF0),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isDark
+                  ? const Color(0xFF00E676).withValues(alpha: 0.6)
+                  : const Color(0xFF10B981).withValues(alpha: 0.6),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color:
+                    (isDark ? const Color(0xFF00E676) : const Color(0xFF10B981))
+                        .withValues(alpha: isDark ? 0.25 : 0.15),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: Text(
+            '${offlineMinutes}m',
+            style: TextStyle(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w900,
+              color: isDark ? const Color(0xFF00E676) : const Color(0xFF047857),
+              height: 1.1,
+              letterSpacing: -0.2,
+            ),
+          ),
+        ),
+      );
+    }
+    return const SizedBox.shrink();
+  }
+}
+
 class _NoteThoughtBubble extends StatelessWidget {
   final String text;
   final bool isPlaceholder;
@@ -2540,36 +2648,45 @@ class _NoteThoughtBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bubbleColor = isDark ? const Color(0xFF262626) : Colors.white;
-    final borderColor = isDark
-        ? Colors.white.withValues(alpha: 0.15)
-        : Colors.black.withValues(alpha: 0.10);
+    final bubbleColor = isDark ? const Color(0xFF222630) : Colors.white;
+    final borderColor =
+        isDark ? Colors.white.withValues(alpha: 0.20) : const Color(0xFFCBD5E1);
     final textColor = isPlaceholder
-        ? (isDark ? Colors.white54 : const Color(0xFF6B7280))
-        : (isDark ? Colors.white : const Color(0xFF111827));
+        ? (isDark ? Colors.white54 : const Color(0xFF64748B))
+        : (isDark ? Colors.white : const Color(0xFF0F172A));
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Main thought bubble cloud
         Container(
           constraints: const BoxConstraints(
             maxWidth: 78,
             minWidth: 44,
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4.5),
+          padding: const EdgeInsets.symmetric(horizontal: 7.5, vertical: 4.5),
           decoration: BoxDecoration(
             color: bubbleColor,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: borderColor,
-              width: 0.8,
+              width: 1.0,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.12),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
+                color: (isDark ? Colors.black : const Color(0xFF0F172A))
+                    .withValues(alpha: isDark ? 0.45 : 0.12),
+                blurRadius: 8,
+                spreadRadius: 0,
+                offset: const Offset(0, 3),
+              ),
+              BoxShadow(
+                color: (isDark ? Colors.black : const Color(0xFF0F172A))
+                    .withValues(alpha: isDark ? 0.25 : 0.05),
+                blurRadius: 2,
+                spreadRadius: 0,
+                offset: const Offset(0, 1),
               ),
             ],
           ),
@@ -2580,34 +2697,43 @@ class _NoteThoughtBubble extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 10,
-              fontWeight: isPlaceholder ? FontWeight.w500 : FontWeight.w700,
+              fontWeight: isPlaceholder ? FontWeight.w600 : FontWeight.w700,
               color: textColor,
               height: 1.15,
+              letterSpacing: -0.1,
             ),
           ),
         ),
-        // Lobe and dot attached to bottom left, floating over top of avatar
+        // Thought bubble tail dots leading directly down to avatar
         Padding(
-          padding: const EdgeInsets.only(left: 14),
+          padding: const EdgeInsets.only(left: 18),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              const SizedBox(height: 1),
+              // Upper thought dot
               Container(
-                width: 7,
-                height: 5,
+                width: 6.5,
+                height: 6.5,
                 decoration: BoxDecoration(
+                  shape: BoxShape.circle,
                   color: bubbleColor,
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(3),
-                    bottomRight: Radius.circular(3),
-                  ),
                   border: Border.all(
                     color: borderColor,
-                    width: 0.6,
+                    width: 0.9,
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color:
+                          Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+                      blurRadius: 2,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 1.2),
+              const SizedBox(height: 1.5),
+              // Lower thought dot pointing right into avatar
               Container(
                 width: 4.2,
                 height: 4.2,
@@ -2616,8 +2742,16 @@ class _NoteThoughtBubble extends StatelessWidget {
                   color: bubbleColor,
                   border: Border.all(
                     color: borderColor,
-                    width: 0.6,
+                    width: 0.8,
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color:
+                          Colors.black.withValues(alpha: isDark ? 0.25 : 0.06),
+                      blurRadius: 1.5,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -2833,9 +2967,10 @@ class _MyNoteViewerModalState extends State<_MyNoteViewerModal> {
                                                 ),
                                                 boxShadow: [
                                                   BoxShadow(
-                                                    color: Colors.black
-                                                        .withValues(
-                                                      alpha: isDark ? 0.35 : 0.15,
+                                                    color:
+                                                        Colors.black.withValues(
+                                                      alpha:
+                                                          isDark ? 0.35 : 0.15,
                                                     ),
                                                     blurRadius: 16,
                                                     offset: const Offset(0, 6),
@@ -2861,8 +2996,7 @@ class _MyNoteViewerModalState extends State<_MyNoteViewerModal> {
                                               padding:
                                                   const EdgeInsets.only(top: 0),
                                               child: Column(
-                                                mainAxisSize:
-                                                    MainAxisSize.min,
+                                                mainAxisSize: MainAxisSize.min,
                                                 children: [
                                                   Container(
                                                     width: 11,
@@ -2988,7 +3122,8 @@ class _MyNoteViewerModalState extends State<_MyNoteViewerModal> {
                                         : Colors.white.withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
-                                      color: Colors.white.withValues(alpha: 0.15),
+                                      color:
+                                          Colors.white.withValues(alpha: 0.15),
                                       width: 0.8,
                                     ),
                                   ),
@@ -3035,7 +3170,8 @@ class _MyNoteViewerModalState extends State<_MyNoteViewerModal> {
                                                   clipBehavior: Clip.none,
                                                   children: [
                                                     AvatarWithFrame(
-                                                      avatarUrl: r.reactorAvatar,
+                                                      avatarUrl:
+                                                          r.reactorAvatar,
                                                       frameId: r.reactorFrame,
                                                       size: 34,
                                                     ),
@@ -3058,7 +3194,8 @@ class _MyNoteViewerModalState extends State<_MyNoteViewerModal> {
                                                         ),
                                                         child: Text(
                                                           r.emoji,
-                                                          style: const TextStyle(
+                                                          style:
+                                                              const TextStyle(
                                                             fontSize: 12,
                                                           ),
                                                         ),
@@ -3078,8 +3215,7 @@ class _MyNoteViewerModalState extends State<_MyNoteViewerModal> {
                                                     maxLines: 1,
                                                     overflow:
                                                         TextOverflow.ellipsis,
-                                                    textAlign:
-                                                        TextAlign.center,
+                                                    textAlign: TextAlign.center,
                                                     style: TextStyle(
                                                       color: Colors.white
                                                           .withValues(
@@ -3269,11 +3405,13 @@ class _NewNoteModalState extends State<_NewNoteModal> {
                           children: [
                             // Top Bar (Matches Screenshot)
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
                               child: Row(
                                 children: [
                                   IconButton(
-                                    icon: const Icon(Icons.close_rounded, color: Colors.white, size: 26),
+                                    icon: const Icon(Icons.close_rounded,
+                                        color: Colors.white, size: 26),
                                     onPressed: () => Navigator.pop(context),
                                   ),
                                   Expanded(
@@ -3290,13 +3428,16 @@ class _NewNoteModalState extends State<_NewNoteModal> {
                                   ValueListenableBuilder<TextEditingValue>(
                                     valueListenable: _controller,
                                     builder: (context, value, _) {
-                                      final canShare = value.text.trim().isNotEmpty;
+                                      final canShare =
+                                          value.text.trim().isNotEmpty;
                                       return TextButton(
                                         onPressed: canShare ? _shareNote : null,
                                         child: Text(
                                           context.l10n.shareVerb,
                                           style: TextStyle(
-                                            color: canShare ? const Color(0xFF38BDF8) : Colors.white38,
+                                            color: canShare
+                                                ? const Color(0xFF38BDF8)
+                                                : Colors.white38,
                                             fontSize: 16,
                                             fontWeight: FontWeight.w700,
                                           ),
@@ -3333,19 +3474,29 @@ class _NewNoteModalState extends State<_NewNoteModal> {
                                         children: [
                                           Container(
                                             width: 240,
-                                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 16, vertical: 10),
                                             decoration: BoxDecoration(
-                                              color: isDark ? const Color(0xFF262626) : Colors.white,
-                                              borderRadius: BorderRadius.circular(20),
+                                              color: isDark
+                                                  ? const Color(0xFF262626)
+                                                  : Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
                                               border: Border.all(
                                                 color: isDark
-                                                    ? Colors.white.withValues(alpha: 0.12)
-                                                    : Colors.black.withValues(alpha: 0.08),
+                                                    ? Colors.white
+                                                        .withValues(alpha: 0.12)
+                                                    : Colors.black.withValues(
+                                                        alpha: 0.08),
                                                 width: 0.8,
                                               ),
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.15),
+                                                  color: Colors.black
+                                                      .withValues(
+                                                          alpha: isDark
+                                                              ? 0.35
+                                                              : 0.15),
                                                   blurRadius: 16,
                                                   offset: const Offset(0, 6),
                                                 ),
@@ -3358,24 +3509,31 @@ class _NewNoteModalState extends State<_NewNoteModal> {
                                               maxLines: 3,
                                               textAlign: TextAlign.center,
                                               style: TextStyle(
-                                                color: isDark ? Colors.white : const Color(0xFF111827),
+                                                color: isDark
+                                                    ? Colors.white
+                                                    : const Color(0xFF111827),
                                                 fontSize: 15.5,
                                                 fontWeight: FontWeight.w600,
                                                 height: 1.3,
                                               ),
                                               decoration: InputDecoration(
-                                                hintText: context.l10n.shareNote,
+                                                hintText:
+                                                    context.l10n.shareNote,
                                                 hintStyle: TextStyle(
                                                   color: isDark
-                                                      ? Colors.white.withValues(alpha: 0.45)
-                                                      : const Color(0xFF6B7280).withValues(alpha: 0.75),
+                                                      ? Colors.white.withValues(
+                                                          alpha: 0.45)
+                                                      : const Color(0xFF6B7280)
+                                                          .withValues(
+                                                              alpha: 0.75),
                                                   fontSize: 14.5,
                                                 ),
                                                 border: InputBorder.none,
                                                 isDense: true,
                                                 counterStyle: TextStyle(
                                                   color: isDark
-                                                      ? Colors.white.withValues(alpha: 0.40)
+                                                      ? Colors.white.withValues(
+                                                          alpha: 0.40)
                                                       : const Color(0xFF6B7280),
                                                   fontSize: 11,
                                                 ),
@@ -3383,7 +3541,8 @@ class _NewNoteModalState extends State<_NewNoteModal> {
                                             ),
                                           ),
                                           Padding(
-                                            padding: const EdgeInsets.only(top: 0),
+                                            padding:
+                                                const EdgeInsets.only(top: 0),
                                             child: Column(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
@@ -3391,15 +3550,25 @@ class _NewNoteModalState extends State<_NewNoteModal> {
                                                   width: 11,
                                                   height: 8,
                                                   decoration: BoxDecoration(
-                                                    color: isDark ? const Color(0xFF262626) : Colors.white,
-                                                    borderRadius: const BorderRadius.only(
-                                                      bottomLeft: Radius.circular(5),
-                                                      bottomRight: Radius.circular(5),
+                                                    color: isDark
+                                                        ? const Color(
+                                                            0xFF262626)
+                                                        : Colors.white,
+                                                    borderRadius:
+                                                        const BorderRadius.only(
+                                                      bottomLeft:
+                                                          Radius.circular(5),
+                                                      bottomRight:
+                                                          Radius.circular(5),
                                                     ),
                                                     border: Border.all(
                                                       color: isDark
-                                                          ? Colors.white.withValues(alpha: 0.12)
-                                                          : Colors.black.withValues(alpha: 0.08),
+                                                          ? Colors.white
+                                                              .withValues(
+                                                                  alpha: 0.12)
+                                                          : Colors.black
+                                                              .withValues(
+                                                                  alpha: 0.08),
                                                       width: 0.8,
                                                     ),
                                                   ),
@@ -3410,11 +3579,18 @@ class _NewNoteModalState extends State<_NewNoteModal> {
                                                   height: 5.5,
                                                   decoration: BoxDecoration(
                                                     shape: BoxShape.circle,
-                                                    color: isDark ? const Color(0xFF262626) : Colors.white,
+                                                    color: isDark
+                                                        ? const Color(
+                                                            0xFF262626)
+                                                        : Colors.white,
                                                     border: Border.all(
                                                       color: isDark
-                                                          ? Colors.white.withValues(alpha: 0.12)
-                                                          : Colors.black.withValues(alpha: 0.08),
+                                                          ? Colors.white
+                                                              .withValues(
+                                                                  alpha: 0.12)
+                                                          : Colors.black
+                                                              .withValues(
+                                                                  alpha: 0.08),
                                                       width: 0.8,
                                                     ),
                                                   ),
@@ -3448,7 +3624,8 @@ class _NewNoteModalState extends State<_NewNoteModal> {
 
                             // Audience info
                             Text(
-                              context.l10n.sharedWithAudience(context.l10n.audiencePublic),
+                              context.l10n.sharedWithAudience(
+                                  context.l10n.audiencePublic),
                               style: TextStyle(
                                 color: Colors.white.withValues(alpha: 0.90),
                                 fontSize: 14,
@@ -3536,9 +3713,8 @@ class _NoteViewerModalState extends State<_NoteViewerModal> {
                 !_knownReactionIds.contains(r.id))
             .toList();
 
-        final myReaction = reactions
-            .where((r) => r.reactorId == widget.myUid)
-            .firstOrNull;
+        final myReaction =
+            reactions.where((r) => r.reactorId == widget.myUid).firstOrNull;
 
         setState(() {
           _reactions = reactions;
@@ -3835,9 +4011,10 @@ class _NoteViewerModalState extends State<_NoteViewerModal> {
                                                 ),
                                                 boxShadow: [
                                                   BoxShadow(
-                                                    color: Colors.black
-                                                        .withValues(
-                                                      alpha: isDark ? 0.35 : 0.15,
+                                                    color:
+                                                        Colors.black.withValues(
+                                                      alpha:
+                                                          isDark ? 0.35 : 0.15,
                                                     ),
                                                     blurRadius: 16,
                                                     offset: const Offset(0, 6),
@@ -3863,8 +4040,7 @@ class _NoteViewerModalState extends State<_NoteViewerModal> {
                                               padding:
                                                   const EdgeInsets.only(top: 0),
                                               child: Column(
-                                                mainAxisSize:
-                                                    MainAxisSize.min,
+                                                mainAxisSize: MainAxisSize.min,
                                                 children: [
                                                   Container(
                                                     width: 11,
@@ -3987,7 +4163,8 @@ class _NoteViewerModalState extends State<_NoteViewerModal> {
                                         : Colors.white.withValues(alpha: 0.20),
                                     borderRadius: BorderRadius.circular(20),
                                     border: Border.all(
-                                      color: Colors.white.withValues(alpha: 0.2),
+                                      color:
+                                          Colors.white.withValues(alpha: 0.2),
                                       width: 0.6,
                                     ),
                                   ),
@@ -3996,18 +4173,24 @@ class _NoteViewerModalState extends State<_NoteViewerModal> {
                                     children: [
                                       SizedBox(
                                         height: 24,
-                                        width: (_reactions.take(4).length * 16.0 + 8.0),
+                                        width:
+                                            (_reactions.take(4).length * 16.0 +
+                                                8.0),
                                         child: Stack(
                                           children: [
-                                            for (int i = 0; i < _reactions.take(4).length; i++)
+                                            for (int i = 0;
+                                                i < _reactions.take(4).length;
+                                                i++)
                                               Positioned(
                                                 left: i * 16.0,
                                                 child: Stack(
                                                   clipBehavior: Clip.none,
                                                   children: [
                                                     AvatarWithFrame(
-                                                      avatarUrl: _reactions[i].reactorAvatar,
-                                                      frameId: _reactions[i].reactorFrame,
+                                                      avatarUrl: _reactions[i]
+                                                          .reactorAvatar,
+                                                      frameId: _reactions[i]
+                                                          .reactorFrame,
                                                       size: 22,
                                                     ),
                                                     Positioned(
@@ -4015,7 +4198,8 @@ class _NoteViewerModalState extends State<_NoteViewerModal> {
                                                       bottom: -4,
                                                       child: Text(
                                                         _reactions[i].emoji,
-                                                        style: const TextStyle(fontSize: 10),
+                                                        style: const TextStyle(
+                                                            fontSize: 10),
                                                       ),
                                                     ),
                                                   ],
@@ -4063,14 +4247,14 @@ class _NoteViewerModalState extends State<_NoteViewerModal> {
                                             ),
                                             child: InkWell(
                                               onTap: () {
-                                                final renderBox = emojiCtx
-                                                        .findRenderObject()
-                                                    as RenderBox?;
+                                                final renderBox =
+                                                    emojiCtx.findRenderObject()
+                                                        as RenderBox?;
                                                 Offset? originOffset;
                                                 if (renderBox != null &&
                                                     renderBox.hasSize) {
-                                                  final pos = renderBox
-                                                      .localToGlobal(
+                                                  final pos =
+                                                      renderBox.localToGlobal(
                                                           Offset.zero);
                                                   final size = renderBox.size;
                                                   originOffset = Offset(
@@ -4141,7 +4325,8 @@ class _NoteViewerModalState extends State<_NoteViewerModal> {
                                     border: Border.all(
                                       color: isDark
                                           ? Colors.white.withValues(alpha: 0.12)
-                                          : Colors.black.withValues(alpha: 0.08),
+                                          : Colors.black
+                                              .withValues(alpha: 0.08),
                                       width: 0.8,
                                     ),
                                     boxShadow: [
@@ -4192,15 +4377,14 @@ class _NoteViewerModalState extends State<_NoteViewerModal> {
                                                   : Colors.grey,
                                             ),
                                             onPressed: () {
-                                              final renderBox = heartCtx
-                                                      .findRenderObject()
-                                                  as RenderBox?;
+                                              final renderBox =
+                                                  heartCtx.findRenderObject()
+                                                      as RenderBox?;
                                               Offset? originOffset;
                                               if (renderBox != null &&
                                                   renderBox.hasSize) {
                                                 final pos = renderBox
-                                                    .localToGlobal(
-                                                        Offset.zero);
+                                                    .localToGlobal(Offset.zero);
                                                 final size = renderBox.size;
                                                 originOffset = Offset(
                                                   pos.dx + size.width / 2,
@@ -4243,6 +4427,3 @@ class _NoteViewerModalState extends State<_NoteViewerModal> {
     );
   }
 }
-
-
-

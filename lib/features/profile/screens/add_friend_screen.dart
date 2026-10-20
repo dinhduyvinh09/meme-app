@@ -81,7 +81,8 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
   Future<void> _searchUser(String username) async {
     try {
       final user = await widget.repo.findUserByUsername(username);
-      debugPrint('FOUND USER: ${user?.uid} - ${user?.name} - ${user?.username}');
+      debugPrint(
+          'FOUND USER: ${user?.uid} - ${user?.name} - ${user?.username}');
 
       if (!mounted) return;
 
@@ -186,8 +187,10 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
           duration: AppDurations.snackBar,
           content: Text(
             result == 'auto_accepted'
-                ? context.l10n.alreadyFriends(user.name.isEmpty ? context.l10n.user : user.name)
-                : context.l10n.requestSent(user.name.isEmpty ? context.l10n.user : user.name),
+                ? context.l10n.alreadyFriends(
+                    user.name.isEmpty ? context.l10n.user : user.name)
+                : context.l10n.requestSent(
+                    user.name.isEmpty ? context.l10n.user : user.name),
           ),
         ),
       );
@@ -216,155 +219,150 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
           child: ListView(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             padding: const EdgeInsets.fromLTRB(18, 18, 18, 28),
-          children: [
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 22),
-              decoration: BoxDecoration(
-                color: AppColors.card(context),
-                borderRadius: BorderRadius.circular(32),
-                border: Border.all(
-                  color: AppColors.border(context),
+            children: [
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 22),
+                decoration: BoxDecoration(
+                  color: AppColors.card(context),
+                  borderRadius: BorderRadius.circular(32),
+                  border: Border.all(
+                    color: AppColors.border(context),
+                  ),
                 ),
-              ),
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: 58,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: InkWell(
-                            onTap: () => Navigator.pop(context),
-                            borderRadius: BorderRadius.circular(
-                              AppSizes.radiusPill,
-                            ),
-                            child: Container(
-                              width: 54,
-                              height: 54,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: AppColors.surface(context),
-                                border: Border.all(
-                                  color: AppColors.innerBorder(context),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 58,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: InkWell(
+                              onTap: () => Navigator.pop(context),
+                              borderRadius: BorderRadius.circular(
+                                AppSizes.radiusPill,
+                              ),
+                              child: Container(
+                                width: 54,
+                                height: 54,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: AppColors.surface(context),
+                                  border: Border.all(
+                                    color: AppColors.innerBorder(context),
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.close_rounded,
+                                  color: AppColors.textPrimary(context),
+                                  size: 28,
                                 ),
                               ),
-                              child: Icon(
-                                Icons.close_rounded,
-                                color: AppColors.textPrimary(context),
-                                size: 28,
+                            ),
+                          ),
+                          Center(
+                            child: Text(
+                              context.l10n.addFriendTitle,
+                              style: AppTextStyles.pageTitle(context).copyWith(
+                                fontSize: 24,
                               ),
                             ),
                           ),
-                        ),
-                        Center(
-                          child: Text(
-                            context.l10n.addFriendTitle,
-                            style: AppTextStyles.pageTitle(context).copyWith(
-                              fontSize: 24,
-                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                    Container(
+                      width: 152,
+                      height: 152,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.primaryBlue.withValues(alpha: 0.08),
+                      ),
+                      child: Center(
+                        child: Container(
+                          width: 108,
+                          height: 108,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color:
+                                AppColors.primaryBlue.withValues(alpha: 0.12),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-
-                  Container(
-                    width: 152,
-                    height: 152,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.primaryBlue.withValues(alpha: 0.08),
-                    ),
-                    child: Center(
-                      child: Container(
-                        width: 108,
-                        height: 108,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.primaryBlue.withValues(alpha: 0.12),
-                        ),
-                        child: const Icon(
-                          Icons.person_add_alt_1_rounded,
-                          size: 54,
-                          color: AppColors.primaryBlue,
+                          child: const Icon(
+                            Icons.person_add_alt_1_rounded,
+                            size: 54,
+                            color: AppColors.primaryBlue,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  Text(
-                    context.l10n.addFriendTitle,
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.sectionTitle(context).copyWith(
-                      fontSize: 22,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    context.l10n.noFriendsSubtitle,
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.bodySecondary(context).copyWith(
-                      fontSize: 15,
-                      height: 1.5,
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  _SearchBox(
-                    controller: _controller,
-                    focusNode: _focusNode,
-                    onChanged: _onSearchChanged,
-                    cursorColor: yellow,
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 220),
-                    child: isSearching
-                        ? const Padding(
-                      key: ValueKey('loading'),
-                      padding: EdgeInsets.symmetric(vertical: 20),
-                      child: CircularProgressIndicator(),
-                    )
-                        : foundUser != null
-                        ? _FoundUserCard(
-                      key: const ValueKey('found_user'),
-                      user: foundUser!,
-                      connectionState: _connectionForFoundUser,
-                      onSendRequest: _sendRequest,
-                      buttonColor: yellow,
-                    )
-                        : _SearchHintBox(
-                      key: const ValueKey('hint_box'),
-                    ),
-                  ),
-
-                  if (infoText != null && foundUser == null && !isSearching) ...[
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 24),
                     Text(
-                      infoText!,
+                      context.l10n.addFriendTitle,
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.sectionTitle(context).copyWith(
+                        fontSize: 22,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      context.l10n.noFriendsSubtitle,
                       textAlign: TextAlign.center,
                       style: AppTextStyles.bodySecondary(context).copyWith(
                         fontSize: 15,
+                        height: 1.5,
                       ),
                     ),
+                    const SizedBox(height: 24),
+                    _SearchBox(
+                      controller: _controller,
+                      focusNode: _focusNode,
+                      onChanged: _onSearchChanged,
+                      cursorColor: yellow,
+                    ),
+                    const SizedBox(height: 20),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 220),
+                      child: isSearching
+                          ? const Padding(
+                              key: ValueKey('loading'),
+                              padding: EdgeInsets.symmetric(vertical: 20),
+                              child: CircularProgressIndicator(),
+                            )
+                          : foundUser != null
+                              ? _FoundUserCard(
+                                  key: const ValueKey('found_user'),
+                                  user: foundUser!,
+                                  connectionState: _connectionForFoundUser,
+                                  onSendRequest: _sendRequest,
+                                  buttonColor: yellow,
+                                )
+                              : _SearchHintBox(
+                                  key: const ValueKey('hint_box'),
+                                ),
+                    ),
+                    if (infoText != null &&
+                        foundUser == null &&
+                        !isSearching) ...[
+                      const SizedBox(height: 14),
+                      Text(
+                        infoText!,
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.bodySecondary(context).copyWith(
+                          fontSize: 15,
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
 
 class _SearchBox extends StatelessWidget {
@@ -482,24 +480,21 @@ class _FoundUserCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = AppColors.isDark(context);
 
-    final cardBg = isDark
-        ? const Color(0xFF20232D)
-        : const Color(0xFFF3F7FF);
+    final cardBg = isDark ? const Color(0xFF20232D) : const Color(0xFFF3F7FF);
 
-    final borderColor = isDark
-        ? Colors.white.withValues(alpha: 0.10)
-        : const Color(0xFFD8E6FF);
+    final borderColor =
+        isDark ? Colors.white.withValues(alpha: 0.10) : const Color(0xFFD8E6FF);
 
     final textPrimary = isDark ? Colors.white : const Color(0xFF172033);
     final textSecondary =
-    isDark ? Colors.white.withValues(alpha: 0.62) : const Color(0xFF667085);
+        isDark ? Colors.white.withValues(alpha: 0.62) : const Color(0xFF667085);
 
     final avatarUrl = user.avatarUrl.trim();
-    final name = user.name.trim().isEmpty ? context.l10n.user : user.name.trim();
+    final name =
+        user.name.trim().isEmpty ? context.l10n.user : user.name.trim();
     final username = user.username.trim();
 
-    final isFriend =
-        connectionState == AddFriendConnectionState.alreadyFriends;
+    final isFriend = connectionState == AddFriendConnectionState.alreadyFriends;
     final showOnline = user.isOnlineVisibleTo(isFriend: isFriend);
 
     return Container(
@@ -542,9 +537,7 @@ class _FoundUserCard extends StatelessWidget {
                 ),
             ],
           ),
-
           const SizedBox(width: 12),
-
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -574,9 +567,7 @@ class _FoundUserCard extends StatelessWidget {
               ],
             ),
           ),
-
           const SizedBox(width: 10),
-
           ConstrainedBox(
             constraints: const BoxConstraints(
               maxWidth: 148,

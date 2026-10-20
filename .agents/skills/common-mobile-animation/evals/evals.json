@@ -1,0 +1,87 @@
+{
+  "skill_name": "common-mobile-animation",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "How should I implement common mobile animation best practices?",
+      "expected_output": "**Short**: 100-150ms (Toggles, cell press)",
+      "assertions": [
+        {
+          "id": "a1",
+          "description": "Checks the task contract includes Short",
+          "type": "contains_any",
+          "value": [
+            "100-150ms",
+            "100–150ms"
+          ]
+        },
+        {
+          "id": "a2",
+          "description": "Checks the task contract includes Toggles",
+          "type": "contains",
+          "value": "Toggles"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "What are the common anti-patterns to avoid in common mobile animation?",
+      "expected_output": "**Medium**: 250-350ms (Nav, modals)",
+      "assertions": [
+        {
+          "id": "a1",
+          "description": "Checks the task contract includes Medium",
+          "type": "contains_any",
+          "value": [
+            "250-350ms",
+            "250–350ms",
+            "600ms",
+            "100–600ms",
+            "timing ranges"
+          ]
+        },
+        {
+          "id": "a2",
+          "description": "Checks the task contract includes modals",
+          "type": "contains_any",
+          "value": [
+            "modals",
+            "layout thrashing",
+            "GPU-friendly"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Give me a quick-start example for common mobile animation.",
+      "expected_output": "**Long**: 400-600ms (Shared element, complex state)",
+      "assertions": [
+        {
+          "id": "a1",
+          "description": "Checks the task contract includes Long",
+          "type": "regex",
+          "value": "400\\s*[–-]\\s*600\\s*ms"
+        },
+        {
+          "id": "a2",
+          "description": "Checks the task contract includes Shared element",
+          "type": "contains_any",
+          "value": [
+            "Shared element",
+            "shared-element"
+          ]
+        }
+      ]
+    }
+  ],
+  "should_not_trigger": [
+    "Set up a basic common project from scratch",
+    "How do I install common dependencies?",
+    "What is common?",
+    "Configure CI/CD for an unrelated platform"
+  ],
+  "should_trigger": [
+    "How should I implement common mobile animation best practices?"
+  ]
+}

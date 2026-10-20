@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sensors_plus/sensors_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_icon_registry.dart';
@@ -85,17 +86,20 @@ class _PhotoCardBody {
 /// Khay kỷ niệm với hiệu ứng các khối vuông hóa đơn/ảnh vật lý trượt, xoay và dồn đè lên nhau theo trọng lực
 class ShakePhotoMemoryTray extends StatefulWidget {
   final List<TransactionModel> transactions;
+  final bool isActive;
 
   const ShakePhotoMemoryTray({
     super.key,
     required this.transactions,
+    this.isActive = true,
   });
 
   @override
   State<ShakePhotoMemoryTray> createState() => _ShakePhotoMemoryTrayState();
 }
 
-class _ShakePhotoMemoryTrayState extends State<ShakePhotoMemoryTray> {
+class _ShakePhotoMemoryTrayState extends State<ShakePhotoMemoryTray>
+    with WidgetsBindingObserver {
   StreamSubscription<AccelerometerEvent>? _accelSub;
   Timer? _physicsTimer;
 
@@ -116,19 +120,147 @@ class _ShakePhotoMemoryTrayState extends State<ShakePhotoMemoryTray> {
   bool _initialized = false;
   bool _showFloatingPhotos = true;
 
+  bool _isAppResumed = true;
+  bool _isScrolledVisible = true;
+  bool _isRunning = false;
+  ScrollPosition? _scrollPosition;
+
+  static const String _prefKey = 'shake_tray_show_floating_photos';
+
+  bool get _shouldRun =>
+      widget.isActive &&
+      _isAppResumed &&
+      _isScrolledVisible &&
+      _showFloatingPhotos;
+
   @override
   void initState() {
     super.initState();
-    _startSensorAndPhysics();
+    WidgetsBinding.instance.addObserver(this);
+    _loadVisibilityPreference();
+    if (_shouldRun) {
+      _startSensorAndPhysics();
+    }
+  }
+
+  Future<void> _loadVisibilityPreference() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getBool(_prefKey);
+      if (saved != null && mounted && saved != _showFloatingPhotos) {
+        setState(() {
+          _showFloatingPhotos = saved;
+        });
+        _syncRunningState();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _saveVisibilityPreference(bool value) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_prefKey, value);
+    } catch (_) {}
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final newPosition = Scrollable.maybeOf(context)?.position;
+    if (_scrollPosition != newPosition) {
+      _scrollPosition?.removeListener(_onScrollChanged);
+      _scrollPosition = newPosition;
+      _scrollPosition?.addListener(_onScrollChanged);
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _checkVisibilityAndSync();
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant ShakePhotoMemoryTray oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isActive != widget.isActive) {
+      _syncRunningState();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final isResumed = state == AppLifecycleState.resumed;
+    if (_isAppResumed != isResumed) {
+      _isAppResumed = isResumed;
+      _syncRunningState();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _scrollPosition?.removeListener(_onScrollChanged);
+    _pauseSensorAndPhysics();
+    super.dispose();
+  }
+
+  void _onScrollChanged() {
+    _checkVisibilityAndSync();
+  }
+
+  void _checkVisibilityAndSync() {
+    if (!mounted) return;
+    final visible = _checkIsScrolledVisible();
+    if (_isScrolledVisible != visible) {
+      _isScrolledVisible = visible;
+      _syncRunningState();
+    }
+  }
+
+  bool _checkIsScrolledVisible() {
+    if (!mounted) return false;
+    final renderBox = context.findRenderObject();
+    if (renderBox is! RenderBox || !renderBox.hasSize) return true;
+    try {
+      final offset = renderBox.localToGlobal(Offset.zero);
+      final size = renderBox.size;
+      final screenHeight = MediaQuery.of(context).size.height;
+      return (offset.dy + size.height) > 0 && offset.dy < screenHeight;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  void _syncRunningState() {
+    if (_shouldRun) {
+      if (!_isRunning) {
+        _startSensorAndPhysics();
+      }
+    } else {
+      if (_isRunning) {
+        _pauseSensorAndPhysics();
+      }
+    }
+  }
+
+  void _pauseSensorAndPhysics() {
+    _isRunning = false;
+    _accelSub?.cancel();
+    _accelSub = null;
+    _physicsTimer?.cancel();
+    _physicsTimer = null;
   }
 
   void _startSensorAndPhysics() {
+    if (_isRunning) return;
+    _isRunning = true;
     try {
+      _accelSub?.cancel();
       _accelSub = accelerometerEventStream(
         samplingPeriod: SensorInterval.uiInterval,
       ).listen(
         (AccelerometerEvent event) {
-          if (event.x.isNaN || event.y.isNaN || event.z.isNaN) return;
+          if (!_isRunning || event.x.isNaN || event.y.isNaN || event.z.isNaN) return;
 
           // Lọc thông thấp mượt mà để chống rung vi mô tay nhưng phản hồi tức thì khi nghiêng/lật máy
           _smoothAccelX = _smoothAccelX * 0.70 + event.x * 0.30;
@@ -155,9 +287,10 @@ class _ShakePhotoMemoryTrayState extends State<ShakePhotoMemoryTray> {
         cancelOnError: false,
       );
 
+      _physicsTimer?.cancel();
       // Vòng lặp vật lý mô phỏng khối vuông cứng 60fps (Rigid Body Physics Simulation)
       _physicsTimer = Timer.periodic(const Duration(milliseconds: 16), (_) {
-        if (!mounted || _cards.isEmpty) return;
+        if (!mounted || !_isRunning || _cards.isEmpty) return;
         _stepPhysics(0.016);
       });
     } catch (_) {}
@@ -672,13 +805,6 @@ class _ShakePhotoMemoryTrayState extends State<ShakePhotoMemoryTray> {
     _initialized = true;
   }
 
-  @override
-  void dispose() {
-    _accelSub?.cancel();
-    _physicsTimer?.cancel();
-    super.dispose();
-  }
-
   bool _sameDay(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
@@ -812,6 +938,8 @@ class _ShakePhotoMemoryTrayState extends State<ShakePhotoMemoryTray> {
                   setState(() {
                     _showFloatingPhotos = !_showFloatingPhotos;
                   });
+                  _saveVisibilityPreference(_showFloatingPhotos);
+                  _syncRunningState();
                 },
                 borderRadius: BorderRadius.circular(AppSizes.radiusPill),
                 child: Padding(

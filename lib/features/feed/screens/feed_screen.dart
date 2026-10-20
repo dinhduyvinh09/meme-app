@@ -81,6 +81,11 @@ class _FeedScreenState extends State<FeedScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<FeedController>().setFeedActive(widget.isActive);
+      }
+    });
   }
 
   @override
@@ -88,13 +93,33 @@ class _FeedScreenState extends State<FeedScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _currentPostReactionsSub?.cancel();
     _pageController.dispose();
+    try {
+      context.read<FeedController>().setFeedActive(false);
+    } catch (_) {}
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (mounted) {
+        context.read<FeedController>().setFeedActive(widget.isActive);
+      }
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.detached) {
+      if (mounted) {
+        context.read<FeedController>().setFeedActive(false);
+      }
+    }
   }
 
   @override
   void didChangeMetrics() {
     super.didChangeMetrics();
-    final bottomInset = WidgetsBinding.instance.platformDispatcher.views.first.viewInsets.bottom;
+    final bottomInset = WidgetsBinding
+        .instance.platformDispatcher.views.first.viewInsets.bottom;
     if (_isReplyingOnFeed) {
       if (bottomInset > 0) {
         _keyboardWasOpen = true;
@@ -113,6 +138,9 @@ class _FeedScreenState extends State<FeedScreen> with WidgetsBindingObserver {
   @override
   void didUpdateWidget(covariant FeedScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.isActive != widget.isActive) {
+      context.read<FeedController>().setFeedActive(widget.isActive);
+    }
     if (oldWidget.isActive && !widget.isActive) {
       if (_isFilterMenuOpen) {
         setState(() {
@@ -165,17 +193,18 @@ class _FeedScreenState extends State<FeedScreen> with WidgetsBindingObserver {
         final myFrame = profile?.avatarFrame ?? 'default';
 
         context.read<ChatController>().recordPostView(
-          postId: tx.id,
-          userId: myUid,
-          userName: myName,
-          userAvatar: myAvatar,
-          userFrame: myFrame,
-        );
+              postId: tx.id,
+              userId: myUid,
+              userName: myName,
+              userAvatar: myAvatar,
+              userFrame: myFrame,
+            );
       }
     }
   }
 
-  void _preloadUpcomingVideos(List<TransactionModel> transactions, int currentIndex) {
+  void _preloadUpcomingVideos(
+      List<TransactionModel> transactions, int currentIndex) {
     if (transactions.isEmpty) return;
     final urlsToPreload = <String>[];
     for (int offset = -1; offset <= 2; offset++) {
@@ -192,7 +221,8 @@ class _FeedScreenState extends State<FeedScreen> with WidgetsBindingObserver {
     }
   }
 
-  void _updateActivePostReactionSubscription(TransactionModel? currentTx, String myUid) {
+  void _updateActivePostReactionSubscription(
+      TransactionModel? currentTx, String myUid) {
     if (currentTx == null || currentTx.userId != myUid) {
       _currentPostReactionsSub?.cancel();
       _currentPostReactionsSub = null;
@@ -204,7 +234,8 @@ class _FeedScreenState extends State<FeedScreen> with WidgetsBindingObserver {
     _subscribedPostId = currentTx.id;
 
     _currentPostReactionsSub?.cancel();
-    final bool isFirstViewOfThisPost = !_animatedOwnerPostIds.contains(currentTx.id);
+    final bool isFirstViewOfThisPost =
+        !_animatedOwnerPostIds.contains(currentTx.id);
 
     _currentPostReactionsSub = context
         .read<ChatController>()
@@ -214,7 +245,8 @@ class _FeedScreenState extends State<FeedScreen> with WidgetsBindingObserver {
 
       final screenSize = _screenSize;
 
-      if (isFirstViewOfThisPost && !_animatedOwnerPostIds.contains(currentTx.id)) {
+      if (isFirstViewOfThisPost &&
+          !_animatedOwnerPostIds.contains(currentTx.id)) {
         _animatedOwnerPostIds.add(currentTx.id);
 
         for (final r in reactions) {
@@ -222,7 +254,8 @@ class _FeedScreenState extends State<FeedScreen> with WidgetsBindingObserver {
         }
 
         // Animate up to the 3 most recent unique emojis falling down
-        final recentEmojis = reactions.reversed.map((r) => r.emoji).toSet().take(3).toList();
+        final recentEmojis =
+            reactions.reversed.map((r) => r.emoji).toSet().take(3).toList();
         for (int i = 0; i < recentEmojis.length; i++) {
           Future.delayed(Duration(milliseconds: 200 + i * 350), () {
             if (mounted) {
@@ -237,12 +270,14 @@ class _FeedScreenState extends State<FeedScreen> with WidgetsBindingObserver {
         }
       } else {
         // Real-time reactions arriving while user is looking at their post
-        final newReactions = reactions.where((r) => !_knownReactionIds.contains(r.id)).toList();
+        final newReactions =
+            reactions.where((r) => !_knownReactionIds.contains(r.id)).toList();
         for (final r in newReactions) {
           _knownReactionIds.add(r.id);
           _flyingOverlayKey.currentState?.triggerReaction(
             r.emoji,
-            originOffset: Offset(screenSize.width / 2 + (_random.nextDouble() - 0.5) * 80, 75),
+            originOffset: Offset(
+                screenSize.width / 2 + (_random.nextDouble() - 0.5) * 80, 75),
             isFalling: true,
             particleCount: 14,
           );
@@ -267,7 +302,6 @@ class _FeedScreenState extends State<FeedScreen> with WidgetsBindingObserver {
     }
   }
 
-
   Future<void> _openGallery({
     required BuildContext context,
     required List<TransactionModel> transactions,
@@ -282,7 +316,7 @@ class _FeedScreenState extends State<FeedScreen> with WidgetsBindingObserver {
     final selectedIndex = await Navigator.push<int>(
       context,
       MaterialPageRoute(
-        builder: (_) => FeedGalleryScreen(
+        builder: (_) => _FeedGalleryScreen(
           transactions: transactions,
           palette: palette,
         ),
@@ -336,673 +370,1000 @@ class _FeedScreenState extends State<FeedScreen> with WidgetsBindingObserver {
         key: _flyingOverlayKey,
         child: SafeArea(
           child: FutureBuilder<UserModel?>(
-          future: context.read<UserRepository>().getUserProfile(myUid),
-          builder: (context, myProfileSnapshot) {
-            final myProfile = myProfileSnapshot.data;
+            future: context.read<UserRepository>().getUserProfile(myUid),
+            builder: (context, myProfileSnapshot) {
+              final myProfile = myProfileSnapshot.data;
 
-            return StreamBuilder<List<String>>(
-              stream: context.read<UserRepository>().streamFriendIds(myUid),
-              builder: (context, friendIdSnapshot) {
-                final friendIds = friendIdSnapshot.data ?? [];
+              return StreamBuilder<List<String>>(
+                stream: context.read<UserRepository>().streamFriendIds(myUid),
+                builder: (context, friendIdSnapshot) {
+                  final friendIds = friendIdSnapshot.data ?? [];
 
-                return StreamBuilder<List<String>>(
-                  stream: context.read<UserRepository>().streamCloseFriendIds(myUid),
-                  builder: (context, closeFriendSnapshot) {
-                    final closeFriendIds = closeFriendSnapshot.data ?? [];
+                  return StreamBuilder<List<String>>(
+                    stream: context
+                        .read<UserRepository>()
+                        .streamCloseFriendIds(myUid),
+                    builder: (context, closeFriendSnapshot) {
+                      final closeFriendIds = closeFriendSnapshot.data ?? [];
 
-                    return StreamBuilder<List<Map<String, dynamic>>>(
-                      stream: context.read<UserRepository>().streamGroups(myUid),
-                      builder: (context, groupsSnapshot) {
-                        final userGroups = groupsSnapshot.data ?? [];
+                      return StreamBuilder<List<Map<String, dynamic>>>(
+                        stream:
+                            context.read<UserRepository>().streamGroups(myUid),
+                        builder: (context, groupsSnapshot) {
+                          final userGroups = groupsSnapshot.data ?? [];
 
-                        return FutureBuilder<List<UserModel>>(
-                          future: _loadFriendProfiles(context, friendIds),
-                          builder: (context, friendProfileSnapshot) {
-                            final friendProfiles = friendProfileSnapshot.data ?? [];
+                          return FutureBuilder<List<UserModel>>(
+                            future: _loadFriendProfiles(context, friendIds),
+                            builder: (context, friendProfileSnapshot) {
+                              final friendProfiles =
+                                  friendProfileSnapshot.data ?? [];
 
-                            final validSelectableIds = <String>{
-                              'all',
-                              'me',
-                              if (closeFriendIds.isNotEmpty) 'close_friends',
-                              ...userGroups.map((g) => 'group:${g['id']}'),
-                              ...friendProfiles.map((e) => e.uid),
-                            };
+                              final validSelectableIds = <String>{
+                                'all',
+                                'me',
+                                if (closeFriendIds.isNotEmpty) 'close_friends',
+                                ...userGroups.map((g) => 'group:${g['id']}'),
+                                ...friendProfiles.map((e) => e.uid),
+                              };
 
-                            if (!validSelectableIds.contains(selectedUserId)) {
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                if (mounted) {
-                                  setState(() {
-                                    selectedUserId = 'all';
-                                  });
-                                }
-                              });
-                            }
-
-                            if (feed.scrollToTopTrigger != _lastScrollToTopTrigger) {
-                              _lastScrollToTopTrigger = feed.scrollToTopTrigger;
-                              _currentPageIndex = 0;
-                              _newPostsCount = 0;
-                              selectedUserId = 'all';
-                              _isFilterMenuOpen = false;
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                if (mounted && _pageController.hasClients) {
-                                  _pageController.jumpToPage(0);
-                                }
-                              });
-                              if (feed.feedTransactions.isNotEmpty) {
-                                _topPostId = feed.feedTransactions.first.id;
-                              }
-                            }
-
-                            final filteredTransactions = _filterTransactions(
-                              allTransactions: feed.feedTransactions,
-                              myUid: myUid,
-                              selectedUserId: selectedUserId,
-                              closeFriendIds: closeFriendIds,
-                            );
-
-                            if (feed.isLoading && feed.feedTransactions.isEmpty) {
-                              return const Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            }
-
-                            if (feed.errorMessage != null) {
-                              return Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(24),
-                                  child: Text(
-                                    context.l10n.loadFeedError(feed.errorMessage!),
-                                    textAlign: TextAlign.center,
-                                    style: AppTextStyles.body(context).copyWith(
-                                      color: palette.textPrimary,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }
-
-                            if (feed.feedTransactions.isEmpty) {
-                              return _FeedEmptyState(
-                                palette: palette,
-                              );
-                            }
-
-                            if (filteredTransactions.isEmpty) {
-                              return _FilteredEmptyFeed(
-                                selectedUserId: selectedUserId,
-                                friendProfiles: friendProfiles,
-                                closeFriendIds: closeFriendIds,
-                                userGroups: userGroups,
-                                myProfile: myProfile,
-                                selectedUserIdValue: selectedUserId,
-                                feedTransactions: filteredTransactions,
-                                palette: palette,
-                                onSelected: _changeFilter,
-                              );
-                            }
-
-                        final safeIndex = _currentPageIndex.clamp(
-                          0,
-                          filteredTransactions.isEmpty ? 0 : filteredTransactions.length - 1,
-                        );
-                        final currentTransaction = filteredTransactions.isNotEmpty
-                            ? filteredTransactions[safeIndex]
-                        : null;
-                    final isCurrentPostOwner = currentTransaction != null &&
-                        currentTransaction.userId == myUid;
-
-                    // Handle jump to tagged/target post if opened via mention notification, chat, etc.
-                    final targetPostId = feed.targetPostId;
-                    if (targetPostId != null && targetPostId.isNotEmpty) {
-                      if (selectedUserId != 'all') {
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (mounted) {
-                            setState(() {
-                              selectedUserId = 'all';
-                            });
-                          }
-                        });
-                      }
-                      if (filteredTransactions.isNotEmpty) {
-                        final targetIdx = filteredTransactions.indexWhere((tx) => tx.id == targetPostId);
-                        if (targetIdx != -1) {
-                          feed.targetPostId = null;
-                          _currentPageIndex = targetIdx;
-                          _topPostId = filteredTransactions.first.id;
-                          _newPostsCount = 0;
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            if (!mounted) return;
-                            if (_pageController.hasClients) {
-                              try {
-                                _pageController.jumpToPage(targetIdx);
-                              } catch (_) {}
-                            } else {
-                              Future.delayed(const Duration(milliseconds: 100), () {
-                                if (mounted && _pageController.hasClients) {
-                                  try {
-                                    _pageController.jumpToPage(targetIdx);
-                                  } catch (_) {}
-                                }
-                              });
-                            }
-                          });
-                        }
-                      }
-                    }
-
-                    if (filteredTransactions.isNotEmpty) {
-                      final currentTopId = filteredTransactions.first.id;
-                      final isTopPostMine = filteredTransactions.first.userId == myUid;
-
-                      if (_topPostId == null) {
-                        _topPostId = currentTopId;
-                      } else if (_topPostId != currentTopId && (feed.targetPostId == null || feed.targetPostId!.isEmpty)) {
-                        if (isTopPostMine) {
-                          // When user uploads a post themselves, do NOT show popup,
-                          // update top post and immediately jump to page 0 to show it
-                          _topPostId = currentTopId;
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            if (mounted) {
-                              if (_newPostsCount != 0) {
-                                setState(() {
-                                  _newPostsCount = 0;
-                                });
-                              }
-                              if (_currentPageIndex != 0 && _pageController.hasClients) {
-                                _pageController.jumpToPage(0);
-                                setState(() {
-                                  _currentPageIndex = 0;
-                                });
-                              }
-                            }
-                          });
-                        } else if (_currentPageIndex > 0) {
-                          final oldTopIndex = filteredTransactions.indexWhere(
-                            (tx) => tx.id == _topPostId,
-                          );
-                          final count = oldTopIndex > 0 ? oldTopIndex : 1;
-                          if (count != _newPostsCount) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (mounted) {
-                                setState(() {
-                                  _newPostsCount = count;
-                                });
-                              }
-                            });
-                          }
-                        } else {
-                          _topPostId = currentTopId;
-                          if (_newPostsCount != 0) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (mounted) {
-                                setState(() {
-                                  _newPostsCount = 0;
-                                });
-                              }
-                            });
-                          }
-                        }
-                      }
-                    }
-
-                    if (widget.isActive &&
-                        currentTransaction != null &&
-                        _subscribedPostId != currentTransaction.id) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (mounted && widget.isActive) {
-                          _recordViewIfNeeded(currentTransaction);
-                          _updateActivePostReactionSubscription(currentTransaction, myUid);
-                        }
-                      });
-                    }
-
-                    final barBottomOffset =
-                        (_screenSize.height < 740) ? 104.0 : 106.0;
-                    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-                    final currentBarBottom = (_isReplyingOnFeed || keyboardHeight > 0)
-                        ? (keyboardHeight > 0 ? keyboardHeight + 12.0 : barBottomOffset)
-                        : barBottomOffset;
-
-                    return PopScope(
-                      canPop: !_isReplyingOnFeed,
-                      onPopInvokedWithResult: (didPop, _) {
-                        if (!didPop && _isReplyingOnFeed) {
-                          FocusScope.of(context).unfocus();
-                          setState(() {
-                            _isReplyingOnFeed = false;
-                          });
-                        }
-                      },
-                      child: Stack(
-                        children: [
-                          Positioned.fill(
-                            child: PageView.builder(
-                              key: ValueKey('feed_pageview_$selectedUserId'),
-                              controller: _pageController,
-                              physics: _isReplyingOnFeed
-                                  ? const NeverScrollableScrollPhysics()
-                                  : const PageScrollPhysics(),
-                              scrollDirection: Axis.vertical,
-                              allowImplicitScrolling: true,
-                              itemCount: filteredTransactions.length,
-                              onPageChanged: (index) {
-                                setState(() {
-                                  _currentPageIndex = index;
-                                  if (index == 0) {
-                                    _newPostsCount = 0;
-                                    _topPostId = filteredTransactions.isNotEmpty
-                                        ? filteredTransactions.first.id
-                                        : null;
+                              if (!validSelectableIds
+                                  .contains(selectedUserId)) {
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
+                                  if (mounted) {
+                                    setState(() {
+                                      selectedUserId = 'all';
+                                    });
                                   }
                                 });
-                                _preloadUpcomingVideos(filteredTransactions, index);
-                                if (widget.isActive && index >= 0 && index < filteredTransactions.length) {
-                                  final activeTx = filteredTransactions[index];
-                                  _recordViewIfNeeded(activeTx);
-                                  _updateActivePostReactionSubscription(activeTx, myUid);
+                              }
+
+                              if (feed.scrollToTopTrigger !=
+                                  _lastScrollToTopTrigger) {
+                                _lastScrollToTopTrigger =
+                                    feed.scrollToTopTrigger;
+                                _currentPageIndex = 0;
+                                _newPostsCount = 0;
+                                selectedUserId = 'all';
+                                _isFilterMenuOpen = false;
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
+                                  if (mounted && _pageController.hasClients) {
+                                    _pageController.jumpToPage(0);
+                                  }
+                                });
+                                if (feed.feedTransactions.isNotEmpty) {
+                                  _topPostId = feed.feedTransactions.first.id;
                                 }
-                              },
-                              itemBuilder: (context, index) {
-                                final tx = filteredTransactions[index];
+                              }
 
-                                return _FeedPostPage(
-                                  transaction: tx,
-                                  palette: palette,
-                                  isActive: widget.isActive && (index == _currentPageIndex),
-                                  isReplying: _isReplyingOnFeed && (index == _currentPageIndex),
+                              final filteredTransactions = _filterTransactions(
+                                allTransactions: feed.feedTransactions,
+                                myUid: myUid,
+                                selectedUserId: selectedUserId,
+                                closeFriendIds: closeFriendIds,
+                              );
+
+                              if (feed.isLoading &&
+                                  feed.feedTransactions.isEmpty) {
+                                return const Center(
+                                  child: CircularProgressIndicator(),
                                 );
-                              },
-                            ),
-                          ),
+                              }
 
-                          // Floating Dropdown Banner for New Posts (Slide-down under dropdown header)
-                          Positioned(
-                            top: 72.0,
-                            left: 0,
-                            right: 0,
-                            child: SafeArea(
-                              bottom: false,
-                              child: NewPostFloatingBanner(
-                                newPostsCount: _newPostsCount,
-                                onTap: () {
-                                  _pageController.animateToPage(
-                                    0,
-                                    duration: const Duration(milliseconds: 400),
-                                    curve: Curves.easeOutCubic,
-                                  );
-                                  setState(() {
-                                    _currentPageIndex = 0;
+                              if (feed.errorMessage != null) {
+                                return Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(24),
+                                    child: Text(
+                                      context.l10n
+                                          .loadFeedError(feed.errorMessage!),
+                                      textAlign: TextAlign.center,
+                                      style:
+                                          AppTextStyles.body(context).copyWith(
+                                        color: palette.textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+
+                              if (feed.feedTransactions.isEmpty) {
+                                return _FeedEmptyState(
+                                  palette: palette,
+                                );
+                              }
+
+                              if (filteredTransactions.isEmpty) {
+                                return _FilteredEmptyFeed(
+                                  selectedUserId: selectedUserId,
+                                  friendProfiles: friendProfiles,
+                                  closeFriendIds: closeFriendIds,
+                                  userGroups: userGroups,
+                                  myProfile: myProfile,
+                                  selectedUserIdValue: selectedUserId,
+                                  feedTransactions: filteredTransactions,
+                                  palette: palette,
+                                  onSelected: _changeFilter,
+                                );
+                              }
+
+                              final safeIndex = _currentPageIndex.clamp(
+                                0,
+                                filteredTransactions.isEmpty
+                                    ? 0
+                                    : filteredTransactions.length - 1,
+                              );
+                              final currentTransaction =
+                                  filteredTransactions.isNotEmpty
+                                      ? filteredTransactions[safeIndex]
+                                      : null;
+                              final isCurrentPostOwner =
+                                  currentTransaction != null &&
+                                      currentTransaction.userId == myUid;
+
+                              // Handle jump to tagged/target post if opened via mention notification, chat, etc.
+                              final targetPostId = feed.targetPostId;
+                              if (targetPostId != null &&
+                                  targetPostId.isNotEmpty) {
+                                if (selectedUserId != 'all') {
+                                  WidgetsBinding.instance
+                                      .addPostFrameCallback((_) {
+                                    if (mounted) {
+                                      setState(() {
+                                        selectedUserId = 'all';
+                                      });
+                                    }
+                                  });
+                                }
+                                if (filteredTransactions.isNotEmpty) {
+                                  final targetIdx =
+                                      filteredTransactions.indexWhere(
+                                          (tx) => tx.id == targetPostId);
+                                  if (targetIdx != -1) {
+                                    feed.targetPostId = null;
+                                    _currentPageIndex = targetIdx;
+                                    _topPostId = filteredTransactions.first.id;
                                     _newPostsCount = 0;
-                                    _topPostId = filteredTransactions.isNotEmpty
-                                        ? filteredTransactions.first.id
-                                        : null;
-                                  });
-                                },
-                              ),
-                            ),
-                          ),
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback((_) {
+                                      if (!mounted) return;
+                                      if (_pageController.hasClients) {
+                                        try {
+                                          _pageController.jumpToPage(targetIdx);
+                                        } catch (_) {}
+                                      } else {
+                                        Future.delayed(
+                                            const Duration(milliseconds: 100),
+                                            () {
+                                          if (mounted &&
+                                              _pageController.hasClients) {
+                                            try {
+                                              _pageController
+                                                  .jumpToPage(targetIdx);
+                                            } catch (_) {}
+                                          }
+                                        });
+                                      }
+                                    });
+                                  }
+                                }
+                              }
 
-                          // Tap Outside Barrier to dismiss reply mode with Dimming overlay
-                          if (_isReplyingOnFeed)
-                            Positioned.fill(
-                              child: GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: () {
-                                  FocusScope.of(context).unfocus();
-                                  setState(() {
-                                    _isReplyingOnFeed = false;
-                                  });
-                                },
-                                child: TweenAnimationBuilder<double>(
-                                  tween: Tween(begin: 0.0, end: 1.0),
-                                  duration: const Duration(milliseconds: 220),
-                                  curve: Curves.easeOutCubic,
-                                  builder: (context, val, child) {
-                                    return Container(
-                                      color: Colors.black.withValues(alpha: 0.65 * val),
+                              if (filteredTransactions.isNotEmpty) {
+                                final currentTopId =
+                                    filteredTransactions.first.id;
+                                final isTopPostMine =
+                                    filteredTransactions.first.userId == myUid;
+
+                                if (_topPostId == null) {
+                                  _topPostId = currentTopId;
+                                } else if (_topPostId != currentTopId &&
+                                    (feed.targetPostId == null ||
+                                        feed.targetPostId!.isEmpty)) {
+                                  if (isTopPostMine) {
+                                    // When user uploads a post themselves, do NOT show popup,
+                                    // update top post and immediately jump to page 0 to show it
+                                    _topPostId = currentTopId;
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback((_) {
+                                      if (mounted) {
+                                        if (_newPostsCount != 0) {
+                                          setState(() {
+                                            _newPostsCount = 0;
+                                          });
+                                        }
+                                        if (_currentPageIndex != 0 &&
+                                            _pageController.hasClients) {
+                                          _pageController.jumpToPage(0);
+                                          setState(() {
+                                            _currentPageIndex = 0;
+                                          });
+                                        }
+                                      }
+                                    });
+                                  } else if (_currentPageIndex > 0) {
+                                    final oldTopIndex =
+                                        filteredTransactions.indexWhere(
+                                      (tx) => tx.id == _topPostId,
                                     );
-                                  },
-                                ),
-                              ),
-                            ),
+                                    final count =
+                                        oldTopIndex > 0 ? oldTopIndex : 1;
+                                    if (count != _newPostsCount) {
+                                      WidgetsBinding.instance
+                                          .addPostFrameCallback((_) {
+                                        if (mounted) {
+                                          setState(() {
+                                            _newPostsCount = count;
+                                          });
+                                        }
+                                      });
+                                    }
+                                  } else {
+                                    _topPostId = currentTopId;
+                                    if (_newPostsCount != 0) {
+                                      WidgetsBinding.instance
+                                          .addPostFrameCallback((_) {
+                                        if (mounted) {
+                                          setState(() {
+                                            _newPostsCount = 0;
+                                          });
+                                        }
+                                      });
+                                    }
+                                  }
+                                }
+                              }
 
-                          // Fixed Global Floating Bar (Own Post: PostActivityBar | Friend Post: FeedReactionInputBar)
-                          if (currentTransaction != null)
-                            AnimatedPositioned(
-                              duration: Duration(milliseconds: (_isReplyingOnFeed && keyboardHeight > 0) ? 0 : 220),
-                              curve: Curves.easeOutCubic,
-                              bottom: currentBarBottom,
-                              left: 16,
-                              right: 16,
-                              child: SafeArea(
-                                top: false,
-                                child: Center(
-                                  child: ConstrainedBox(
-                                    constraints: const BoxConstraints(maxWidth: 480),
-                                    child: isCurrentPostOwner
-                                        ? (currentTransaction.privacy != 'private'
-                                            ? PostActivityBar(
-                                                key: ValueKey('activity_bar_${currentTransaction.id}'),
-                                                transaction: currentTransaction,
-                                                isDark: AppColors.isDark(context),
-                                              )
-                                            : const SizedBox.shrink())
-                                        : Builder(
-                                            builder: (context) {
-                                              UserModel? targetUser = friendProfiles
-                                                  .where((u) => u.uid == currentTransaction.userId)
-                                                  .firstOrNull;
+                              if (widget.isActive &&
+                                  currentTransaction != null &&
+                                  _subscribedPostId != currentTransaction.id) {
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
+                                  if (mounted && widget.isActive) {
+                                    _recordViewIfNeeded(currentTransaction);
+                                    _updateActivePostReactionSubscription(
+                                        currentTransaction, myUid);
+                                  }
+                                });
+                              }
 
-                                              final authorName = (targetUser?.name.trim().isNotEmpty == true)
-                                                  ? targetUser!.name.trim()
-                                                  : (targetUser?.username.trim().isNotEmpty == true
-                                                      ? targetUser!.username.trim()
-                                                      : 'Bạn bè');
-                                              final authorAvatar = targetUser?.avatarUrl ?? '';
-                                              final authorFrame = targetUser?.avatarFrame ?? 'default';
+                              final barBottomOffset =
+                                  (_screenSize.height < 740) ? 104.0 : 106.0;
+                              final keyboardHeight =
+                                  MediaQuery.of(context).viewInsets.bottom;
+                              final currentBarBottom =
+                                  (_isReplyingOnFeed || keyboardHeight > 0)
+                                      ? (keyboardHeight > 0
+                                          ? keyboardHeight + 12.0
+                                          : barBottomOffset)
+                                      : barBottomOffset;
 
-                                              return FeedReactionInputBar(
-                                                key: ValueKey('feed_bar_${currentTransaction.id}'),
-                                                isReplying: _isReplyingOnFeed,
-                                                isDark: AppColors.isDark(context),
-                                                authorName: authorName,
-                                                authorAvatar: authorAvatar,
-                                                authorFrame: authorFrame,
-                                                onReplyingChanged: (replying) {
-                                                  if (_isReplyingOnFeed != replying) {
-                                                    setState(() {
-                                                      _isReplyingOnFeed = replying;
-                                                    });
-                                                  }
-                                                },
-                                                onSendReply: (text) async {
-                                                  final authUser = context.read<AuthController>().user;
-                                                  final chatCtrl = context.read<ChatController>();
-                                                  final userRepo = context.read<UserRepository>();
-                                                  final myUid = authUser?.uid ?? '';
-                                                  final profile = context.read<ProfileController>().user;
-                                                  final myName = (profile?.name.trim().isNotEmpty == true)
-                                                      ? profile!.name.trim()
-                                                      : (profile?.username.trim().isNotEmpty == true
-                                                          ? profile!.username.trim()
-                                                          : (authUser?.displayName?.trim().isNotEmpty == true
-                                                              ? authUser!.displayName!.trim()
-                                                               : 'Bạn'));
-                                                  final myAvatar = profile?.avatarUrl ?? '';
+                              return PopScope(
+                                canPop: !_isReplyingOnFeed,
+                                onPopInvokedWithResult: (didPop, _) {
+                                  if (!didPop && _isReplyingOnFeed) {
+                                    FocusScope.of(context).unfocus();
+                                    setState(() {
+                                      _isReplyingOnFeed = false;
+                                    });
+                                  }
+                                },
+                                child: Stack(
+                                  children: [
+                                    Positioned.fill(
+                                      child: PageView.builder(
+                                        key: ValueKey(
+                                            'feed_pageview_$selectedUserId'),
+                                        controller: _pageController,
+                                        physics: _isReplyingOnFeed
+                                            ? const NeverScrollableScrollPhysics()
+                                            : const PageScrollPhysics(),
+                                        scrollDirection: Axis.vertical,
+                                        allowImplicitScrolling: true,
+                                        itemCount: filteredTransactions.length,
+                                        onPageChanged: (index) {
+                                          setState(() {
+                                            _currentPageIndex = index;
+                                            if (index == 0) {
+                                              _newPostsCount = 0;
+                                              _topPostId = filteredTransactions
+                                                      .isNotEmpty
+                                                  ? filteredTransactions
+                                                      .first.id
+                                                  : null;
+                                            }
+                                          });
+                                          _preloadUpcomingVideos(
+                                              filteredTransactions, index);
+                                          if (widget.isActive &&
+                                              index >= 0 &&
+                                              index <
+                                                  filteredTransactions.length) {
+                                            final activeTx =
+                                                filteredTransactions[index];
+                                            _recordViewIfNeeded(activeTx);
+                                            _updateActivePostReactionSubscription(
+                                                activeTx, myUid);
+                                          }
+                                        },
+                                        itemBuilder: (context, index) {
+                                          final tx =
+                                              filteredTransactions[index];
 
-                                                  final isGroupPost = (currentTransaction.privacy == 'group') ||
-                                                      (currentTransaction.groupId != null &&
-                                                          currentTransaction.groupId!.trim().isNotEmpty);
-                                                  final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+                                          return _FeedPostPage(
+                                            transaction: tx,
+                                            palette: palette,
+                                            isActive: widget.isActive &&
+                                                (index == _currentPageIndex),
+                                            isReplying: _isReplyingOnFeed &&
+                                                (index == _currentPageIndex),
+                                          );
+                                        },
+                                      ),
+                                    ),
 
-                                                  // Robustly resolve author information (even if author is not a direct friend)
-                                                  String finalAuthorName = authorName;
-                                                  String finalAuthorAvatar = authorAvatar;
-                                                  String finalAuthorFrame = authorFrame;
+                                    // Floating Dropdown Banner for New Posts (Slide-down under dropdown header)
+                                    Positioned(
+                                      top: 72.0,
+                                      left: 0,
+                                      right: 0,
+                                      child: SafeArea(
+                                        bottom: false,
+                                        child: NewPostFloatingBanner(
+                                          newPostsCount: _newPostsCount,
+                                          onTap: () {
+                                            _pageController.animateToPage(
+                                              0,
+                                              duration: const Duration(
+                                                  milliseconds: 400),
+                                              curve: Curves.easeOutCubic,
+                                            );
+                                            setState(() {
+                                              _currentPageIndex = 0;
+                                              _newPostsCount = 0;
+                                              _topPostId = filteredTransactions
+                                                      .isNotEmpty
+                                                  ? filteredTransactions
+                                                      .first.id
+                                                  : null;
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                    ),
 
-                                                  if ((finalAuthorName.isEmpty || finalAuthorName == 'Bạn bè' || finalAuthorName == 'Thành viên') &&
-                                                      currentTransaction.userId.isNotEmpty &&
-                                                      currentTransaction.userId != myUid) {
-                                                    try {
-                                                      final fetchedUser = await userRepo.getUserProfile(currentTransaction.userId);
-                                                      if (fetchedUser != null) {
-                                                        finalAuthorName = fetchedUser.name.trim().isNotEmpty
-                                                            ? fetchedUser.name.trim()
-                                                            : (fetchedUser.username.trim().isNotEmpty
-                                                                ? fetchedUser.username.trim()
-                                                                : 'Thành viên');
-                                                        finalAuthorAvatar = fetchedUser.avatarUrl;
-                                                        finalAuthorFrame = fetchedUser.avatarFrame;
-                                                      }
-                                                    } catch (_) {}
-                                                  }
-
-                                                  bool success = false;
-                                                  if (isGroupPost &&
-                                                      currentTransaction.groupId != null &&
-                                                      currentTransaction.groupId!.trim().isNotEmpty) {
-                                                    final gId = currentTransaction.groupId!.trim();
-                                                    success = await chatCtrl.sendGroupPostReply(
-                                                      groupId: gId,
-                                                      senderId: myUid,
-                                                      senderName: myName,
-                                                      senderAvatar: myAvatar,
-                                                      text: text,
-                                                      postId: currentTransaction.id,
-                                                      postImageUrl: currentTransaction.displayImageUrl,
-                                                      postCaption: currentTransaction.caption,
-                                                      postCreatedAt: currentTransaction.createdAt,
-                                                      postAuthorName: finalAuthorName,
-                                                      postAuthorAvatar: finalAuthorAvatar,
-                                                      postAuthorFrame: finalAuthorFrame,
-                                                      postOwnerId: currentTransaction.userId,
-                                                    );
-                                                  } else {
-                                                    success = await chatCtrl.sendPostReply(
-                                                      myUid: myUid,
-                                                      friendUid: currentTransaction.userId,
-                                                      text: text,
-                                                      postId: currentTransaction.id,
-                                                      postImageUrl: currentTransaction.displayImageUrl,
-                                                      postCaption: currentTransaction.caption,
-                                                      postCreatedAt: currentTransaction.createdAt,
-                                                      postAuthorName: finalAuthorName,
-                                                      postAuthorAvatar: finalAuthorAvatar,
-                                                      postAuthorFrame: finalAuthorFrame,
-                                                      postOwnerId: currentTransaction.userId,
-                                                    );
-                                                  }
-
-                                                  if (success && mounted) {
-                                                    final screenSize = _screenSize;
-                                                    final originY = screenSize.height - (bottomInset + 65.0);
-                                                    _flyingOverlayKey.currentState?.triggerReaction(
-                                                      '💬',
-                                                      originOffset: Offset(
-                                                        screenSize.width / 2,
-                                                        originY,
-                                                      ),
-                                                      particleCount: 14,
-                                                    );
-                                                  }
-
-                                                  return success;
-                                                },
-                                                onOpenChat: () async {
-                                                  if (_isFilterMenuOpen) {
-                                                    setState(() {
-                                                      _isFilterMenuOpen = false;
-                                                    });
-                                                  }
-
-                                                  final isGroupPost = (currentTransaction.privacy == 'group') ||
-                                                      (currentTransaction.groupId != null &&
-                                                          currentTransaction.groupId!.trim().isNotEmpty);
-
-                                                  UserModel? targetUser = friendProfiles
-                                                      .where((u) => u.uid == currentTransaction.userId)
-                                                      .firstOrNull;
-                                                  targetUser ??= await context
-                                                      .read<UserRepository>()
-                                                      .getUserProfile(currentTransaction.userId);
-
-                                                  if (isGroupPost &&
-                                                      currentTransaction.groupId != null &&
-                                                      currentTransaction.groupId!.trim().isNotEmpty) {
-                                                    final gId = currentTransaction.groupId!.trim();
-                                                    final gName = currentTransaction.groupName?.trim().isNotEmpty == true
-                                                        ? currentTransaction.groupName!.trim()
-                                                        : 'Nhóm';
-                                                    if (context.mounted) {
-                                                      Navigator.pushNamed(
-                                                        context,
-                                                        RouteNames.groupChatConversation,
-                                                        arguments: {
-                                                          'groupId': gId,
-                                                          'groupName': gName,
-                                                          'memberUids': currentTransaction.groupMemberIds,
-                                                          'initialPostReply': currentTransaction,
-                                                          'initialPostAuthor': targetUser,
-                                                        },
-                                                      );
-                                                    }
-                                                    return;
-                                                  }
-
-                                                  if (targetUser != null && context.mounted) {
-                                                    Navigator.pushNamed(
-                                                      context,
-                                                      RouteNames.chatConversation,
-                                                      arguments: {
-                                                        'friend': targetUser,
-                                                        'initialPostReply': currentTransaction,
-                                                      },
-                                                    );
-                                                  }
-                                                },
-                                                onSelectEmoji: (emoji) {
-                                                  final authUser = context.read<AuthController>().user;
-                                                  final myUid = authUser?.uid ?? '';
-                                                  final profile = context.read<ProfileController>().user;
-                                                  final myName = (profile?.name.trim().isNotEmpty == true)
-                                                      ? profile!.name.trim()
-                                                      : (profile?.username.trim().isNotEmpty == true
-                                                          ? profile!.username.trim()
-                                                          : (authUser?.displayName?.trim().isNotEmpty == true
-                                                              ? authUser!.displayName!.trim()
-                                                              : 'Bạn'));
-                                                  final myAvatar = profile?.avatarUrl ?? '';
-
-                                                  final screenSize = _screenSize;
-                                                  final originY = screenSize.height - barBottomOffset - 27.0;
-
-                                                  HapticFeedback.mediumImpact();
-                                                  _flyingOverlayKey.currentState?.triggerReaction(
-                                                    emoji,
-                                                    originOffset: Offset(
-                                                      screenSize.width / 2,
-                                                      originY,
-                                                    ),
-                                                  );
-
-                                                  context.read<ChatController>().sendPostReaction(
-                                                    postId: currentTransaction.id,
-                                                    postOwnerId: currentTransaction.userId,
-                                                    myUid: myUid,
-                                                    userName: myName,
-                                                    userAvatar: myAvatar,
-                                                    emoji: emoji,
-                                                    postImageUrl: currentTransaction.displayImageUrl,
-                                                    postCaption: currentTransaction.caption,
-                                                    postCreatedAt: currentTransaction.createdAt,
-                                                  );
-                                                },
+                                    // Tap Outside Barrier to dismiss reply mode with Dimming overlay
+                                    if (_isReplyingOnFeed)
+                                      Positioned.fill(
+                                        child: GestureDetector(
+                                          behavior: HitTestBehavior.opaque,
+                                          onTap: () {
+                                            FocusScope.of(context).unfocus();
+                                            setState(() {
+                                              _isReplyingOnFeed = false;
+                                            });
+                                          },
+                                          child: TweenAnimationBuilder<double>(
+                                            tween: Tween(begin: 0.0, end: 1.0),
+                                            duration: const Duration(
+                                                milliseconds: 220),
+                                            curve: Curves.easeOutCubic,
+                                            builder: (context, val, child) {
+                                              return Container(
+                                                color: Colors.black.withValues(
+                                                    alpha: 0.65 * val),
                                               );
                                             },
                                           ),
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                          // Blurred Backdrop Barrier when dropdown is open (covers posts, activity bar & message input bar)
-                          if (_isFilterMenuOpen)
-                            Positioned.fill(
-                              child: GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: () {
-                                  setState(() {
-                                    _isFilterMenuOpen = false;
-                                  });
-                                },
-                                child: TweenAnimationBuilder<double>(
-                                  tween: Tween(begin: 0.0, end: 1.0),
-                                  duration: const Duration(milliseconds: 180),
-                                  curve: Curves.easeOut,
-                                  builder: (context, val, child) {
-                                    return ClipRect(
-                                      child: BackdropFilter(
-                                        filter: ImageFilter.blur(
-                                          sigmaX: 10 * val,
-                                          sigmaY: 10 * val,
                                         ),
-                                        child: Container(
-                                          color: Colors.black.withValues(
-                                            alpha: 0.35 * val,
+                                      ),
+
+                                    // Fixed Global Floating Bar (Own Post: PostActivityBar | Friend Post: FeedReactionInputBar)
+                                    if (currentTransaction != null)
+                                      AnimatedPositioned(
+                                        duration: Duration(
+                                            milliseconds: (_isReplyingOnFeed &&
+                                                    keyboardHeight > 0)
+                                                ? 0
+                                                : 220),
+                                        curve: Curves.easeOutCubic,
+                                        bottom: currentBarBottom,
+                                        left: 16,
+                                        right: 16,
+                                        child: SafeArea(
+                                          top: false,
+                                          child: Center(
+                                            child: ConstrainedBox(
+                                              constraints: const BoxConstraints(
+                                                  maxWidth: 480),
+                                              child: isCurrentPostOwner
+                                                  ? (currentTransaction
+                                                              .privacy !=
+                                                          'private'
+                                                      ? PostActivityBar(
+                                                          key: ValueKey(
+                                                              'activity_bar_${currentTransaction.id}'),
+                                                          transaction:
+                                                              currentTransaction,
+                                                          isDark:
+                                                              AppColors.isDark(
+                                                                  context),
+                                                        )
+                                                      : const SizedBox.shrink())
+                                                  : Builder(
+                                                      builder: (context) {
+                                                        UserModel? targetUser =
+                                                            friendProfiles
+                                                                .where((u) =>
+                                                                    u.uid ==
+                                                                    currentTransaction
+                                                                        .userId)
+                                                                .firstOrNull;
+
+                                                        final authorName = (targetUser
+                                                                    ?.name
+                                                                    .trim()
+                                                                    .isNotEmpty ==
+                                                                true)
+                                                            ? targetUser!.name
+                                                                .trim()
+                                                            : (targetUser
+                                                                        ?.username
+                                                                        .trim()
+                                                                        .isNotEmpty ==
+                                                                    true
+                                                                ? targetUser!
+                                                                    .username
+                                                                    .trim()
+                                                                : 'Bạn bè');
+                                                        final authorAvatar =
+                                                            targetUser
+                                                                    ?.avatarUrl ??
+                                                                '';
+                                                        final authorFrame =
+                                                            targetUser
+                                                                    ?.avatarFrame ??
+                                                                'default';
+
+                                                        return FeedReactionInputBar(
+                                                          key: ValueKey(
+                                                              'feed_bar_${currentTransaction.id}'),
+                                                          isReplying:
+                                                              _isReplyingOnFeed,
+                                                          isDark:
+                                                              AppColors.isDark(
+                                                                  context),
+                                                          authorName:
+                                                              authorName,
+                                                          authorAvatar:
+                                                              authorAvatar,
+                                                          authorFrame:
+                                                              authorFrame,
+                                                          onReplyingChanged:
+                                                              (replying) {
+                                                            if (_isReplyingOnFeed !=
+                                                                replying) {
+                                                              setState(() {
+                                                                _isReplyingOnFeed =
+                                                                    replying;
+                                                              });
+                                                            }
+                                                          },
+                                                          onSendReply:
+                                                              (text) async {
+                                                            final authUser = context
+                                                                .read<
+                                                                    AuthController>()
+                                                                .user;
+                                                            final chatCtrl =
+                                                                context.read<
+                                                                    ChatController>();
+                                                            final userRepo =
+                                                                context.read<
+                                                                    UserRepository>();
+                                                            final myUid =
+                                                                authUser?.uid ??
+                                                                    '';
+                                                            final profile = context
+                                                                .read<
+                                                                    ProfileController>()
+                                                                .user;
+                                                            final myName = (profile
+                                                                        ?.name
+                                                                        .trim()
+                                                                        .isNotEmpty ==
+                                                                    true)
+                                                                ? profile!.name
+                                                                    .trim()
+                                                                : (profile?.username
+                                                                            .trim()
+                                                                            .isNotEmpty ==
+                                                                        true
+                                                                    ? profile!
+                                                                        .username
+                                                                        .trim()
+                                                                    : (authUser?.displayName?.trim().isNotEmpty ==
+                                                                            true
+                                                                        ? authUser!
+                                                                            .displayName!
+                                                                            .trim()
+                                                                        : 'Bạn'));
+                                                            final myAvatar =
+                                                                profile?.avatarUrl ??
+                                                                    '';
+
+                                                            final isGroupPost = (currentTransaction
+                                                                        .privacy ==
+                                                                    'group') ||
+                                                                (currentTransaction
+                                                                            .groupId !=
+                                                                        null &&
+                                                                    currentTransaction
+                                                                        .groupId!
+                                                                        .trim()
+                                                                        .isNotEmpty);
+                                                            final bottomInset =
+                                                                MediaQuery.of(
+                                                                        context)
+                                                                    .viewInsets
+                                                                    .bottom;
+
+                                                            // Robustly resolve author information (even if author is not a direct friend)
+                                                            String
+                                                                finalAuthorName =
+                                                                authorName;
+                                                            String
+                                                                finalAuthorAvatar =
+                                                                authorAvatar;
+                                                            String
+                                                                finalAuthorFrame =
+                                                                authorFrame;
+
+                                                            if ((finalAuthorName
+                                                                        .isEmpty ||
+                                                                    finalAuthorName ==
+                                                                        'Bạn bè' ||
+                                                                    finalAuthorName ==
+                                                                        'Thành viên') &&
+                                                                currentTransaction
+                                                                    .userId
+                                                                    .isNotEmpty &&
+                                                                currentTransaction
+                                                                        .userId !=
+                                                                    myUid) {
+                                                              try {
+                                                                final fetchedUser =
+                                                                    await userRepo
+                                                                        .getUserProfile(
+                                                                            currentTransaction.userId);
+                                                                if (fetchedUser !=
+                                                                    null) {
+                                                                  finalAuthorName = fetchedUser
+                                                                          .name
+                                                                          .trim()
+                                                                          .isNotEmpty
+                                                                      ? fetchedUser
+                                                                          .name
+                                                                          .trim()
+                                                                      : (fetchedUser
+                                                                              .username
+                                                                              .trim()
+                                                                              .isNotEmpty
+                                                                          ? fetchedUser
+                                                                              .username
+                                                                              .trim()
+                                                                          : 'Thành viên');
+                                                                  finalAuthorAvatar =
+                                                                      fetchedUser
+                                                                          .avatarUrl;
+                                                                  finalAuthorFrame =
+                                                                      fetchedUser
+                                                                          .avatarFrame;
+                                                                }
+                                                              } catch (_) {}
+                                                            }
+
+                                                            bool success =
+                                                                false;
+                                                            if (isGroupPost &&
+                                                                currentTransaction
+                                                                        .groupId !=
+                                                                    null &&
+                                                                currentTransaction
+                                                                    .groupId!
+                                                                    .trim()
+                                                                    .isNotEmpty) {
+                                                              final gId =
+                                                                  currentTransaction
+                                                                      .groupId!
+                                                                      .trim();
+                                                              success =
+                                                                  await chatCtrl
+                                                                      .sendGroupPostReply(
+                                                                groupId: gId,
+                                                                senderId: myUid,
+                                                                senderName:
+                                                                    myName,
+                                                                senderAvatar:
+                                                                    myAvatar,
+                                                                text: text,
+                                                                postId:
+                                                                    currentTransaction
+                                                                        .id,
+                                                                postImageUrl:
+                                                                    currentTransaction
+                                                                        .displayImageUrl,
+                                                                postCaption:
+                                                                    currentTransaction
+                                                                        .caption,
+                                                                postCreatedAt:
+                                                                    currentTransaction
+                                                                        .createdAt,
+                                                                postAuthorName:
+                                                                    finalAuthorName,
+                                                                postAuthorAvatar:
+                                                                    finalAuthorAvatar,
+                                                                postAuthorFrame:
+                                                                    finalAuthorFrame,
+                                                                postOwnerId:
+                                                                    currentTransaction
+                                                                        .userId,
+                                                              );
+                                                            } else {
+                                                              success =
+                                                                  await chatCtrl
+                                                                      .sendPostReply(
+                                                                myUid: myUid,
+                                                                friendUid:
+                                                                    currentTransaction
+                                                                        .userId,
+                                                                text: text,
+                                                                postId:
+                                                                    currentTransaction
+                                                                        .id,
+                                                                postImageUrl:
+                                                                    currentTransaction
+                                                                        .displayImageUrl,
+                                                                postCaption:
+                                                                    currentTransaction
+                                                                        .caption,
+                                                                postCreatedAt:
+                                                                    currentTransaction
+                                                                        .createdAt,
+                                                                postAuthorName:
+                                                                    finalAuthorName,
+                                                                postAuthorAvatar:
+                                                                    finalAuthorAvatar,
+                                                                postAuthorFrame:
+                                                                    finalAuthorFrame,
+                                                                postOwnerId:
+                                                                    currentTransaction
+                                                                        .userId,
+                                                              );
+                                                            }
+
+                                                            if (success &&
+                                                                mounted) {
+                                                              final screenSize =
+                                                                  _screenSize;
+                                                              final originY =
+                                                                  screenSize
+                                                                          .height -
+                                                                      (bottomInset +
+                                                                          65.0);
+                                                              _flyingOverlayKey
+                                                                  .currentState
+                                                                  ?.triggerReaction(
+                                                                '💬',
+                                                                originOffset:
+                                                                    Offset(
+                                                                  screenSize
+                                                                          .width /
+                                                                      2,
+                                                                  originY,
+                                                                ),
+                                                                particleCount:
+                                                                    14,
+                                                              );
+                                                            }
+
+                                                            return success;
+                                                          },
+                                                          onOpenChat: () async {
+                                                            if (_isFilterMenuOpen) {
+                                                              setState(() {
+                                                                _isFilterMenuOpen =
+                                                                    false;
+                                                              });
+                                                            }
+
+                                                            final isGroupPost = (currentTransaction
+                                                                        .privacy ==
+                                                                    'group') ||
+                                                                (currentTransaction
+                                                                            .groupId !=
+                                                                        null &&
+                                                                    currentTransaction
+                                                                        .groupId!
+                                                                        .trim()
+                                                                        .isNotEmpty);
+
+                                                            UserModel?
+                                                                targetUser =
+                                                                friendProfiles
+                                                                    .where((u) =>
+                                                                        u.uid ==
+                                                                        currentTransaction
+                                                                            .userId)
+                                                                    .firstOrNull;
+                                                            targetUser ??= await context
+                                                                .read<
+                                                                    UserRepository>()
+                                                                .getUserProfile(
+                                                                    currentTransaction
+                                                                        .userId);
+
+                                                            if (isGroupPost &&
+                                                                currentTransaction
+                                                                        .groupId !=
+                                                                    null &&
+                                                                currentTransaction
+                                                                    .groupId!
+                                                                    .trim()
+                                                                    .isNotEmpty) {
+                                                              final gId =
+                                                                  currentTransaction
+                                                                      .groupId!
+                                                                      .trim();
+                                                              final gName = currentTransaction
+                                                                          .groupName
+                                                                          ?.trim()
+                                                                          .isNotEmpty ==
+                                                                      true
+                                                                  ? currentTransaction
+                                                                      .groupName!
+                                                                      .trim()
+                                                                  : 'Nhóm';
+                                                              if (context
+                                                                  .mounted) {
+                                                                Navigator
+                                                                    .pushNamed(
+                                                                  context,
+                                                                  RouteNames
+                                                                      .groupChatConversation,
+                                                                  arguments: {
+                                                                    'groupId':
+                                                                        gId,
+                                                                    'groupName':
+                                                                        gName,
+                                                                    'memberUids':
+                                                                        currentTransaction
+                                                                            .groupMemberIds,
+                                                                    'initialPostReply':
+                                                                        currentTransaction,
+                                                                    'initialPostAuthor':
+                                                                        targetUser,
+                                                                  },
+                                                                );
+                                                              }
+                                                              return;
+                                                            }
+
+                                                            if (targetUser !=
+                                                                    null &&
+                                                                context
+                                                                    .mounted) {
+                                                              Navigator
+                                                                  .pushNamed(
+                                                                context,
+                                                                RouteNames
+                                                                    .chatConversation,
+                                                                arguments: {
+                                                                  'friend':
+                                                                      targetUser,
+                                                                  'initialPostReply':
+                                                                      currentTransaction,
+                                                                },
+                                                              );
+                                                            }
+                                                          },
+                                                          onSelectEmoji:
+                                                              (emoji) {
+                                                            final authUser = context
+                                                                .read<
+                                                                    AuthController>()
+                                                                .user;
+                                                            final myUid =
+                                                                authUser?.uid ??
+                                                                    '';
+                                                            final profile = context
+                                                                .read<
+                                                                    ProfileController>()
+                                                                .user;
+                                                            final myName = (profile
+                                                                        ?.name
+                                                                        .trim()
+                                                                        .isNotEmpty ==
+                                                                    true)
+                                                                ? profile!.name
+                                                                    .trim()
+                                                                : (profile?.username
+                                                                            .trim()
+                                                                            .isNotEmpty ==
+                                                                        true
+                                                                    ? profile!
+                                                                        .username
+                                                                        .trim()
+                                                                    : (authUser?.displayName?.trim().isNotEmpty ==
+                                                                            true
+                                                                        ? authUser!
+                                                                            .displayName!
+                                                                            .trim()
+                                                                        : 'Bạn'));
+                                                            final myAvatar =
+                                                                profile?.avatarUrl ??
+                                                                    '';
+
+                                                            final screenSize =
+                                                                _screenSize;
+                                                            final originY =
+                                                                screenSize
+                                                                        .height -
+                                                                    barBottomOffset -
+                                                                    27.0;
+
+                                                            HapticFeedback
+                                                                .mediumImpact();
+                                                            _flyingOverlayKey
+                                                                .currentState
+                                                                ?.triggerReaction(
+                                                              emoji,
+                                                              originOffset:
+                                                                  Offset(
+                                                                screenSize
+                                                                        .width /
+                                                                    2,
+                                                                originY,
+                                                              ),
+                                                            );
+
+                                                            context
+                                                                .read<
+                                                                    ChatController>()
+                                                                .sendPostReaction(
+                                                                  postId:
+                                                                      currentTransaction
+                                                                          .id,
+                                                                  postOwnerId:
+                                                                      currentTransaction
+                                                                          .userId,
+                                                                  myUid: myUid,
+                                                                  userName:
+                                                                      myName,
+                                                                  userAvatar:
+                                                                      myAvatar,
+                                                                  emoji: emoji,
+                                                                  postImageUrl:
+                                                                      currentTransaction
+                                                                          .displayImageUrl,
+                                                                  postCaption:
+                                                                      currentTransaction
+                                                                          .caption,
+                                                                  postCreatedAt:
+                                                                      currentTransaction
+                                                                          .createdAt,
+                                                                );
+                                                          },
+                                                        );
+                                                      },
+                                                    ),
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
 
-                          Positioned(
-                            top: 8,
-                            left: 14,
-                            right: 14,
-                            child: SafeArea(
-                              bottom: false,
-                              child: _FeedHeader(
-                                myProfile: myProfile,
-                                friendProfiles: friendProfiles,
-                                closeFriendIds: closeFriendIds,
-                                userGroups: userGroups,
-                                selectedUserId: selectedUserId,
-                                feedTransactions: filteredTransactions,
-                                isMenuOpen: _isFilterMenuOpen,
-                                onMenuOpenChanged: (open) {
-                                  setState(() {
-                                    _isFilterMenuOpen = open;
-                                  });
-                                },
-                                onOpenGallery: () {
-                                  _openGallery(
-                                    context: context,
-                                    transactions: filteredTransactions,
-                                    palette: palette,
-                                  );
-                                },
-                                onCaptureTap: () {
-                                  if (_isFilterMenuOpen) {
-                                    setState(() {
-                                      _isFilterMenuOpen = false;
-                                    });
-                                  }
-                                  Navigator.pushNamed(
-                                    context,
-                                    RouteNames.addTransaction,
-                                  );
-                                },
-                                onSelected: _changeFilter,
-                                palette: palette,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
+                                    // Blurred Backdrop Barrier when dropdown is open (covers posts, activity bar & message input bar)
+                                    if (_isFilterMenuOpen)
+                                      Positioned.fill(
+                                        child: GestureDetector(
+                                          behavior: HitTestBehavior.opaque,
+                                          onTap: () {
+                                            setState(() {
+                                              _isFilterMenuOpen = false;
+                                            });
+                                          },
+                                          child: TweenAnimationBuilder<double>(
+                                            tween: Tween(begin: 0.0, end: 1.0),
+                                            duration: const Duration(
+                                                milliseconds: 180),
+                                            curve: Curves.easeOut,
+                                            builder: (context, val, child) {
+                                              return ClipRect(
+                                                child: BackdropFilter(
+                                                  filter: ImageFilter.blur(
+                                                    sigmaX: 10 * val,
+                                                    sigmaY: 10 * val,
+                                                  ),
+                                                  child: Container(
+                                                    color:
+                                                        Colors.black.withValues(
+                                                      alpha: 0.35 * val,
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ),
+
+                                    Positioned(
+                                      top: 8,
+                                      left: 14,
+                                      right: 14,
+                                      child: SafeArea(
+                                        bottom: false,
+                                        child: _FeedHeader(
+                                          myProfile: myProfile,
+                                          friendProfiles: friendProfiles,
+                                          closeFriendIds: closeFriendIds,
+                                          userGroups: userGroups,
+                                          selectedUserId: selectedUserId,
+                                          feedTransactions:
+                                              filteredTransactions,
+                                          isMenuOpen: _isFilterMenuOpen,
+                                          onMenuOpenChanged: (open) {
+                                            setState(() {
+                                              _isFilterMenuOpen = open;
+                                            });
+                                          },
+                                          onOpenGallery: () {
+                                            _openGallery(
+                                              context: context,
+                                              transactions:
+                                                  filteredTransactions,
+                                              palette: palette,
+                                            );
+                                          },
+                                          onCaptureTap: () {
+                                            if (_isFilterMenuOpen) {
+                                              setState(() {
+                                                _isFilterMenuOpen = false;
+                                              });
+                                            }
+                                            Navigator.pushNamed(
+                                              context,
+                                              RouteNames.addTransaction,
+                                            );
+                                          },
+                                          onSelected: _changeFilter,
+                                          palette: palette,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      );
                     },
                   );
                 },
               );
             },
-          );
-        },
-      );
-    },
-  ),
-),
-),
-);
-}
+          ),
+        ),
+      ),
+    );
+  }
 
   Future<List<UserModel>> _loadFriendProfiles(
-      BuildContext context,
-      List<String> friendIds,
-      ) async {
+    BuildContext context,
+    List<String> friendIds,
+  ) async {
     final repo = context.read<UserRepository>();
     final futures = friendIds.map((id) => repo.getUserProfile(id)).toList();
     final results = await Future.wait(futures);
@@ -1084,7 +1445,9 @@ class _FilteredEmptyFeedState extends State<_FilteredEmptyFeed> {
 
     if (widget.selectedUserId == 'close_friends') {
       final isEn = context.watch<ProfileController>().languageCode == 'en';
-      return isEn ? 'No posts from close friends yet' : 'Chưa có bài viết nào từ bạn thân';
+      return isEn
+          ? 'No posts from close friends yet'
+          : 'Chưa có bài viết nào từ bạn thân';
     }
 
     UserModel? selectedFriend;
@@ -1225,7 +1588,7 @@ class _FeedEmptyState extends StatelessWidget {
               height: 110,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: palette.accent.withOpacity(0.16),
+                color: palette.accent.withValues(alpha: 0.16),
               ),
               child: Icon(
                 Icons.dynamic_feed_outlined,
@@ -1342,7 +1705,8 @@ class _FeedPostPage extends StatelessWidget {
     return DateFormat('d MMM, y', 'en').format(createdAt);
   }
 
-  Future<void> _deleteFailedPostHelper(BuildContext context, TransactionModel transaction) async {
+  Future<void> _deleteFailedPostHelper(
+      BuildContext context, TransactionModel transaction) async {
     final l10n = context.l10n;
     final isEn = context.read<ProfileController>().languageCode == 'en';
     final confirm = await showDialog<bool>(
@@ -1404,12 +1768,18 @@ class _FeedPostPage extends StatelessWidget {
         return LayoutBuilder(
           builder: (context, constraints) {
             final screenSize = MediaQuery.sizeOf(context);
-            final maxWidth = constraints.maxWidth > 0 ? constraints.maxWidth : screenSize.width;
-            final maxHeight = (screenSize.height > 0) ? screenSize.height : constraints.maxHeight;
+            final maxWidth = constraints.maxWidth > 0
+                ? constraints.maxWidth
+                : screenSize.width;
+            final maxHeight = (screenSize.height > 0)
+                ? screenSize.height
+                : constraints.maxHeight;
 
             final isShort = maxHeight < 740;
             final isVoiceExpense = transaction.isVoiceExpense;
-            final hasNote = transaction.note.trim().isNotEmpty && !isVoiceExpense && isOwner;
+            final hasNote = transaction.note.trim().isNotEmpty &&
+                !isVoiceExpense &&
+                isOwner;
             final hasAmount = isOwner || transaction.privacy == 'group';
 
             final topSpacing = isShort
@@ -1464,8 +1834,10 @@ class _FeedPostPage extends StatelessWidget {
                         child: _FailedPostActionBar(
                           key: ValueKey('failed_bar_${transaction.id}'),
                           transaction: transaction,
-                          onRetry: () => FailedPostService.instance.retryPost(context, transaction.id),
-                          onDelete: () => _deleteFailedPostHelper(context, transaction),
+                          onRetry: () => FailedPostService.instance
+                              .retryPost(context, transaction.id),
+                          onDelete: () =>
+                              _deleteFailedPostHelper(context, transaction),
                         ),
                       )
                     else
@@ -1480,7 +1852,8 @@ class _FeedPostPage extends StatelessWidget {
                             children: [
                               _UploaderInfo(
                                 user: user,
-                                timeText: _formatFeedTime(context, transaction.createdAt),
+                                timeText: _formatFeedTime(
+                                    context, transaction.createdAt),
                                 palette: palette,
                                 isPrivate: transaction.privacy == 'private',
                                 isOwner: isOwner,
@@ -1488,15 +1861,21 @@ class _FeedPostPage extends StatelessWidget {
                               if (hasAmount) ...[
                                 SizedBox(height: itemGap * 0.6),
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 24),
                                   child: Builder(
                                     builder: (context) {
-                                      final isGroupDeposit = transaction.isGroupContribution ||
-                                          (transaction.privacy == 'group' &&
-                                              (transaction.category == 'Quỹ nhóm' ||
-                                                  transaction.category == 'Group Fund'));
+                                      final isGroupDeposit =
+                                          transaction.isGroupContribution ||
+                                              (transaction.privacy == 'group' &&
+                                                  (transaction.category ==
+                                                          'Quỹ nhóm' ||
+                                                      transaction.category ==
+                                                          'Group Fund'));
 
-                                      final isExpense = transaction.type == 'expense' && !isGroupDeposit;
+                                      final isExpense =
+                                          transaction.type == 'expense' &&
+                                              !isGroupDeposit;
                                       final prefix = isExpense ? '-' : '+';
                                       final amountColor = isExpense
                                           ? AppColors.expense
@@ -1520,13 +1899,15 @@ class _FeedPostPage extends StatelessWidget {
                               if (hasNote) ...[
                                 SizedBox(height: itemGap * 0.6),
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 24),
                                   child: Text(
                                     transaction.note.trim(),
                                     textAlign: TextAlign.center,
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
-                                    style: AppTextStyles.bodySecondary(context).copyWith(
+                                    style: AppTextStyles.bodySecondary(context)
+                                        .copyWith(
                                       color: palette.textSecondary,
                                       fontSize: isShort ? 13 : 14,
                                       height: 1.35,
@@ -1584,12 +1965,11 @@ class _FeedHeader extends StatefulWidget {
 }
 
 class _FeedHeaderState extends State<_FeedHeader> {
-
   String _shortName(
-      BuildContext context,
-      String value, {
-        int maxLength = 12,
-      }) {
+    BuildContext context,
+    String value, {
+    int maxLength = 12,
+  }) {
     final name = value.trim();
 
     if (name.isEmpty) return context.l10n.friendsTitle;
@@ -1631,7 +2011,9 @@ class _FeedHeaderState extends State<_FeedHeader> {
   String _selectedLabel(BuildContext context) {
     if (widget.selectedUserId == 'all') return context.l10n.everyone;
     if (widget.selectedUserId == 'me') return context.l10n.you;
-    if (widget.selectedUserId == 'close_friends') return context.l10n.closeFriends;
+    if (widget.selectedUserId == 'close_friends') {
+      return context.l10n.closeFriends;
+    }
 
     if (widget.selectedUserId.startsWith('group:')) {
       final targetGroupId = widget.selectedUserId.substring(6);
@@ -1809,6 +2191,7 @@ class _FeedHeaderState extends State<_FeedHeader> {
   }
 
   void _selectUser(String value) {
+    HapticFeedback.selectionClick();
     widget.onMenuOpenChanged(false);
     widget.onSelected(value);
   }
@@ -1834,8 +2217,8 @@ class _FeedHeaderState extends State<_FeedHeader> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(
-                    AppColors.isDark(context) ? 0.24 : 0.10,
+                  color: Colors.black.withValues(
+                    alpha: AppColors.isDark(context) ? 0.24 : 0.10,
                   ),
                   blurRadius: 22,
                   offset: const Offset(0, 10),
@@ -1923,7 +2306,8 @@ class _FeedHeaderState extends State<_FeedHeader> {
                             ),
                             onTap: () => _selectUser('group:$gId'),
                           ),
-                          if (index != widget.userGroups.length - 1) _menuDivider(),
+                          if (index != widget.userGroups.length - 1)
+                            _menuDivider(),
                         ],
                       );
                     }),
@@ -1934,7 +2318,8 @@ class _FeedHeaderState extends State<_FeedHeader> {
                     _menuDivider(),
                     ...List.generate(sortedFriends.length, (index) {
                       final friend = sortedFriends[index];
-                      final isCloseFriend = widget.closeFriendIds.contains(friend.uid);
+                      final isCloseFriend =
+                          widget.closeFriendIds.contains(friend.uid);
 
                       return Column(
                         mainAxisSize: MainAxisSize.min,
@@ -1945,9 +2330,11 @@ class _FeedHeaderState extends State<_FeedHeader> {
                               children: [
                                 CircleAvatar(
                                   radius: 11,
-                                  backgroundColor: widget.palette.avatarBackground,
+                                  backgroundColor:
+                                      widget.palette.avatarBackground,
                                   backgroundImage: friend.avatarUrl.isNotEmpty
-                                      ? CachedNetworkImageProvider(friend.avatarUrl)
+                                      ? CachedNetworkImageProvider(
+                                          friend.avatarUrl)
                                       : null,
                                   child: friend.avatarUrl.isEmpty
                                       ? const Icon(Icons.person, size: 11)
@@ -1999,8 +2386,7 @@ class _FeedHeaderState extends State<_FeedHeader> {
 
   @override
   Widget build(BuildContext context) {
-    final sortedFriends = [...widget.friendProfiles]
-      ..sort((a, b) {
+    final sortedFriends = [...widget.friendProfiles]..sort((a, b) {
         final aName = a.name.isNotEmpty ? a.name : a.username;
         final bName = b.name.isNotEmpty ? b.name : b.username;
         return aName.toLowerCase().compareTo(bName.toLowerCase());
@@ -2016,8 +2402,9 @@ class _FeedHeaderState extends State<_FeedHeader> {
               _HeaderCircleButton(
                 icon: Icons.grid_view_rounded,
                 palette: widget.palette,
-                onTap:
-                widget.feedTransactions.isEmpty ? null : widget.onOpenGallery,
+                onTap: widget.feedTransactions.isEmpty
+                    ? null
+                    : widget.onOpenGallery,
               ),
               const Spacer(),
               GestureDetector(
@@ -2076,9 +2463,7 @@ class _FeedHeaderState extends State<_FeedHeader> {
                   ),
                 ),
               ),
-
               const Spacer(),
-
               _HeaderCircleButton(
                 icon: Icons.add_a_photo_rounded,
                 palette: widget.palette,
@@ -2103,13 +2488,13 @@ class _FeedHeaderState extends State<_FeedHeader> {
           },
           child: widget.isMenuOpen
               ? Padding(
-            key: const ValueKey('feed-dropdown-open'),
-            padding: const EdgeInsets.only(top: 12),
-            child: _buildDropdownMenu(sortedFriends),
-          )
+                  key: const ValueKey('feed-dropdown-open'),
+                  padding: const EdgeInsets.only(top: 12),
+                  child: _buildDropdownMenu(sortedFriends),
+                )
               : const SizedBox(
-            key: ValueKey('feed-dropdown-closed'),
-          ),
+                  key: ValueKey('feed-dropdown-closed'),
+                ),
         ),
       ],
     );
@@ -2132,7 +2517,12 @@ class _HeaderCircleButton extends StatelessWidget {
     final disabled = onTap == null;
 
     return InkWell(
-      onTap: onTap,
+      onTap: onTap == null
+          ? null
+          : () {
+              HapticFeedback.lightImpact();
+              onTap!();
+            },
       borderRadius: BorderRadius.circular(28),
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 160),
@@ -2232,7 +2622,8 @@ class _MainSquarePost extends StatelessWidget {
               top: 18,
               left: 20,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5.5),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5.5),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.32),
                   borderRadius: BorderRadius.circular(20),
@@ -2432,7 +2823,8 @@ class _MainSquarePost extends StatelessWidget {
                       width: 1,
                     ),
                   ),
-                  child: _buildCaptionWithMentions(context, captionText, transaction),
+                  child: _buildCaptionWithMentions(
+                      context, captionText, transaction),
                 ),
               ),
             ),
@@ -2606,7 +2998,8 @@ class _MainSquarePost extends StatelessWidget {
                   width: 44,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.22),
+                    color: (isDark ? Colors.white : Colors.black)
+                        .withValues(alpha: 0.22),
                     borderRadius: BorderRadius.circular(AppSizes.radiusPill),
                   ),
                 ),
@@ -2617,6 +3010,17 @@ class _MainSquarePost extends StatelessWidget {
                     title: isEn ? 'Retry upload' : 'Thử lại',
                     color: const Color(0xFFDC2626),
                     onTap: () => Navigator.pop(sheetContext, 'retry'),
+                  ),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+                    child: Divider(
+                      height: 1,
+                      thickness: 1,
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : Colors.black.withValues(alpha: 0.06),
+                    ),
                   ),
                   _FeedActionTile(
                     icon: Icons.delete_outline_rounded,
@@ -2644,6 +3048,17 @@ class _MainSquarePost extends StatelessWidget {
                         : l10n.momentViewerSaveImage,
                     color: isDark ? Colors.white : const Color(0xFF111827),
                     onTap: () => Navigator.pop(sheetContext, 'save'),
+                  ),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+                    child: Divider(
+                      height: 1,
+                      thickness: 1,
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : Colors.black.withValues(alpha: 0.06),
+                    ),
                   ),
                   _FeedActionTile(
                     icon: Icons.delete_outline_rounded,
@@ -2721,9 +3136,9 @@ class _MainSquarePost extends StatelessWidget {
 
     try {
       await context.read<TransactionRepository>().deleteTransaction(
-        userId: transaction.userId,
-        transactionId: transaction.id,
-      );
+            userId: transaction.userId,
+            transactionId: transaction.id,
+          );
 
       if (!context.mounted) return;
 
@@ -2748,8 +3163,11 @@ class _MainSquarePost extends StatelessWidget {
 
   Future<void> _savePostMedia(BuildContext context) async {
     final l10n = context.l10n;
-    final url = transaction.isVideo ? transaction.playableVideoUrl : transaction.displayImageUrl;
-    if (url.isEmpty || (!url.startsWith('http://') && !url.startsWith('https://'))) {
+    final url = transaction.isVideo
+        ? transaction.playableVideoUrl
+        : transaction.displayImageUrl;
+    if (url.isEmpty ||
+        (!url.startsWith('http://') && !url.startsWith('https://'))) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           duration: AppDurations.snackBar,
@@ -2801,7 +3219,8 @@ class _MainSquarePost extends StatelessWidget {
     final currency = context.read<ProfileController>().currency;
     final isContribution = transaction.isGroupContribution ||
         (transaction.privacy == 'group' &&
-            (transaction.category == 'Quỹ nhóm' || transaction.category == 'Group Fund'));
+            (transaction.category == 'Quỹ nhóm' ||
+                transaction.category == 'Group Fund'));
     final amountText = AppCurrencyFormatter.formatFromVnd(
       amountVnd: transaction.amount.abs(),
       currency: currency,
@@ -2839,21 +3258,29 @@ class _MainSquarePost extends StatelessWidget {
     shareText.writeln(l10n.sharePrivacy(privacyText));
 
     final text = shareText.toString().trim();
-    final url = transaction.isVideo ? transaction.playableVideoUrl : transaction.displayImageUrl;
+    final url = transaction.isVideo
+        ? transaction.playableVideoUrl
+        : transaction.displayImageUrl;
 
     try {
       if (url.startsWith('http://') || url.startsWith('https://')) {
         final file = await DefaultCacheManager().getSingleFile(url);
-        await Share.shareXFiles(
-          [XFile(file.path)],
-          text: text,
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [XFile(file.path)],
+            text: text,
+          ),
         );
       } else {
-        await Share.share(text);
+        await SharePlus.instance.share(
+          ShareParams(text: text),
+        );
       }
     } catch (_) {
       try {
-        await Share.share(text);
+        await SharePlus.instance.share(
+          ShareParams(text: text),
+        );
       } catch (_) {}
     }
   }
@@ -2877,7 +3304,10 @@ class _FeedActionTile extends StatelessWidget {
     final isDark = AppColors.isDark(context);
 
     return InkWell(
-      onTap: onTap,
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
       borderRadius: BorderRadius.circular(16),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -2959,8 +3389,9 @@ class _MentionedUserProfileSheetState
 
     final userRepo = context.read<UserRepository>();
     final isFriend = await userRepo.isFriendWith(myUid, widget.user.uid);
-    final requestSent =
-        isFriend ? false : await userRepo.hasSentFriendRequestTo(myUid, widget.user.uid);
+    final requestSent = isFriend
+        ? false
+        : await userRepo.hasSentFriendRequestTo(myUid, widget.user.uid);
 
     if (mounted) {
       setState(() {
@@ -2995,7 +3426,9 @@ class _MentionedUserProfileSheetState
         }
       });
 
-      if (result != null && result != 'auto_accepted' && result != 'Đã gửi lời mời trước đó') {
+      if (result != null &&
+          result != 'auto_accepted' &&
+          result != 'Đã gửi lời mời trước đó') {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             duration: AppDurations.snackBar,
@@ -3307,7 +3740,8 @@ class _FeedMutedVideoPlayerState extends State<_FeedMutedVideoPlayer> {
     if (url.isEmpty) return;
 
     try {
-      final controller = await VideoCacheService.instance.createOptimizedController(
+      final controller =
+          await VideoCacheService.instance.createOptimizedController(
         url,
         looping: true,
         volume: 0,
@@ -3381,7 +3815,6 @@ class _FeedMutedVideoPlayerState extends State<_FeedMutedVideoPlayer> {
           isVideo: true,
           showVideoBadge: false,
         ),
-
         if (videoWidget != null)
           AnimatedOpacity(
             opacity: _isReady ? 1.0 : 0.0,
@@ -3389,11 +3822,10 @@ class _FeedMutedVideoPlayerState extends State<_FeedMutedVideoPlayer> {
             curve: Curves.easeOut,
             child: videoWidget,
           ),
-
         Positioned.fill(
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withValues(alpha: 0.02),
             ),
           ),
         ),
@@ -3424,8 +3856,8 @@ class _UploaderInfo extends StatelessWidget {
     final username = isOwner
         ? context.l10n.you
         : (user?.username.isNotEmpty == true
-        ? user!.username
-        : (user?.name ?? context.l10n.friendsTitle));
+            ? user!.username
+            : (user?.name ?? context.l10n.friendsTitle));
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -3468,12 +3900,11 @@ class _UploaderInfo extends StatelessWidget {
   }
 }
 
-class FeedGalleryScreen extends StatelessWidget {
+class _FeedGalleryScreen extends StatelessWidget {
   final List<TransactionModel> transactions;
   final _FeedPalette palette;
 
-  const FeedGalleryScreen({
-    super.key,
+  const _FeedGalleryScreen({
     required this.transactions,
     required this.palette,
   });
@@ -3498,104 +3929,111 @@ class FeedGalleryScreen extends StatelessWidget {
             Positioned.fill(
               child: imageEntries.isEmpty
                   ? Center(
-                child: Text(
-                  context.l10n.noPhotosInFeed,
-                  style: TextStyle(
-                    color: palette.textPrimary,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              )
-                  : GridView.builder(
-                cacheExtent: 700,
-                padding: const EdgeInsets.fromLTRB(10, 86, 10, 24),
-                itemCount: imageEntries.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 7,
-                  mainAxisSpacing: 7,
-                  childAspectRatio: 1,
-                ),
-                itemBuilder: (context, gridIndex) {
-                  final originalIndex = imageEntries[gridIndex].key;
-                  final tx = imageEntries[gridIndex].value;
-
-                  return RepaintBoundary(
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context, originalIndex);
-                      },
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(18),
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            Positioned.fill(
-                              child: LayoutBuilder(
-                                builder: (context, constraints) {
-                                  final size = constraints.maxWidth;
-
-                                  return TransactionMomentImage(
-                                    imageUrl: tx.displayImageUrl,
-                                    category: tx.category,
-                                    categoryIconCodePoint: tx.categoryIconCodePoint,
-                                    categoryColorHex: tx.categoryColorHex,
-                                    caption: null,
-                                    width: size,
-                                    height: size,
-                                    fit: BoxFit.cover,
-                                    borderRadius: BorderRadius.circular(18),
-                                    isVideo: tx.isVideo,
-                                    showVideoBadge: false,
-                                  );
-                                },
-                              ),
-                            ),
-                            Positioned.fill(
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      Colors.black.withOpacity(0.02),
-                                      Colors.transparent,
-                                      Colors.black.withOpacity(0.42),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            if (tx.caption.trim().isNotEmpty)
-                              Positioned(
-                                left: 8,
-                                right: 8,
-                                bottom: 8,
-                                child: Text(
-                                  tx.caption.trim(),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w800,
-                                    shadows: [
-                                      Shadow(
-                                        color: Colors.black45,
-                                        blurRadius: 6,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                          ],
+                      child: Text(
+                        context.l10n.noPhotosInFeed,
+                        style: TextStyle(
+                          color: palette.textPrimary,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
+                    )
+                  : GridView.builder(
+                      cacheExtent: 700,
+                      padding: const EdgeInsets.fromLTRB(10, 86, 10, 24),
+                      itemCount: imageEntries.length,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        crossAxisSpacing: 7,
+                        mainAxisSpacing: 7,
+                        childAspectRatio: 1,
+                      ),
+                      itemBuilder: (context, gridIndex) {
+                        final originalIndex = imageEntries[gridIndex].key;
+                        final tx = imageEntries[gridIndex].value;
+
+                        return RepaintBoundary(
+                          child: GestureDetector(
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              Navigator.pop(context, originalIndex);
+                            },
+                            child: ClipRRect(
+                              borderRadius:
+                                  BorderRadius.circular(AppSizes.radiusMedium),
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  Positioned.fill(
+                                    child: LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        final size = constraints.maxWidth;
+
+                                        return TransactionMomentImage(
+                                          imageUrl: tx.displayImageUrl,
+                                          category: tx.category,
+                                          categoryIconCodePoint:
+                                              tx.categoryIconCodePoint,
+                                          categoryColorHex: tx.categoryColorHex,
+                                          caption: null,
+                                          width: size,
+                                          height: size,
+                                          fit: BoxFit.cover,
+                                          borderRadius: BorderRadius.circular(
+                                              AppSizes.radiusMedium),
+                                          isVideo: tx.isVideo,
+                                          showVideoBadge: false,
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  Positioned.fill(
+                                    child: DecoratedBox(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            Colors.black
+                                                .withValues(alpha: 0.02),
+                                            Colors.transparent,
+                                            Colors.black
+                                                .withValues(alpha: 0.42),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  if (tx.caption.trim().isNotEmpty)
+                                    Positioned(
+                                      left: 8,
+                                      right: 8,
+                                      bottom: 8,
+                                      child: Text(
+                                        tx.caption.trim(),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w800,
+                                          shadows: [
+                                            Shadow(
+                                              color: Colors.black45,
+                                              blurRadius: 6,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
             Positioned(
               top: 8,
@@ -3606,7 +4044,10 @@ class FeedGalleryScreen extends StatelessWidget {
                   _HeaderCircleButton(
                     icon: Icons.arrow_back_ios_new_rounded,
                     palette: palette,
-                    onTap: () => Navigator.pop(context),
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      Navigator.pop(context);
+                    },
                   ),
                   const Spacer(),
                   ClipRRect(
@@ -3621,7 +4062,7 @@ class FeedGalleryScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: palette.pillBackground,
                           borderRadius:
-                          BorderRadius.circular(AppSizes.radiusPill),
+                              BorderRadius.circular(AppSizes.radiusPill),
                           border: Border.all(color: palette.pillBorder),
                         ),
                         child: Text(
@@ -3689,13 +4130,13 @@ class _FeedPalette {
         textPrimary: AppColors.darkTextPrimary,
         textSecondary: AppColors.darkTextSecondary,
         accent: AppColors.primaryBlue,
-        pillBackground: Colors.white.withOpacity(0.08),
-        pillBorder: Colors.white.withOpacity(0.05),
-        glassButton: Colors.white.withOpacity(0.08),
-        glassBorder: Colors.white.withOpacity(0.05),
+        pillBackground: Colors.white.withValues(alpha: 0.08),
+        pillBorder: Colors.white.withValues(alpha: 0.05),
+        glassButton: Colors.white.withValues(alpha: 0.08),
+        glassBorder: Colors.white.withValues(alpha: 0.05),
         imageFallback: AppColors.darkSurface,
-        captionBackground: const Color(0xFF8A4D16).withOpacity(0.90),
-        avatarBackground: Colors.white.withOpacity(0.10),
+        captionBackground: const Color(0xFF8A4D16).withValues(alpha: 0.90),
+        avatarBackground: Colors.white.withValues(alpha: 0.10),
       );
     }
 
@@ -3706,13 +4147,13 @@ class _FeedPalette {
       textPrimary: AppColors.lightTextPrimary,
       textSecondary: AppColors.lightTextSecondary,
       accent: AppColors.primaryBlue,
-      pillBackground: Colors.white.withOpacity(0.92),
-      pillBorder: Colors.black.withOpacity(0.06),
-      glassButton: Colors.white.withOpacity(0.92),
-      glassBorder: Colors.black.withOpacity(0.06),
+      pillBackground: Colors.white.withValues(alpha: 0.92),
+      pillBorder: Colors.black.withValues(alpha: 0.06),
+      glassButton: Colors.white.withValues(alpha: 0.92),
+      glassBorder: Colors.black.withValues(alpha: 0.06),
       imageFallback: AppColors.lightSurface,
-      captionBackground: const Color(0xFF8A4D16).withOpacity(0.90),
-      avatarBackground: Colors.black.withOpacity(0.06),
+      captionBackground: const Color(0xFF8A4D16).withValues(alpha: 0.90),
+      avatarBackground: Colors.black.withValues(alpha: 0.06),
     );
   }
 }
@@ -3738,7 +4179,8 @@ class _FailedPostActionBar extends StatelessWidget {
     return AnimatedBuilder(
       animation: FailedPostService.instance,
       builder: (context, _) {
-        final isRetrying = FailedPostService.instance.isRetrying(transaction.id);
+        final isRetrying =
+            FailedPostService.instance.isRetrying(transaction.id);
 
         if (isRetrying) {
           return SizedBox(
@@ -3753,7 +4195,9 @@ class _FailedPostActionBar extends StatelessWidget {
                   child: CircularProgressIndicator(
                     strokeWidth: 2.2,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      isDark ? Colors.white.withValues(alpha: 0.85) : const Color(0xFF374151),
+                      isDark
+                          ? Colors.white.withValues(alpha: 0.85)
+                          : const Color(0xFF374151),
                     ),
                   ),
                 ),
@@ -3761,7 +4205,9 @@ class _FailedPostActionBar extends StatelessWidget {
                 Text(
                   isEn ? 'Sending...' : 'Đang gửi...',
                   style: TextStyle(
-                    color: isDark ? Colors.white.withValues(alpha: 0.90) : const Color(0xFF1F2937),
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.90)
+                        : const Color(0xFF1F2937),
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.2,
